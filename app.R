@@ -9,15 +9,14 @@ load('./data/UndercountingIndex.rda')
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
 
-colnames(Meta_Reg)<-c("iso2", "country",    "registration obligation", "time limit", "comment",    "score" )
+colnames(Meta_Reg)<-c("iso2", "country", "registration obligation", "time limit", "comment", "score" )
 colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-registration obligation third country nationals",
                         "monitoring third country nationals",
                         "administrative corrections",'comment')
 
 Countries<-CountriesS<-unique(NORDIC$iso2[!is.na(NORDIC$ICnraw)])
 
-BB=c(1,1.333333333333333333333333333333333333333333333333333333333,2,4,8,100000)
-BB<-1/BB
+BB <- c(1, 0.75, 0.5, 0.25, 0.125, 1e-5)
 
 DT2DF<-function(x) if (class(x)[1]=='datatables') {
   z<-x$x$data
@@ -89,10 +88,9 @@ firstCap<-function(x) {
   tmp
 }
 
-reformatIE2tab<-function(tab, chide=TRUE){
+reformatIE2tab<-function(tab, chide=TRUE, COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")){
   tab<-DT2DF(tab)
   if (chide) tab<-tab[tab[,1]%in%Countries,]
-  COLO<-c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")
   COLO<-adjustcolor(COLO,blue.f = 0.9,red.f = 0.9,green.f = 0.9)
   tab$B.score<-firstCap(tab$B.score)
   tab$A.score<-firstCap(tab$A.score)
@@ -354,7 +352,7 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
       "dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black", "gold1", "skyblue2", "#FB9A99", "palegreen2",
       "#CAB2D6", "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
       "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown")
-    PAL<-PAL[order(PAL)]
+    PAL<-PAL[order(nchar(PAL))]
     DAT$col<-PAL[DAT$col]
     DAT<-DAT[DAT$iso2%in%country,]
     if (direction=='I'  && !raymer){
@@ -482,15 +480,17 @@ summaryTable<-function(META, MODEL, COMBI, direction='I'){
   RR
 }
 
-thr1=0.25
-thr2=0.6
-wimema=0.25
-wimemb=0.25
-wmetaa=0.25
-wmetab=0.25
-wmodela=1
-wmodelb=1
-mirror=TRUE
+thr1 <- 0.25
+thr2 <- 0.6
+wimema <- 0.25
+wimemb <- 0.25
+wmetaa <- 0.25
+wmetab <- 0.25
+wmodela <- 1
+wmodelb <- 1
+mirror <- TRUE
+
+RefCntrSel <- 3
 
 MWt1 <- 1
 MWt2 <- 0.5
@@ -1051,7 +1051,7 @@ shinyUI <- fluidPage(
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
-                                                              "All countries" = 5),selected = 3),
+                                                              "All countries" = 5),selected = RefCntrSel),
                                   tags$hr(style="border-color: black;"),
                                   radioButtons("IStats", h4("Select the type of the plot"),
                                                choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
@@ -1087,7 +1087,7 @@ shinyUI <- fluidPage(
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
-                                                              "All countries" = 5),selected = 3),
+                                                              "All countries" = 5),selected = RefCntrSel),
                                   tags$hr(style="border-color: black;"),
                                   radioButtons("EStats", h4("Select the type of the plot"),
                                                choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
@@ -1120,7 +1120,7 @@ shinyUI <- fluidPage(
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
-                                                              "All countries" = 5),selected = 3),
+                                                              "All countries" = 5),selected = RefCntrSel),
                                   tags$hr(style="border-color: black;"),
                                   h4('Threshold year'),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
@@ -1173,7 +1173,7 @@ shinyUI <- fluidPage(
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
-                                                              "All countries" = 5),selected = 3),
+                                                              "All countries" = 5),selected = RefCntrSel),
                                   tags$hr(style="border-color: black;"),
                                   h4('Threshold year'),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
