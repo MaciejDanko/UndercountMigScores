@@ -8,6 +8,7 @@ load('./data/MetaData.rda')
 load('./data/UndercountingIndex.rda')
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
+
 colnames(Meta_Reg)<-c("iso2", "country",    "registration obligation", "time limit", "comment",    "score" )
 colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-registration obligation third country nationals",
                         "monitoring third country nationals",
@@ -15,7 +16,6 @@ colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-regi
 
 Countries<-CountriesS<-unique(NORDIC$iso2[!is.na(NORDIC$ICnraw)])
 
-BB=round(c(0, 0.1249387, 0.3010300, 0.6020600, 0.9030900, 5),3)
 BB=c(1,1.333333333333333333333333333333333333333333333333333333333,2,4,8,100000)
 BB<-1/BB
 
@@ -351,20 +351,9 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
     DAT$col<-as.numeric(as.factor(DAT$iso2))
     PAL<-palette.colors(max(DAT$col),'polychrome 36')
     PAL <- c(
-      "dodgerblue2", "#E31A1C", # red
-      "green4",
-      "#6A3D9A", # purple
-      "#FF7F00", # orange
-      "black", "gold1",
-      "skyblue2", "#FB9A99", # lt pink
-      "palegreen2",
-      "#CAB2D6", # lt purple
-      "#FDBF6F", # lt orange
-      "gray70", "khaki2",
-      "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
-      "darkturquoise", "green1", "yellow4", "yellow3",
-      "darkorange4", "brown"
-    )
+      "dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black", "gold1", "skyblue2", "#FB9A99", "palegreen2",
+      "#CAB2D6", "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+      "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown")
     PAL<-PAL[order(PAL)]
     DAT$col<-PAL[DAT$col]
     DAT<-DAT[DAT$iso2%in%country,]
@@ -386,7 +375,6 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
 
 CalcCombineThreshols<-function(META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25, 
                                wimemb=0.5, wmetaa=0.2, wmetab=0.2, wmodela=1, wmodelb=1, 
-                               #imemsup=FALSE, 
                                mirror=TRUE, direction='I'){
   
   cat(thr1, thr2, wimema, wimemb, wmetaa, wmetab, wmodela, wmodelb, mirror, '\n') 
@@ -791,8 +779,6 @@ shinyServer <-  function(input, output, session) {
   output$I2miPlot <- renderPlot({
     plot.BA(I2CBA(),input$I2t1, input$I2t2,
             input$I2t3, input$I2t4, input$I2year, input$I2plotCI, input$I2logscale, input$I2colorCI, input$I2hide)
-    # plot.CBA(input$I2refcountry, input$I2year, 'I',input$I2raymer, input$I2t1, input$I2t2,
-    #          input$I2t3, input$I2t4,input$I2plotCI, input$I2logscale)
   })
   
   #############################
@@ -970,7 +956,7 @@ colsel='#873600'
 shinyUI <- fluidPage( 
   titlePanel("UndercountMigScores",'UndercountMigScores'),
   fluidRow(
-    #column(width = 3, textInput('text_input', label = 'some label', value ='')),
+    
     column(width = 9,
            tags$style(HTML(paste("
                           .tabbable > .nav > li > a {background-color: aqua;  color:black; border-width: medium}
@@ -1005,7 +991,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[2],
                                 br(), br(),
                                 sidebarPanel(
-                                  #tags$p('The score is calculated as follows, and cannot be changed by user... the meta data is based on the Eurostat 2015 report page .... link'),
+                                  
                                   h4("Options"),
                                   checkboxInput("nordicimmi", "Trust Nordic countries (assume low undercounting)", value = TrustNordic),
                                   tags$hr(style="border-color: black;"),
@@ -1081,7 +1067,7 @@ shinyUI <- fluidPage(
                                 br(),br(),
                                 mainPanel(
                                   plotOutput(outputId = "ImiPlot", height="600px"),
-                                  #br(),
+                                  
                                   div(style="display:inline-block;vertical-align:top;",
                                       br(),
                                       h4('Choose format and save plot'),
@@ -1117,7 +1103,7 @@ shinyUI <- fluidPage(
                                 br(),br(),
                                 mainPanel(
                                   plotOutput(outputId = "EmiPlot", height="600px"),
-                                  #br(),
+                                  
                                   div(style="display:inline-block;vertical-align:top;",
                                       br(),
                                       h4('Choose format and save plot'),
@@ -1165,7 +1151,7 @@ shinyUI <- fluidPage(
                                 br(),br(),
                                 mainPanel(
                                   plotOutput(outputId = "I2miPlot", height="600px"),
-                                  #br(),
+                                  
                                   div(style="display:inline-block;vertical-align:top;",
                                       br(),
                                       h4('Choose format and save plot'),
@@ -1215,7 +1201,7 @@ shinyUI <- fluidPage(
                                 br(),br(),
                                 mainPanel(
                                   plotOutput(outputId = "E2miPlot", height="600px"),
-                                  #br(),
+                          
                                   div(style="display:inline-block;vertical-align:top;",
                                       br(),
                                       h4('Choose format and save plot'),
