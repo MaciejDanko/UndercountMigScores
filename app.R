@@ -948,6 +948,15 @@ shinyServer <-  function(input, output, session) {
     h5(yrange)
   })
   
+  output$dynamicT1 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='red',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+    content = c('The <b>score num</b> is classified into scores as follows:','',
+                paste("<b>score num</b> from 0 to", input$Emimetat1,'=> score = <span style="color:green">Low</span>'),
+                paste("<b>score num</b> from ",input$Emimetat1,"to", input$Emimetat2,'=> score = <span style="color:orange">Medium</span>'),
+                paste("<b>score num</b> from ",input$Emimetat2,'to 1 => score = <span style="color:red">High</span>'))
+    )
+  })
 }
 
 colabout="#A9DFBF"
@@ -982,7 +991,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.8.1 (2021)'),
+                                       h3('UndercountMigScores v0.3.2 (2021)'),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1018,7 +1027,7 @@ shinyUI <- fluidPage(
                                 sidebarPanel(
                                   helper(h4('Weights'),
                                          colour='red',type='inline',title='Weighted mean',buttonLabel = 'Close',
-                                         content=c('The <b>Score num<\b> is calcualted as weighted mean and exclude all "Unknown" records.')),
+                                         content=c('The <b>Score num</b> is calcualted as a weighted mean and exclude all variables with "Unknown" records.')),
                                   sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=0.001),
                                   sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=0.001),
                                   sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=0.001),
@@ -1030,7 +1039,8 @@ shinyUI <- fluidPage(
                                          colour='red',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
                                          content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:green">Low</span> score for all Nordic countries ignoring the metadata.' )),
                                   tags$hr(style="border-color: black;"),
-                                  h4('Score classification thresholds'),
+                                  #h4('Score classification thresholds'),
+                                  uiOutput(outputId = "dynamicT1"),
                                   sliderInput(inputId = "Emimetat1", label = "Low | Medium", min = 0, max = 1, value = MThr1, step=0.001),
                                   sliderInput(inputId = "Emimetat2", label = "Medium | High", min = 0, max = 1, value = MThr2, step=0.001),
                                   actionButton("EMthreshreset", "Reset"),
