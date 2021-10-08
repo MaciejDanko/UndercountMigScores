@@ -3,6 +3,7 @@ rm(list=ls())
 library(DT)
 library(shiny)
 library(colourpicker)
+library(shinyhelper)
 
 load('./data/MetaData.rda')
 load('./data/UndercountingIndex.rda')
@@ -514,6 +515,8 @@ PanelNames<-c('About','Meta data classify (I)','Meta data classify (E)','Model p
 
 shinyServer <-  function(input, output, session) {
   
+  observe_helpers(withMathJax = TRUE, help_dir = 'help')
+  
   observeEvent(input$I2t1,  {
     updateSliderInput(session = session, inputId = "I2t2", max = input$I2t1)
     updateSliderInput(session = session, inputId = "I2t3", max = input$I2t2)
@@ -993,7 +996,11 @@ shinyUI <- fluidPage(
                                 sidebarPanel(
                                   
                                   h4("Options"),
-                                  checkboxInput("nordicimmi", "Trust Nordic countries (assume low undercounting)", value = TrustNordic),
+                                  helper(checkboxInput("nordicimmi", "Trust Nordic countries", value = TrustNordic),
+                                         colour='red',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
+                                         content=c('No obligation of registration = <span style="color:red">High</span> undercounting, obligation of registration = <span style="color:green">Low</span> undercounting,
+                                                                                                           but if <b>No limit</b> or <b>No sanctions</b> occur the score is changed to <span style="color:orange">Medium</span>.',
+                                                   '','The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:green">Low</span> score for all Nordic countries ignoring the metadata.' )),       
                                   tags$hr(style="border-color: black;"),
                                   h4("References"),
                                   tags$body('Tab4a (page 20) of'),
@@ -1009,7 +1016,9 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[3],
                                 br(), br(),
                                 sidebarPanel(
-                                  h4('Weights'),
+                                  helper(h4('Weights'),
+                                         colour='red',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                         content=c('The <b>Score num<\b> is calcualted as weighted mean and exclude all "Unknown" records.')),
                                   sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=0.001),
                                   sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=0.001),
                                   sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=0.001),
@@ -1017,7 +1026,9 @@ shinyUI <- fluidPage(
                                   actionButton("EMweightsreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4("Options"),
-                                  checkboxInput("nordicemi", 'Trust Nordic Countries (assume low undercounting)', value = TrustNordic),
+                                  helper(checkboxInput("nordicemi", 'Trust Nordic countries', value = TrustNordic),
+                                         colour='red',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
+                                         content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:green">Low</span> score for all Nordic countries ignoring the metadata.' )),
                                   tags$hr(style="border-color: black;"),
                                   h4('Score classification thresholds'),
                                   sliderInput(inputId = "Emimetat1", label = "Low | Medium", min = 0, max = 1, value = MThr1, step=0.001),
@@ -1201,7 +1212,7 @@ shinyUI <- fluidPage(
                                 br(),br(),
                                 mainPanel(
                                   plotOutput(outputId = "E2miPlot", height="600px"),
-                          
+                                  
                                   div(style="display:inline-block;vertical-align:top;",
                                       br(),
                                       h4('Choose format and save plot'),
