@@ -427,13 +427,13 @@ CalcCombineThreshols<-function(META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
   Bscore<-cut(Bres,c(0,thr1,thr2,1),L3,include.lowest = TRUE)
   Ascore<-cut(Ares,c(0,thr1,thr2,1),L3,include.lowest = TRUE)
   if (!mirror) {
-    RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'meta data score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc, 
+    RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'metadata score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc, 
                    'combined score num (B)' = round(Bres,3), 'combined score num (A)' = round(Ares,3), 'combined score (B)' = Bscore, 'combined score (A)' = Ascore,
                    check.names = FALSE, stringsAsFactors = FALSE)
     RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
   } else {
     
-    RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'meta data score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc, 
+    RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'metadata score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc, 
                    'combined score num (B)' = round(Bres,3), 'combined score num (A)' = round(Ares,3), 'combined score (B)' = Bscore, 'combined score (A)' = Ascore, 
                    Indb = IBsc, Inda = IAsc,
                    check.names = FALSE, stringsAsFactors = FALSE)
@@ -466,13 +466,13 @@ summaryTable<-function(META, MODEL, COMBI, direction='I'){
   LIGHTGREEN<-'#7FEE7F'
   COLO<-c(LIGHTGREEN,GREEN,ORANGE,RED,LIGHTRED)
   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
-  RR<-data.frame(iso2=META$iso2, country=META$country,'IMEM score' = IMEMc, 'meta data score' = META$score, 
+  RR<-data.frame(iso2=META$iso2, country=META$country,'IMEM score' = IMEMc, 'metadata score' = META$score, 
                  "model score (B)" = firstCap(MODEL$B.score), "model score (A)" = firstCap(MODEL$A.score),
                  "combined score (B)" = COMBI$`combined score (B)`,"combined score (A)" = COMBI$`combined score (A)`,
                  stringsAsFactors = FALSE, check.names = FALSE)
   RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
   RR<-formatStyle(RR, columns = "IMEM score", color=styleEqual(c('Low','High'), c(GREEN,RED))) 
-  RR<-formatStyle(RR, columns = "meta data score", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED))) 
+  RR<-formatStyle(RR, columns = "metadata score", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED))) 
   RR<-formatStyle(RR, columns = "model score (B)", color=styleEqual(LEVELS, COLO)) 
   RR<-formatStyle(RR, columns = "model score (A)", color=styleEqual(LEVELS, COLO)) 
   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED))) 
@@ -510,7 +510,7 @@ WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registrati
 CountriesL<-paste(countrycode::countrycode(Countries,'eurostat','country.name'),' (',Countries,')',sep='')
 Countries<-as.list(Countries)
 names(Countries)<-CountriesL
-PanelNames<-c('About','Meta data classify (I)','Meta data classify (E)','Model plots (I)','Model plots (E)',
+PanelNames<-c('About','Metadata classify (I)','Metadata classify (E)','Model plots (I)','Model plots (E)',
               'Model classify (I)','Model classify (E)','Combined scores (I)','Combined scores (E)','Scores summary (I)','Scores summary (E)', 'Help')
 
 shinyServer <-  function(input, output, session) {
@@ -996,7 +996,7 @@ shinyUI <- fluidPage(
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
                                        h4('Author: Maciej J. Dańko'),
-                                       h4('email: danko@demohr.mpg.de'),
+                                       h4('email: danko@demogr.mpg.de'),
                                        br()
                                 )
                        ),          
@@ -1245,8 +1245,8 @@ shinyUI <- fluidPage(
                                   uiOutput('I2yearshow'),
                                   sliderInput(inputId = "I3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=0.001),
                                   sliderInput(inputId = "I3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=0.001),
-                                  sliderInput(inputId = "I3wmetab", label = "Meta data score num (B)", min = 0, max = 1, value = wmetab, step=0.001),
-                                  sliderInput(inputId = "I3wmetaa", label = "Meta data score num (A)", min = 0, max = 1, value = wmetaa, step=0.001),
+                                  sliderInput(inputId = "I3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=0.001),
+                                  sliderInput(inputId = "I3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=0.001),
                                   sliderInput(inputId = "I3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=0.001),
                                   sliderInput(inputId = "I3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=0.001),
                                   actionButton("I3weightsreset", "Reset"),
@@ -1272,8 +1272,8 @@ shinyUI <- fluidPage(
                                   uiOutput('E2yearshow'),
                                   sliderInput(inputId = "E3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=0.001),
                                   sliderInput(inputId = "E3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=0.001),
-                                  sliderInput(inputId = "E3wmetab", label = "Meta data score num (B)", min = 0, max = 1, value = wmetab, step=0.001),
-                                  sliderInput(inputId = "E3wmetaa", label = "Meta data score num (A)", min = 0, max = 1, value = wmetaa, step=0.001),
+                                  sliderInput(inputId = "E3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=0.001),
+                                  sliderInput(inputId = "E3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=0.001),
                                   sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=0.001),
                                   sliderInput(inputId = "E3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=0.001),
                                   actionButton("E3weightsreset", "Reset"),
