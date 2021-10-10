@@ -1,5 +1,7 @@
 rm(list=ls())
 
+Sys.setlocale("LC_ALL","en_US.UTF-8")
+
 library(DT)
 library(shiny)
 library(colourpicker)
@@ -513,9 +515,11 @@ names(Countries)<-CountriesL
 PanelNames<-c('About','Metadata classify (I)','Metadata classify (E)','Model plots (I)','Model plots (E)',
               'Model classify (I)','Model classify (E)','Combined scores (I)','Combined scores (E)','Scores summary (I)','Scores summary (E)', 'Help')
 
+
+
 shinyServer <-  function(input, output, session) {
   
-  observe_helpers(withMathJax = TRUE, help_dir = 'help')
+  observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
   
   observeEvent(input$I2t1,  {
     updateSliderInput(session = session, inputId = "I2t2", max = input$I2t1)
@@ -687,8 +691,8 @@ shinyServer <-  function(input, output, session) {
       plot_ui_result('E', 
                      country=input$Ecountry, 
                      refcountry=input$Erefcountry, 
-                     stats=input$EStats, 
-                     extrapol=input$Eextrapol, 
+                     stats=2, 
+                     extrapol=FALSE, 
                      raymer=input$Eraymer, 
                      logscale=input$Elogscale, 
                      plotCI=input$EplotCI)
@@ -711,8 +715,8 @@ shinyServer <-  function(input, output, session) {
       plot_ui_result('I', 
                      country=input$Icountry, 
                      refcountry=input$Irefcountry, 
-                     stats=input$IStats, 
-                     extrapol=input$Iextrapol, 
+                     stats=2, 
+                     extrapol=FALSE, 
                      raymer=input$Iraymer, 
                      logscale=input$Ilogscale, 
                      plotCI=input$IplotCI)
@@ -724,8 +728,8 @@ shinyServer <-  function(input, output, session) {
     plot_ui_result('E', 
                    country=input$Ecountry, 
                    refcountry=input$Erefcountry, 
-                   stats=input$EStats, 
-                   extrapol=input$Eextrapol, 
+                   stats=2, 
+                   extrapol=FALSE, 
                    raymer=input$Eraymer, 
                    logscale=input$Elogscale, 
                    plotCI=input$EplotCI)
@@ -735,8 +739,8 @@ shinyServer <-  function(input, output, session) {
     plot_ui_result('I', 
                    country=input$Icountry, 
                    refcountry=input$Irefcountry, 
-                   stats=input$IStats, 
-                   extrapol=input$Iextrapol, 
+                   stats=2, 
+                   extrapol=FALSE, 
                    raymer=input$Iraymer, 
                    logscale=input$Ilogscale, 
                    plotCI=input$IplotCI)
@@ -951,10 +955,10 @@ shinyServer <-  function(input, output, session) {
   output$dynamicT1 <-renderUI({
     helper(h4('Score classification thresholds'),
            colour='red',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
-    content = c('The <b>score num</b> is classified into scores as follows:','',
-                paste("<b>score num</b> from 0 to", input$Emimetat1,'=> score = <span style="color:green">Low</span>'),
-                paste("<b>score num</b> from ",input$Emimetat1,"to", input$Emimetat2,'=> score = <span style="color:orange">Medium</span>'),
-                paste("<b>score num</b> from ",input$Emimetat2,'to 1 => score = <span style="color:red">High</span>'))
+    content = c('The <b>score num</b> is classified into <b>score</b> as follows:','',
+                paste("<b>score num</b> from 0 to", input$Emimetat1,': <b>score</b> = <span style="color:green">Low</span>'),
+                paste("<b>score num</b> from ",input$Emimetat1,"to", input$Emimetat2,': <b>score</b> = <span style="color:orange">Medium</span>'),
+                paste("<b>score num</b> from ",input$Emimetat2,'to 1 : <b>score</b> = <span style="color:red">High</span>'))
     )
   })
 }
@@ -993,10 +997,15 @@ shinyUI <- fluidPage(
                                        br(),
                                        h3('UndercountMigScores v0.3.2 (2021)'),
                                        br(),
+                                       #withMathJax(includeMarkdown('helpfiles/BilateralModel.Rmd')),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
                                        h4('Author: Maciej J. Dańko'),
                                        h4('email: danko@demogr.mpg.de'),
+                                       br(),
+                                       h4('Max Planck Institute for Demographic Research'),
+                                       h4('Rostock'),
+                                       h4('Germany'),
                                        br()
                                 )
                        ),          
@@ -1027,7 +1036,7 @@ shinyUI <- fluidPage(
                                 sidebarPanel(
                                   helper(h4('Weights'),
                                          colour='red',type='inline',title='Weighted mean',buttonLabel = 'Close',
-                                         content=c('The <b>Score num</b> is calcualted as a weighted mean and exclude all variables with "Unknown" records.')),
+                                         content=c('The <b>score num</b> is calcualted as a weighted mean which excludes all variables with "Unknown" records.')),
                                   sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=0.001),
                                   sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=0.001),
                                   sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=0.001),
@@ -1063,25 +1072,36 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[4],
                                 br(),br(),
                                 sidebarPanel(
+                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                         content='BilateralModel'),       
+                                  tags$p(HTML("This page (panel) <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
+                                  tags$hr(style="border-color: black;"),
+                                  
                                   checkboxGroupInput("Icountry", h4("Countries selection"), 
                                                      choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
+                                         
                                   actionButton("Iall", "All"),actionButton("Inone", "None"),
                                   tags$hr(style="border-color: black;"),
                                   
-                                  radioButtons("Irefcountry", h4("Reference group of countries"),
+                                  helper(radioButtons("Irefcountry", h4("Reference group of countries"),
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
-                                  tags$hr(style="border-color: black;"),
-                                  radioButtons("IStats", h4("Select the type of the plot"),
-                                               choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
+                                  colour='red',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                  content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                          
+                                  # tags$hr(style="border-color: black;"),
+                                  # radioButtons("IStats", h4("Select the type of the plot"),
+                                  #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
                                   tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
-                                  checkboxInput("Iraymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                  helper(checkboxInput("Iraymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                         colour='red',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                         content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
-                                  checkboxInput("Iextrapol", "Extrapolate missing values", value = FALSE),
+                                  #checkboxInput("Iextrapol", "Extrapolate missing values", value = FALSE),
                                   checkboxInput("Ilogscale", "Use log-scale", value = TRUE),
                                   checkboxInput("IplotCI", "Plot confidence intervals", value = TRUE),
                                 ),
@@ -1100,24 +1120,33 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[5],
                                 br(),br(),
                                 sidebarPanel(
+                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                         content='BilateralModel'),       
+                                  tags$p(HTML("This page (panel) <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
+                                  tags$hr(style="border-color: black;"),
+                                  
                                   checkboxGroupInput("Ecountry", h4("Countries selection"), 
                                                      choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
                                   actionButton("Eall", "All"),actionButton("Enone", "None"),
                                   tags$hr(style="border-color: black;"),
-                                  radioButtons("Erefcountry", h4("Reference group of countries"),
+                                  helper(radioButtons("Erefcountry", h4("Reference group of countries"),
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
+                                  colour='red',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                  content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
-                                  radioButtons("EStats", h4("Select the type of the plot"),
-                                               choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
-                                  tags$hr(style="border-color: black;"),
+                                  # radioButtons("EStats", h4("Select the type of the plot"),
+                                  #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
+                                  # tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
-                                  checkboxInput("Eraymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                  helper(checkboxInput("Eraymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                  colour='red',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                  content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
-                                  checkboxInput("Eextrapol", "Extrapolate missing values", value = FALSE),
+                                  #checkboxInput("Eextrapol", "Extrapolate missing values", value = FALSE),
                                   checkboxInput("Elogscale", "Use log-scale", value = TRUE),
                                   checkboxInput("EplotCI", "Plot confidence intervals", value = TRUE)
                                 ),
@@ -1137,18 +1166,27 @@ shinyUI <- fluidPage(
                                 
                                 br(),br(),
                                 sidebarPanel(
-                                  radioButtons("I2refcountry", h4("Reference group of countries"),
+                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                         content='BilateralModel'),       
+                                  tags$p(HTML("This page (panel) can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (I)</b>).")),
+                                  tags$hr(style="border-color: black;"),
+                                  
+                                  helper(radioButtons("I2refcountry", h4("Reference group of countries"),
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
+                                         colour='red',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                         content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Threshold year'),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
-                                  checkboxInput("I2raymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                  helper(checkboxInput("I2raymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                         colour='red',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                         content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Score classification thresholds'),
                                   sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
@@ -1190,11 +1228,17 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[7],
                                 br(),br(),
                                 sidebarPanel(
-                                  radioButtons("E2refcountry", h4("Reference group of countries"),
+                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                         content='BilateralModel'),       
+                                  tags$p(HTML("This page (panel) can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (E)</b>).")),
+                                  tags$hr(style="border-color: black;"),
+                                  helper(radioButtons("E2refcountry", h4("Reference group of countries"),
                                                choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
+                                         colour='red',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                         content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Threshold year'),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
