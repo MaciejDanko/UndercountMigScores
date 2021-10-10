@@ -1,7 +1,8 @@
 **The bilateral flows ratio model**
 
-The undercount scores can be calculated using the bilateral migration data, by comparing the same flows reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries reported by country X and divide it by the same flow reported by the group of good data quality countries (the reference countries). Because the duration of stay may differs among countries the flows reported by each country should be somehow corrected. Here, we use Raymer's 2013 estimates for duration of stay as the duration of stay correction coefficients.
+The undercount scores can be calculated using the bilateral migration data, by comparing the same flows reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries reported by country X and divide it by the same flow reported by the group of good data quality countries (the reference countries). Because the duration of stay may differs among countries the flows reported by each country should be somehow corrected. Here, we use Raymer's (2013) estimates for duration of stay as the duration of stay correction coefficients.
 
+<br>
 
 <style>
 
@@ -22,14 +23,13 @@ tr:hover {background-color: #E0DDFF;}
 table {
   border-collapse: collapse;
   width:80%;
-  align: center;
 }
 
 </style>
 
 <center>
 
-|        Duration of stay in months       |        Raymer's correction      |
+|        Duration of stay in months       |        Raymer's coefficient     |
 |:---------------------------------------:|:-------------------------------:|
 |                     0                   |              0.53               |
 |                     3                   |              0.63               |
@@ -69,3 +69,8 @@ There are two main disadvantages of the constructed undercounting measure:
 **Confidence intervals of the bilateral flows ratio**
 
 [ To be written]
+
+**References**
+
+<a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20">Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F. and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819.</a>
+

@@ -55,7 +55,7 @@ Recalc_Meta_DeReg<-function(MetaDeReg,w1,w2,w3,w4,t1,t2, trustnordic){
   MetaDeReg$score<-score
   MetaDeReg$score[is.na(score_num)]<-'Unknown'
   MetaDeReg<-datatable(MetaDeReg, options=list(pageLength=nrow(MetaDeReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
-  MetaDeReg<-formatStyle(MetaDeReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("green", "orange","red"))) 
+  MetaDeReg<-formatStyle(MetaDeReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000"))) 
   MetaDeReg<-formatStyle(MetaDeReg, c(2,7), "border-right" = "solid 1px", "border-right-color"='black')
   MetaDeReg
 }
@@ -77,7 +77,7 @@ Recalc_Meta_Reg<-function(MetaReg, trustnordic=TRUE){
     MetaReg$`score num`[isNORDIC] <- 0
   }
   MetaReg<-datatable(MetaReg, rownames=FALSE, options=list(pageLength=nrow(MetaReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
-  MetaReg<-formatStyle(MetaReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("green", "orange","red"))) 
+  MetaReg<-formatStyle(MetaReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000"))) 
   MetaReg<-formatStyle(MetaReg, columns = "time limit", fontWeight = styleEqual('No limit', c("bold"))) 
   MetaReg<-formatStyle(MetaReg, columns = "comment", fontWeight = styleEqual('No sanctions', c("bold"))) 
   MetaReg<-formatStyle(MetaReg, c(2,5), "border-right" = "solid 1px", "border-right-color"='black')
@@ -91,13 +91,14 @@ firstCap<-function(x) {
   tmp
 }
 
-reformatIE2tab<-function(tab, chide=TRUE, COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")){
+reformatIE2tab<-function(tab, chide=TRUE, COLO){
   tab<-DT2DF(tab)
   if (chide) tab<-tab[tab[,1]%in%Countries,]
-  COLO<-adjustcolor(COLO,blue.f = 0.9,red.f = 0.9,green.f = 0.9)
+  cat(COLO,'\n')
+  #COLO<-adjustcolor(COLO,blue.f = 0.9,red.f = 0.9,#008000.f = 0.9)
   tab$B.score<-firstCap(tab$B.score)
   tab$A.score<-firstCap(tab$A.score)
-  colnames(tab)<-c('iso2','country','before (B)','lo (B)','hi (B)','score (B)','score num (B)','after (A)','lo (A)','hi (A)','score (A)','score num (A)')
+  colnames(tab)<-c('iso2','country','median (B)','lo (B)','hi (B)','score (B)','score num (B)','median (A)','lo (A)','hi (A)','score (A)','score num (A)')
   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
   tab<-datatable(tab,options=list(pageLength=nrow(tab), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))),
                  rownames=FALSE)
@@ -230,12 +231,16 @@ CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=TRUE,
   res
 }
 
-plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=2008, plotci=TRUE, logscale=TRUE, colCI='#FFFFFF',hidec=FALSE){
+plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=2008, plotci=TRUE, logscale=TRUE, colCI='#FFFFFF',hidec=FALSE, 
+                  #COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")
+                  COLO){
   if (hidec) RES<-RES[RES$iso2 %in% Countries,]
   if (logscale) flog10<-log10 else flog10<-function(x) identity(x)
   THRESH<-flog10(1/c(1+(!logscale)*99,thr1,thr2,thr3,thr4,1e-5))
   if (!logscale) THRESH = 1/THRESH
-  COL=c(rgb(0.8,0.4,0.1),rgb(0.3,0.4,0.9))
+  #COL=c(rgb(0.8,0.4,0.1),rgb(0.3,0.4,0.9))
+  COL<-c('#D0D000','#000080')
+  COLd<-c('#A0A000','#000080')
   if (logscale) neg2NA<-function(x) {x[x<=0]<-NA;x} else neg2NA<-function(x) {x[x<=0]<-0;x}
   X<-rbind(flog10(RES$B.Est),flog10(RES$A.Est))
   par(oma=c(0,0,2,0),mar=c(2.5,4,2.5,0))
@@ -246,12 +251,12 @@ plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=20
   axis(1, at=colMeans(z),labels = RES$iso2,las=3,cex.axis=1.3); 
   mtext('Bilateral flows ratio',2,2.5,cex=1.5)  
   box();box();
-  col.pal=c(adjustcolor('green',alpha.f = 0.5),
-            adjustcolor('green4',alpha.f = 0.5),
-            adjustcolor('yellow2',alpha.f = 0.5),
-            adjustcolor('orange',alpha.f = 0.5),
-            adjustcolor('red2',alpha.f = 0.25))
-  
+  # col.pal=c(adjustcolor('green',alpha.f = 0.5),
+  #           adjustcolor('green4',alpha.f = 0.5),
+  #           adjustcolor('yellow2',alpha.f = 0.5),
+  #           adjustcolor('orange',alpha.f = 0.5),
+  #           adjustcolor('red2',alpha.f = 0.25))
+  col.pal<-COLO
   if(logscale){
     rect(-10,-THRESH[6],max(z)*2,THRESH[6],col=col.pal[5],border=NA)
     rect(-10,-THRESH[5],max(z)*2,THRESH[6],col=col.pal[4],border=NA)
@@ -269,19 +274,19 @@ plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=20
   }
   abline(v=colMeans(z),lty=3,col=rgb(0.6,0.6,0.6))
   
-  axis(3, at=z[1,]-0.15,labels =toupper(RES$B.score),las=3,cex.axis=0.75,col.axis=COL[1],padj=0.5)
-  axis(3, at=z[2,]+0.15,labels =toupper(RES$A.score),las=3,cex.axis=0.75,col.axis=COL[2],padj=0.5)
+  axis(3, at=z[1,]-0.15,labels =toupper(RES$B.score),las=3,cex.axis=0.75,col.axis=COLd[1],padj=0.5)
+  axis(3, at=z[2,]+0.15,labels =toupper(RES$A.score),las=3,cex.axis=0.75,col.axis=COLd[2],padj=0.5)
   z<-barplot(X,axes=F,beside=TRUE,col=COL,add=TRUE);box();box()
   if (logscale) magicaxis::magaxis(2,unlog=T,cex.axis=1.5) else axis(2,cex.axis=1.5)
   if (plotci) {
     LOCI<-rbind(flog10(RES$B.lo.CI),flog10(RES$A.lo.CI))
     HICI<-rbind(flog10(RES$B.hi.CI),flog10(RES$A.hi.CI))
     for (j in 1:2) for(k in 1:ncol(z)){
-      lines(c(z[j,k],z[j,k]),c(LOCI[j,k],HICI[j,k]),lwd=1.5,col=colCI)
+      lines(c(z[j,k],z[j,k]),c(LOCI[j,k],HICI[j,k]),lwd=2,col=colCI)
     }
   }
   if(logscale) lpos<-'bottomright' else lpos<-'topright'
-  legend(lpos,bty='n',c(paste('Before',threshyear),paste('After',threshyear-1)),text.col = COL,fill=COL)
+  legend(lpos,bty='n',c(paste('Before',threshyear),paste('After',threshyear-1)),text.col = COL,fill=COL,cex=1.5)
   
 }
 
@@ -445,13 +450,13 @@ CalcCombineThreshols<-function(META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
     ))
     RR<-formatStyle(RR, columns = c("model score num (A)","model score num (B)"), valueColumns = c('Inda','Indb'), color=styleEqual(1,"magenta"))
   }
-  RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c("green", "orange","red"))) 
-  RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c("green", "orange","red"))) 
+  RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000"))) 
+  RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000"))) 
   RR<-formatStyle(RR, c(2,6,8), "border-right" = "solid 1px", "border-right-color"='black')
   RR
 }
 
-summaryTable<-function(META, MODEL, COMBI, direction='I'){
+summaryTable<-function(META, MODEL, COMBI, direction='I', COLO){
   META<-DT2DF(META)
   COMBI<-DT2DF(COMBI)
   MODEL<-DT2DF(MODEL)
@@ -461,12 +466,12 @@ summaryTable<-function(META, MODEL, COMBI, direction='I'){
   if(direction=='I') posI<-2 else if(direction=='E') posI<-3
   IMEMc<-factor(firstCap(unlist(IMEMi[,posI])),levels=LIMEM)
   
-  RED<-"red"#'#AA0000'
-  GREEN<-"green"#'#00AA00'
-  ORANGE<-"orange"#'#FF7F00'
-  LIGHTRED<-'#FF5555'
-  LIGHTGREEN<-'#7FEE7F'
-  COLO<-c(LIGHTGREEN,GREEN,ORANGE,RED,LIGHTRED)
+  RED<-"#FF0000"#'#AA0000'
+  GREEN<-"#008000"#'#00AA00'
+  ORANGE<-"#FFA500"#'#FF7F00'
+  # LIGHTRED<-'#FF5555'
+  # LIGHTGREEN<-'#7FEE7F'
+  # COLO<-c(LIGHTGREEN,GREEN,ORANGE,RED,LIGHTRED)
   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
   RR<-data.frame(iso2=META$iso2, country=META$country,'IMEM score' = IMEMc, 'metadata score' = META$score, 
                  "model score (B)" = firstCap(MODEL$B.score), "model score (A)" = firstCap(MODEL$A.score),
@@ -505,6 +510,14 @@ TrustNordic<-TRUE
 Meta_DeReg<-Recalc_Meta_DeReg(Meta_DeReg,MWt1,MWt2,MWt3,MWt4,MThr1,MThr2,TrustNordic)
 Meta_Reg<-Recalc_Meta_Reg(Meta_Reg, TrustNordic)
 
+#COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")
+#COLO=c("#80FF80",'#00DD00','#FFFF00','#FFDD80','#FF8080')
+COLO=c("#00DD00",'#008000','#FFA500','#FF0000','#800000')
+# col.pal=c(adjustcolor('green',alpha.f = 0.5),
+#           adjustcolor('green4',alpha.f = 0.5),
+#           adjustcolor('yellow2',alpha.f = 0.5),
+#           adjustcolor('orange',alpha.f = 0.5),
+#           adjustcolor('red2',alpha.f = 0.25))
 #tmp<-colnames(Meta_DeReg$x$data[,4:7])
 # WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registration of third country nationals','Monitoring third country nationals','Administrative corrections'),
 #                   " (",tmp,")",sep='')
@@ -757,7 +770,7 @@ shinyServer <-  function(input, output, session) {
     filename = function() { 
       paste('Immi_Undercounting_Scores', '.csv', sep='') },
     content = function(file) {
-      write.csv(DT2DF(reformatIE2tab(I2CBA())), file,row.names = FALSE)
+      write.csv(DT2DF(reformatIE2tab(I2CBA(), input$I2hide, COLO)), file,row.names = FALSE)
     }
   )
   
@@ -774,18 +787,18 @@ shinyServer <-  function(input, output, session) {
         tiff(file,width=8*600,height=6*600,res=600,compression = 'rle')
       }  
       plot.BA(I2CBA(),input$I2t1, input$I2t2,
-              input$I2t3, input$I2t4, input$I2year, input$I2plotCI, input$I2logscale)
+              input$I2t3, input$I2t4, input$I2year, input$I2plotCI, input$I2logscale, input$I2colorCI, input$I2hide, COLO=COLO)
       dev.off()
     }
   )
-  
+    
   output$I2table<-renderDT({
-    reformatIE2tab(I2CBA(), input$I2hide)
+    reformatIE2tab(I2CBA(), input$I2hide, COLO)
   })
   
   output$I2miPlot <- renderPlot({
     plot.BA(I2CBA(),input$I2t1, input$I2t2,
-            input$I2t3, input$I2t4, input$I2year, input$I2plotCI, input$I2logscale, input$I2colorCI, input$I2hide)
+            input$I2t3, input$I2t4, input$I2year, input$I2plotCI, input$I2logscale, input$I2colorCI, input$I2hide, COLO=COLO)
   })
   
   #############################
@@ -799,7 +812,7 @@ shinyServer <-  function(input, output, session) {
     filename = function() { 
       paste('Emi_Undercounting_Scores', '.csv', sep='') },
     content = function(file) {
-      write.csv(DT2DF(reformatIE2tab(E2CBA())), file,row.names = FALSE)
+      write.csv(DT2DF(reformatIE2tab(E2CBA() , input$I2hide, COLO)), file,row.names = FALSE)
     }
   )
   
@@ -816,18 +829,18 @@ shinyServer <-  function(input, output, session) {
         tiff(file,width=8*600,height=6*600,res=600,compression = 'rle')
       }  
       plot.BA(E2CBA(),input$E2t1, input$E2t2,
-              input$E2t3, input$E2t4, input$E2year, input$E2plotCI, input$E2logscale)
+              input$E2t3, input$E2t4, input$E2year, input$E2plotCI, input$E2logscale, input$E2colorCI, input$E2hide,COLO)
       dev.off()
     }
   )
   
   output$E2table<-renderDT({
-    reformatIE2tab(E2CBA(), input$E2hide)
+    reformatIE2tab(E2CBA(), input$E2hide, COLO)
   })
   
   output$E2miPlot <- renderPlot({
     plot.BA(E2CBA(),input$E2t1, input$E2t2,
-            input$E2t3, input$E2t4, input$E2year, input$E2plotCI, input$E2logscale, input$E2colorCI, input$E2hide)
+            input$E2t3, input$E2t4, input$E2year, input$E2plotCI, input$E2logscale, input$E2colorCI, input$E2hide, COLO)
   })
   
   #########################3
@@ -864,7 +877,7 @@ shinyServer <-  function(input, output, session) {
     I3tabre()
   })
   
-  I4tabre<-reactive(summaryTable(ImmiMetaScores(),I2CBA(), I3tabre(), 'I'))
+  I4tabre<-reactive(summaryTable(ImmiMetaScores(),I2CBA(), I3tabre(), 'I', COLO))
   
   output$I4table<-renderDT({
     I4tabre()
@@ -920,7 +933,7 @@ shinyServer <-  function(input, output, session) {
     E3tabre()
   })
   
-  E4tabre<-reactive(summaryTable(EmiMetaScores(),E2CBA(), E3tabre(), 'E'))
+  E4tabre<-reactive(summaryTable(EmiMetaScores(),E2CBA(), E3tabre(), 'E', COLO))
   
   output$E4table<-renderDT({
     E4tabre()
@@ -954,13 +967,43 @@ shinyServer <-  function(input, output, session) {
   
   output$dynamicT1 <-renderUI({
     helper(h4('Score classification thresholds'),
-           colour='red',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
     content = c('The <b>score num</b> is classified into <b>score</b> as follows:','',
-                paste("<b>score num</b> from 0 to", input$Emimetat1,': <b>score</b> = <span style="color:green">Low</span>'),
-                paste("<b>score num</b> from ",input$Emimetat1,"to", input$Emimetat2,': <b>score</b> = <span style="color:orange">Medium</span>'),
-                paste("<b>score num</b> from ",input$Emimetat2,'to 1 : <b>score</b> = <span style="color:red">High</span>'))
+                paste("<b>score num</b> from 0 to", input$Emimetat1,': <b>score</b> = <span style="color:#008000">Low</span>'),
+                paste("<b>score num</b> from ",input$Emimetat1,"to", input$Emimetat2,': <b>score</b> = <span style="color:#FFA500">Medium</span>'),
+                paste("<b>score num</b> from ",input$Emimetat2,'to 1 : <b>score</b> = <span style="color:#FF0000">High</span>'))
     )
   })
+  
+  output$dynamicTI2 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('Median bilateral flow ratios (<b>median (B)</b> and <b>median (A)</b>) are classified into <b>score</b>s (<b>(B) and (A)</b>) as follows:','',
+                       paste("<b>median</b> from 0 to", input$I2t4,': <b>score</b> = <span style="color:',COLO[1],'">Very high</span>, <b> score num</b> = 1'),
+                       paste("<b>median</b> from ",input$I2t4,"to", input$I2t3,': <b>score</b> = <span style="color:',COLO[2],'">High</span>, <b> score num</b> = 0.75'),
+                       paste("<b>median</b> from ",input$I2t3,"to", input$I2t2,': <b>score</b> = <span style="color:',COLO[3],'">Medium</span>, <b> score num</b> = 0.5'),
+                       paste("<b>median</b> from ",input$I2t2,"to", input$I2t1,': <b>score</b> = <span style="color:',COLO[4],'">Low</span>, <b> score num</b> = 0.25'),
+                       paste("<b>median</b> from ",input$I2t1,'to 1 : <b>score</b> = <span style="color:',COLO[5],'">Very low</span>, <b> score num</b> = 0'))
+           
+    )
+  })
+  
+  output$dynamicTE2 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('Median bilateral flow ratios (<b>median (B)</b> and <b>median (A)</b>) are classified into <b>score</b>s (<b>(B) and (A)</b>) as follows:','',
+                       paste("<b>median</b> from 0 to", input$E2t4,': <b>score</b> = <span style="color:',COLO[1],'">Very high</span>, <b> score num</b> = 1'),
+                       paste("<b>median</b> from ",input$E2t4,"to", input$E2t3,': <b>score</b> = <span style="color:',COLO[2],'">High</span>, <b> score num</b> = 0.75'),
+                       paste("<b>median</b> from ",input$E2t3,"to", input$E2t2,': <b>score</b> = <span style="color:',COLO[3],'">Medium</span>, <b> score num</b> = 0.5'),
+                       paste("<b>median</b> from ",input$E2t2,"to", input$E2t1,': <b>score</b> = <span style="color:',COLO[4],'">Low</span>, <b> score num</b> = 0.25'),
+                       paste("<b>median</b> from ",input$E2t1,'to 1 : <b>score</b> = <span style="color:',COLO[5],'">Very low</span>, <b> score num</b> = 0'))
+           
+    )
+  })
+  # sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
+  # sliderInput(inputId = "I2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=0.001), #thr3
+  # sliderInput(inputId = "I2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=0.001), #thr2
+  # sliderInput(inputId = "I2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=0.001), #thr1
 }
 
 colabout="#A9DFBF"
@@ -995,17 +1038,16 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.3.2 (2021)'),
+                                       h3('UndercountMigScores v0.4.1'),
                                        br(),
-                                       #withMathJax(includeMarkdown('helpfiles/BilateralModel.Rmd')),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
                                        h4('Author: Maciej J. Dańko'),
-                                       h4('email: danko@demogr.mpg.de'),
+                                       h4(HTML('email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a>')),
                                        br(),
                                        h4('Max Planck Institute for Demographic Research'),
-                                       h4('Rostock'),
-                                       h4('Germany'),
+                                       h4('Rostock, Germany'),
+                                       h4('2021'),
                                        br()
                                 )
                        ),          
@@ -1015,10 +1057,11 @@ shinyUI <- fluidPage(
                                   
                                   h4("Options"),
                                   helper(checkboxInput("nordicimmi", "Trust Nordic countries", value = TrustNordic),
-                                         colour='red',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
-                                         content=c('No obligation of registration = <span style="color:red">High</span> undercounting, obligation of registration = <span style="color:green">Low</span> undercounting,
-                                                                                                           but if <b>No limit</b> or <b>No sanctions</b> occur the score is changed to <span style="color:orange">Medium</span>.',
-                                                   '','The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:green">Low</span> score for all Nordic countries ignoring the metadata.' )),       
+                                         colour='#FF0000',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
+                                         content=c('No obligation of registration = <span style="color:#FF0000">High</span> undercounting, obligation of registration = <span style="color:#008000">Low</span> undercounting,
+                                                                                                           but if <b>No limit</b> or <b>No sanctions</b> occur the score is changed to <span style="color:#FFA500">Medium</span>.',
+                                                   '','The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.','',
+                                                   'Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),       
                                   tags$hr(style="border-color: black;"),
                                   h4("References"),
                                   tags$body('Tab4a (page 20) of'),
@@ -1035,7 +1078,7 @@ shinyUI <- fluidPage(
                                 br(), br(),
                                 sidebarPanel(
                                   helper(h4('Weights'),
-                                         colour='red',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content=c('The <b>score num</b> is calcualted as a weighted mean which excludes all variables with "Unknown" records.')),
                                   sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=0.001),
                                   sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=0.001),
@@ -1045,8 +1088,9 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   h4("Options"),
                                   helper(checkboxInput("nordicemi", 'Trust Nordic countries', value = TrustNordic),
-                                         colour='red',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
-                                         content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:green">Low</span> score for all Nordic countries ignoring the metadata.' )),
+                                         colour='#FF0000',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
+                                         content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.',
+                                                   '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
                                   tags$hr(style="border-color: black;"),
                                   #h4('Score classification thresholds'),
                                   uiOutput(outputId = "dynamicT1"),
@@ -1072,7 +1116,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[4],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page (panel) <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
                                   tags$hr(style="border-color: black;"),
@@ -1088,7 +1132,7 @@ shinyUI <- fluidPage(
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
-                                  colour='red',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                  colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                   content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                           
                                   # tags$hr(style="border-color: black;"),
@@ -1097,7 +1141,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
                                   helper(checkboxInput("Iraymer", "Use Raymer's correction for the duration of stay", value = TRUE),
-                                         colour='red',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
                                          content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
@@ -1120,7 +1164,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[5],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page (panel) <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
                                   tags$hr(style="border-color: black;"),
@@ -1134,7 +1178,7 @@ shinyUI <- fluidPage(
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
-                                  colour='red',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                  colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                   content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
                                   # radioButtons("EStats", h4("Select the type of the plot"),
@@ -1142,7 +1186,7 @@ shinyUI <- fluidPage(
                                   # tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
                                   helper(checkboxInput("Eraymer", "Use Raymer's correction for the duration of stay", value = TRUE),
-                                  colour='red',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                  colour='#FF0000',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
                                   content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
@@ -1166,7 +1210,7 @@ shinyUI <- fluidPage(
                                 
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page (panel) can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (I)</b>).")),
                                   tags$hr(style="border-color: black;"),
@@ -1176,7 +1220,7 @@ shinyUI <- fluidPage(
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
-                                         colour='red',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Threshold year'),
@@ -1185,15 +1229,14 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
                                   helper(checkboxInput("I2raymer", "Use Raymer's correction for the duration of stay", value = TRUE),
-                                         colour='red',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
                                          content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
-                                  h4('Score classification thresholds'),
+                                  uiOutput(outputId = "dynamicTI2"),
                                   sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
                                   sliderInput(inputId = "I2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=0.001), #thr3
                                   sliderInput(inputId = "I2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=0.001), #thr2
                                   sliderInput(inputId = "I2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=0.001), #thr1
-                                  
                                   actionButton("I2treset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
@@ -1219,6 +1262,7 @@ shinyUI <- fluidPage(
                                       column(6,downloadButton("I2saveplot", "Save plot"))),
                                   br(),
                                   tags$hr(style="border-color: black;"),
+                                  h4('Median bilateral flows ratio an its classification for for (A) (B).... <b>score num</b> '),
                                   DTOutput('I2table'),
                                   br(),
                                   downloadButton("I2download", "Download table"),
@@ -1228,7 +1272,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[7],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='red',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page (panel) can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (E)</b>).")),
                                   tags$hr(style="border-color: black;"),
@@ -1237,7 +1281,7 @@ shinyUI <- fluidPage(
                                                               "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                               'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
                                                               "All countries" = 5),selected = RefCntrSel),
-                                         colour='red',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
                                   h4('Threshold year'),
@@ -1245,9 +1289,11 @@ shinyUI <- fluidPage(
                                   actionButton("E2yearreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4("Raymer's correction"),
-                                  checkboxInput("E2raymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                  helper(checkboxInput("E2raymer", "Use Raymer's correction for the duration of stay", value = TRUE),
+                                         colour='#FF0000',type='markdown',title="Raymer's correction",buttonLabel = 'Close',
+                                         content = c('RaymerCorrection')),
                                   tags$hr(style="border-color: black;"),
-                                  h4('Score classification thresholds'),
+                                  uiOutput(outputId = "dynamicTE2"),
                                   sliderInput(inputId = "E2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
                                   sliderInput(inputId = "E2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=0.001), #thr3
                                   sliderInput(inputId = "E2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=0.001), #thr2
@@ -1323,7 +1369,7 @@ shinyUI <- fluidPage(
                                   actionButton("E3weightsreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
-                                  checkboxInput("E3mirror", "Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa)", value = TRUE),
+                                  checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
                                   tags$hr(style="border-color: black;"),
                                   h4('Score classification thresholds'),
                                   sliderInput(inputId = "E3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=0.001),
@@ -1340,6 +1386,8 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[10],
                                 br(),
                                 column(8, align="center",
+                                       tags$a(href="https://www.imem.cpc.ac.uk/About.aspx",'IMEM'),
+                                       
                                        DTOutput('I4table'),
                                        br(),
                                 ),
@@ -1349,6 +1397,8 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[11],
                                 br(),
                                 column(8, align="center",
+                                       tags$a(href="https://www.imem.cpc.ac.uk/About.aspx",'IMEM'),
+                                       
                                        DTOutput('E4table'),
                                        br(),
                                 ),
