@@ -1160,11 +1160,12 @@ shinyUI <- fluidPage(
                                        br(),
                                        br(),
                                        h5('____________________________________________________________________________'),
-                                       h5('The get the newest version of the app please run this code in R:'),
+                                       h5('The newest version of the app is always available on GitHub. To run it use this R code:'),
                                        h5(HTML('<span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span>')),
                                        br(),
                                        h5('You may need to update/install some dependencies:'),
-                                       h5(HTML('<span style="font-family: Courier New">install.packages(c("Cairo","DT","shiny","colourpicker","shinyhelper","magicaxis","data.table","countrycodes"))</span>'))
+                                       h5(HTML('<span style="font-family: Courier New">install.packages(c("Cairo", "DT", "shiny", "colourpicker", <br>
+                                               "shinyhelper", "magicaxis", "data.table", "countrycodes"))</span>'))
                                 )
                        ),          
                        tabPanel(title = PanelNames[2],
