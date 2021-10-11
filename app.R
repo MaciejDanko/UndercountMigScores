@@ -1,8 +1,9 @@
 rm(list=ls())
 
 #Sys.setlocale("LC_ALL","en_US.UTF-8")
-#install.packages(c('DT','shiny','colourpicker','shinyhelper','magicaxis','data.table','countrycodes'))
+#install.packages(c('Cairo','DT','shiny','colourpicker','shinyhelper','magicaxis','data.table','countrycodes'))
 
+library(Cairo)
 library(devtools)
 library(DT)
 library(shiny)
@@ -249,12 +250,12 @@ plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=20
   #COLl<-c('#D5D505','#000090')
   if (logscale) neg2NA<-function(x) {x[x<=0]<-NA;x} else neg2NA<-function(x) {x[x<=0]<-0;x}
   X<-rbind(flog10(RES$B.Est),flog10(RES$A.Est))
-  par(oma=c(0,0,2,0),mar=c(2.5,4,2.5,0))
+  par(oma=c(0,0,2,0),mar=c(2.65,4,2.5,0))
   YLIM<-flog10(c(min(neg2NA(RES$B.lo.CI),neg2NA(RES$A.lo.CI),neg2NA(RES$B.Est),neg2NA(RES$A.Est),na.rm=TRUE),
                  max(RES$B.hi.CI,RES$A.hi.CI,RES$A.Est,RES$B.Est,na.rm = TRUE)))
   if(!logscale) YLIM<-1.1*c(0,max(min(2,YLIM[2]),RES$A.Est,RES$B.Est,na.rm = TRUE))
   z<-barplot(X,axes=F,beside=TRUE,col=COL, ylim=YLIM)
-  axis(1, at=colMeans(z),labels = RES$iso2,las=3,cex.axis=1.3); 
+  axis(1, at=colMeans(z),labels = RES$iso2,las=3,cex.axis=1.3, font=1); 
   mtext('Bilateral flows ratio',2,2.5,cex=1.5)  
   box();box();
   # col.pal=c(adjustcolor('green',alpha.f = 0.5),
@@ -303,7 +304,7 @@ plot_ui_result_<-function(DAT, country, Draw='IUCraw', Dextr='IUC',Dsd='IUC_sd',
     DAT$Y<-DAT[,Draw]
     DAT$YE<-DAT[,Dextr]
     DAT$Ylo<-DAT[,Draw]-DAT[,Dsd]*1.96
-    K<-0.0001
+    K<-0.000001
     DAT$Ylo[DAT$Ylo<=K]<-K 
     DAT$Yhi<-DAT[,Draw]+DAT[,Dsd]*1.96
   } else if (stats==2){
@@ -311,6 +312,8 @@ plot_ui_result_<-function(DAT, country, Draw='IUCraw', Dextr='IUC',Dsd='IUC_sd',
     DAT$YE<-DAT[,Dextr]
     DAT$Ylo<-DAT[,Dqlo]
     DAT$Yhi<-DAT[,Dqhi]
+    K<-0.000001
+    DAT$Ylo[DAT$Ylo<=K]<-K 
   }
   if (logscale) {
     DAT$Y<-log10(DAT$Y)
@@ -350,9 +353,11 @@ plot_ui_result_<-function(DAT, country, Draw='IUCraw', Dextr='IUC',Dsd='IUC_sd',
     if (extrapol) lines(YY,YE,col=CDAT$col,type='l',lty=2)
   }
   plot(1:2,1:2,axes=FALSE,type='n',xlab='',ylab=''); #box()
-  legend('topleft',country,col=country.col,bty='n',lty=1,cex=1.5,lwd=2)  
-  legend('topleft',country,col=adjustcolor(country.col,0.4),bty='n',lty=1,cex=1.5,lwd=16)  
+  legend('topleft',country,col=country.col,bty='n',lty=1,cex=1.75,lwd=2)  
+  legend('topleft',country,col=adjustcolor(country.col,0.4),bty='n',lty=1,cex=1.75,lwd=15.5)  
 }
+
+NORDIC_PLUS_AT_BE_CH_IE_NL[NORDIC_PLUS_AT_BE_CH_IE_NL$iso2=='LT',]
 
 plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer, logscale, plotCI){
   if (length(country)){
@@ -1016,7 +1021,7 @@ shinyServer <-  function(input, output, session) {
   })
   
   output$I3dynamictabcaption <- renderUI({
-    h4(HTML(paste('<b>Table 5.</b> Classification of combined score of immigration data for years 1998 - ',
+    h4(HTML(paste('<b>Table 5.</b> Classification of combined scores of immigration data for years 1998 - ',
                   input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). <b>IMEM score num</b> is the IMEM undercount classification (Raymer et al. 2013) converted to numerical value, 
                   <b>metadata score num</b> is obtained from <b>Metadata classify (I)</b> page, <b>model score num (B)</b> obtained from <b>Model classify (I)</b> page. 
                   <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel). 
@@ -1034,7 +1039,7 @@ shinyServer <-  function(input, output, session) {
   })
   
   output$E3dynamictabcaption <- renderUI({
-    h4(HTML(paste('<b>Table 6.</b> Classification of combined score of emigration data for years 1998 - ',
+    h4(HTML(paste('<b>Table 6.</b> Classification of combined scores of emigration data for years 1998 - ',
                   input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). <b>IMEM score num</b> is the IMEM undercount classification (Raymer et al. 2013) converted to numerical value, 
                   <b>metadata score num</b> is obtained from <b>Metadata classify (I)</b> page, <b>model score num (B)</b> obtained from <b>Model classify (I)</b> page. 
                   <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel). 
@@ -1140,7 +1145,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.4.6'),
+                                       h3('UndercountMigScores v0.4.7'),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1150,7 +1155,16 @@ shinyUI <- fluidPage(
                                        h4('Max Planck Institute for Demographic Research'),
                                        h4('Rostock, Germany'),
                                        h4('2021'),
-                                       br()
+                                       br(),
+                                       br(),
+                                       br(),
+                                       br(),
+                                       h5('____________________________________________________________________________'),
+                                       h5('The get the newest version of the app please run this code in R:'),
+                                       h5(HTML('<span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span>')),
+                                       br(),
+                                       h5('You may need to update/install some dependencies:'),
+                                       h5(HTML('<span style="font-family: Courier New">install.packages(c("Cairo","DT","shiny","colourpicker","shinyhelper","magicaxis","data.table","countrycodes"))</span>'))
                                 )
                        ),          
                        tabPanel(title = PanelNames[2],
