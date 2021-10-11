@@ -1325,7 +1325,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(h4('Threshold year'),
                                          colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                         content=c('<b>Threshold year</b> group bilateral flows ratios into two groups: before the treshold year (<b>B</b>) and from the threshold year onward (<b>A</b>).
+                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year onward (<b>A</b>).
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
@@ -1390,7 +1390,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(h4('Threshold year'),
                                          colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                         content=c('<b>Threshold year</b> group bilateral flows ratios into two groups: before the treshold year (<b>B</b>) and from the threshold year onward (<b>A</b>).
+                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year onward (<b>A</b>).
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("E2yearreset", "Reset"),
