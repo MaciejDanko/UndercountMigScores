@@ -66,7 +66,7 @@ There are two main disadvantages of the constructed undercounting measure:
 
 - It may not completely exclude the effect of the duration of stay that is different than 12 months, i.e., Raymer's estimates are taken from the model that does not include the most recent data and its coefficients are the same for immigration and emigration data.
 
-**Confidence intervals of the bilateral flows ratio**
+**Median bilateral flows ratios and their confidence intervals**
 
 [ To be written]
 

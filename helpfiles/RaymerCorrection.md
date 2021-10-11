@@ -1,4 +1,4 @@
-Ehen the option is activated a correction is used to adjust migration flows for the duration of stay different than 12 months. The correction coefficients are taken from the Raymer et al. 2003 paper and are as follows:
+When the option is activated a correction is used to adjust migration flows for the duration of stay different than 12 months. The correction coefficients are taken from the Raymer et al. 2003 paper and are as follows:
 
 <br>
 <style>
