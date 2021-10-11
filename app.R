@@ -1,7 +1,9 @@
 rm(list=ls())
 
 #Sys.setlocale("LC_ALL","en_US.UTF-8")
+#install.packages(c('DT','shiny','colourpicker','shinyhelper','magicaxis','data.table','countrycodes'))
 
+library(devtools)
 library(DT)
 library(shiny)
 library(colourpicker)
@@ -9,8 +11,6 @@ library(shinyhelper)
 library(magicaxis)
 library(data.table)
 library(countrycode)
-
-#install.packages(c('DT','shiny','colourpicker','shinyhelper','magicaxis','data.table','countrycodes'))
 
 load('./data/MetaData.rda')
 load('./data/UndercountingIndex.rda')
