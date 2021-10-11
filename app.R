@@ -989,7 +989,8 @@ shinyServer <-  function(input, output, session) {
   
   output$I2dynamicfigcaption <- renderUI({
     h4(HTML(paste('<b>Figure 3.</b> Median bilateral flows ratio of immigration data for years 1998 - ',
-                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95% 
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X 
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95% 
                   interquantile confidence intervals, background colors reflect clasification based on the tresholds. 
                   If ratio is 1 there is no under- or over- counting. Ratios higher than 1 indicate overcounting, 
                   while ratios lower than 1 indicate undercounting of immigration flows. The lower the ratio value the higher the undercounting.
@@ -998,7 +999,8 @@ shinyServer <-  function(input, output, session) {
   
   output$I2dynamictabcaption <- renderUI({
     h4(HTML(paste('<b>Table 3.</b> Classification of median bilateral flows ratio of immigration data for years 1998 - ',
-                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95% 
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X 
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95% 
                   interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel), 
                   <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
                   ',sep='')))
@@ -1006,7 +1008,8 @@ shinyServer <-  function(input, output, session) {
   
   output$E2dynamictabcaption <- renderUI({
     h4(HTML(paste('<b>Table 4.</b> Classification of median bilateral flows ratio of emigration data for years 1998 - ',
-                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95% 
+                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X 
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).<b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95% 
                   interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel), 
                   <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
                   ',sep='')))
@@ -1040,7 +1043,8 @@ shinyServer <-  function(input, output, session) {
   
   output$E2dynamicfigcaption <- renderUI({
     h4(HTML(paste('<b>Figure 4.</b> Median bilateral flows ratio of emigration data for years 1998 - ',
-                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95% 
+                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X 
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95% 
                   interquantile confidence intervals, background colors reflect clasification based on the tresholds. 
                   If ratio is 1 there is no under- or over- counting. Ratios higher than 1 indicate overcounting, 
                   while ratios lower than 1 indicate undercounting of emigration flows. The lower the ratio value the higher the undercounting.',sep='')))
@@ -1253,7 +1257,8 @@ shinyUI <- fluidPage(
                                 mainPanel(
                                   plotOutput(outputId = "ImiPlot", height="600px"),
                                   br(),
-                                  h4(HTML('<b>Figure 1.</b> Bilateral flows ratio for immigration data.')),
+                                  h4(HTML('<b>Figure 1.</b> Bilateral flows ratio for immigration data. The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X 
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).')),
                                   div(style="display:inline-block;vertical-align:top;",
                                       h5('Choose a format and save the plot'),
                                       column(6,selectInput("Iformat", NULL, 
@@ -1298,7 +1303,8 @@ shinyUI <- fluidPage(
                                 mainPanel(
                                   plotOutput(outputId = "EmiPlot", height="600px"),
                                   br(),
-                                  h4(HTML('<b>Figure 2.</b> Bilateral flows ratio for Emigration data.')),
+                                  h4(HTML('<b>Figure 2.</b> Bilateral flows ratio for Emigration data. The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X 
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).')),
                                   div(style="display:inline-block;vertical-align:top;",
                                       h5('Choose a format and save the plot'),
                                       column(6,selectInput("Eformat", NULL, 

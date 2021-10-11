@@ -5,9 +5,9 @@ account: maciej-jan-danko
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4819240
-bundleId: 5126702
+bundleId: 5127131
 url: https://maciej-jan-danko.shinyapps.io/undercountmigscores/
-when: 1633954265.49115
-lastSyncTime: 1633954265.49117
+when: 1633961445.2207
+lastSyncTime: 1633961445.22072
 asMultiple: FALSE
 asStatic: FALSE

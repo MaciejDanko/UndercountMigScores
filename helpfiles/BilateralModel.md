@@ -1,6 +1,6 @@
 **The bilateral flows ratio model**
 
-The undercount scores can be calculated using the bilateral migration data, by comparing the same flows reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries reported by country X and divide it by the same flow reported by the group of good data quality countries (the reference countries). Because the duration of stay may differs among countries the flows reported by each country should be somehow corrected. Here, we use Raymer's (2013) estimates for duration of stay as the duration of stay correction coefficients.
+The undercount scores can be calculated using the bilateral migration data, by comparing the same flows reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries (the reference countries) reported by country X and divide it by the same flow reported by the group of good data quality countries. Because the duration of stay may differs among countries the flows reported by each country should be somehow corrected. Here, we use Raymer's (2013) estimates for duration of stay as the duration of stay correction coefficients.
 
 <br>
 
