@@ -1,6 +1,6 @@
 **The bilateral flows ratio model**
 
-The undercount scores can be calculated using the bilateral migration data, by comparing the same type of flow reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries (the reference countries) reported by country X and divide it by the same flow reported by the group of good data quality countries. Because the duration of stay may differs among countries the flows reported by each country should be somehow corrected. Here, we use Raymer's (2013) estimates for duration of stay as the duration of stay correction coefficients.
+The undercount scores can be calculated using the bilateral migration data, by comparing the same type of flow reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries (the reference countries) reported by country X and divide it by the same flow reported by the group of good data quality countries. Because the duration of stay may differ among countries the flows reported by each country should be somehow corrected. Here, as the correction we use Raymer's (2013) model coefficients for the duration of stay.
 
 <br>
 
@@ -57,8 +57,6 @@ U^I_{X,Y,y} = \frac{\sum_c M\left(X_y\leftarrow Y_{c,y}, X_y\right) R_{X_y}}{\su
 $$
 
 where $M\left(X_y\rightarrow Y_{c,y}, X_y\right)$ is the immigration flow to country $X$ from country $Y_c$ reported by country $X$ in year $y$, $M\left(X_y\rightarrow Y_{c,y}, Y_{c,y}\right)$ is the migration flow to country $X$ from country $Y_c$ reported by country $Y_c$ in year $y$,
-
-Because, bilateral migration for some years are missing a simple interpolation (spline) and extrapolation (weighted mean of last observations) for tails was used. 
 
 There are two main disadvantages of the constructed undercounting measure:
 
