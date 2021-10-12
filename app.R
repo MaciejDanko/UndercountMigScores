@@ -14,8 +14,19 @@ library(magicaxis)
 library(data.table)
 library(countrycode)
 
+loadaslist<-function(Name){
+  G<-new.env()
+  load(Name,G)
+  as.list(G)  
+}
+
 load('./data/MetaData.rda')
-load('./data/UndercountingIndex.rda')
+
+DAT_IMEM<-loadaslist('./data/UndercountingIndex_IMEM.rda')
+DAT_POIS<-loadaslist('./data/UndercountingIndex_Willekens_Poisson.rda')
+DAT_EXPERT<-loadaslist('./data/UndercountingIndex_Willekens_Expert.rda')
+DAT_MIXED<-loadaslist('./data/UndercountingIndex_Willekens_Mixed.rda')
+NORDIC<-DAT_IMEM$NORDIC
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
 
@@ -115,31 +126,35 @@ reformatIE2tab<-function(tab, chide=TRUE, COLO){
   tab
 }
 
-CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=TRUE, 
+CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=1, 
               thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5],
               NBoot=1e5, LEVELS=c('very low','low','medium','high','very high')){
   
-  RES<-switch(refcountry, '1' = NORDIC, '2' = NORDIC_PLUS_BE_CH,
-              '3' = NORDIC_PLUS_AT_BE_CH_IE_NL, 
-              '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = ALL_COUNTRIES)
+  DAT0<-switch(corrected, '0' = DAT_IMEM, '1' = DAT_IMEM, '2' = DAT_EXPERT, '3' = DAT_POIS, '4' = DAT_MIXED)
+  RES<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_IE_NL, 
+              '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = DAT0$ALL_COUNTRIES)
+  
+  # RES<-switch(refcountry, '1' = NORDIC, '2' = NORDIC_PLUS_BE_CH,
+  #             '3' = NORDIC_PLUS_AT_BE_CH_IE_NL, 
+  #             '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = ALL_COUNTRIES)
   THRESH<-log10(1/c(1,thr1,thr2,thr3,thr4,1e-5))
   
-  if (direction=='E' && corrected){
+  if (direction=='E' && corrected>0){
     RES$Y<-RES$ECraw
     RES$YE<-RES$EC
     RES$Ysd<-RES$EC_sd
     RES$W<-RES$POPEn
-  } else if (direction=='E' && !corrected){
+  } else if (direction=='E' && corrected==0){
     RES$Y<-RES$EUCraw
     RES$YE<-RES$EUC
     RES$Ysd<-RES$EUC_sd
     RES$W<-RES$POPEn
-  } else if (direction=='I' && corrected){
+  } else if (direction=='I' && corrected>0){
     RES$Y<-RES$ICraw
     RES$YE<-RES$IC
     RES$Ysd<-RES$IC_sd
     RES$W<-RES$POPIn
-  } else if (direction=='I' && !corrected){
+  } else if (direction=='I' && corrected==0){
     RES$Y<-RES$IUCraw
     RES$YE<-RES$IUC
     RES$Ysd<-RES$IUC_sd
@@ -358,12 +373,13 @@ plot_ui_result_<-function(DAT, country, Draw='IUCraw', Dextr='IUC',Dsd='IUC_sd',
   legend('topleft',country,col=adjustcolor(country.col,0.4),bty='n',lty=1,cex=1.75,lwd=15.5)  
 }
 
-NORDIC_PLUS_AT_BE_CH_IE_NL[NORDIC_PLUS_AT_BE_CH_IE_NL$iso2=='LT',]
+#NORDIC_PLUS_AT_BE_CH_IE_NL[NORDIC_PLUS_AT_BE_CH_IE_NL$iso2=='LT',]
 
 plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer, logscale, plotCI){
   if (length(country)){
-    DAT<-switch(refcountry, '1' = NORDIC, '2' = NORDIC_PLUS_BE_CH, '3' = NORDIC_PLUS_AT_BE_CH_IE_NL, 
-                '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = ALL_COUNTRIES)
+    DAT0<-switch(raymer, '0' = DAT_IMEM, '1' = DAT_IMEM, '2' = DAT_EXPERT, '3' = DAT_POIS, '4' = DAT_MIXED)
+    DAT<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_IE_NL, 
+                '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = DAT0$ALL_COUNTRIES)
     
     validC<-DAT$iso2[!is.na(DAT$ICnraw)]
     DAT<-DAT[DAT$iso2%in%validC,]
@@ -376,16 +392,16 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
     PAL<-PAL[order(nchar(PAL))]
     DAT$col<-PAL[DAT$col]
     DAT<-DAT[DAT$iso2%in%country,]
-    if (direction=='I'  && !raymer){
+    if (direction=='I'  && raymer==0){
       plot_ui_result_(DAT, country, Draw='IUCraw', Dextr='IUC',Dsd='IUC_sd',Dqmed='IUC_q.med',Dqlo='IUC_q.lo',Dqhi='IUC_q.hi',
                       stats=stats, logscale=logscale, extrapol=extrapol, plotCI=plotCI,'Immigration')
-    } else if (direction=='I'  && raymer){
+    } else if (direction=='I'  && raymer>0){
       plot_ui_result_(DAT, country, Draw='ICraw', Dextr='IC',Dsd='IC_sd',Dqmed='IC_q.med',Dqlo='IC_q.lo',Dqhi='IC_q.hi',
                       stats=stats, logscale=logscale, extrapol=extrapol, plotCI=plotCI,'Immigration')
-    } else if (direction=='E'  && !raymer){
+    } else if (direction=='E'  && raymer==0){
       plot_ui_result_(DAT, country, Draw='EUCraw', Dextr='EUC',Dsd='EUC_sd',Dqmed='EUC_q.med',Dqlo='EUC_q.lo',Dqhi='EUC_q.hi',
                       stats=stats, logscale=logscale, extrapol=extrapol, plotCI=plotCI,'Emigration')
-    } else if (direction=='E'  && raymer){
+    } else if (direction=='E'  && raymer>0){
       plot_ui_result_(DAT, country, Draw='ECraw', Dextr='EC',Dsd='EC_sd',Dqmed='EC_q.med',Dqlo='EC_q.lo',Dqhi='EC_q.hi',
                       stats=stats, logscale=logscale, extrapol=extrapol, plotCI=plotCI,'Emigration')
     } 
@@ -929,6 +945,7 @@ shinyServer <-  function(input, output, session) {
   
   #########################3
   
+  
   observeEvent(input$E3t2,  {
     updateSliderInput(session = session, inputId = "E3t1", max = input$E3t2)
   })
@@ -1146,7 +1163,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.4.10'),
+                                       h3('UndercountMigScores v0.5.2'),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1162,7 +1179,6 @@ shinyUI <- fluidPage(
                                        h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyhelper")</span><br>')),
                                        h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computers<br>
                                        Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>'))
-
                                 )
                        ),          
                        tabPanel(title = PanelNames[2],
@@ -1243,7 +1259,7 @@ shinyUI <- fluidPage(
                                   actionButton("Iall", "All"),actionButton("Inone", "None"),
                                   tags$hr(style="border-color: black;"),
                                   
-                                  helper(radioButtons("Irefcountry", h4("Reference group of countries"),
+                                  helper(selectInput("Irefcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                                      "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                                      'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
@@ -1255,10 +1271,14 @@ shinyUI <- fluidPage(
                                   # radioButtons("IStats", h4("Select the type of the plot"),
                                   #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
                                   tags$hr(style="border-color: black;"),
-                                  h4("IMEM correction"),
-                                  helper(checkboxInput("Iraymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
+                                  selectInput("Iraymer", label = NULL, 
+                                              choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
+                                              selected = 1),
+                                  # checkboxInput("", "Use IMEM correction for the duration of stay", value = TRUE),
+                                         
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
                                   #checkboxInput("Iextrapol", "Extrapolate missing values", value = FALSE),
@@ -1290,7 +1310,7 @@ shinyUI <- fluidPage(
                                                      choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
                                   actionButton("Eall", "All"),actionButton("Enone", "None"),
                                   tags$hr(style="border-color: black;"),
-                                  helper(radioButtons("Erefcountry", h4("Reference group of countries"),
+                                  helper(selectInput("Erefcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                                      "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                                      'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
@@ -1301,10 +1321,16 @@ shinyUI <- fluidPage(
                                   # radioButtons("EStats", h4("Select the type of the plot"),
                                   #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
                                   # tags$hr(style="border-color: black;"),
-                                  h4("IMEM correction"),
-                                  helper(checkboxInput("Eraymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  # h4("Duration of stay correction"),
+                                  # helper(checkboxInput("Eraymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  #        colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                  #        content = c('IMEMCorrection')),
+                                  helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
+                                  selectInput("Eraymer", label = NULL, 
+                                              choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
+                                              selected = 1),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
                                   #checkboxInput("Eextrapol", "Extrapolate missing values", value = FALSE),
@@ -1333,7 +1359,7 @@ shinyUI <- fluidPage(
                                   tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (I)</b>).")),
                                   tags$hr(style="border-color: black;"),
                                   
-                                  helper(radioButtons("I2refcountry", h4("Reference group of countries"),
+                                  helper(selectInput("I2refcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                                      "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                                      'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
@@ -1348,10 +1374,16 @@ shinyUI <- fluidPage(
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
-                                  h4("IMEM correction"),
-                                  helper(checkboxInput("I2raymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  # h4("Duration of stay correction"),
+                                  # helper(checkboxInput("I2raymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  #        colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                  #        content = c('IMEMCorrection')),
+                                  helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
+                                  selectInput("I2raymer", label = NULL, 
+                                              choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
+                                              selected = 1),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTI2"),
                                   sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
@@ -1398,7 +1430,7 @@ shinyUI <- fluidPage(
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (E)</b>).")),
                                   tags$hr(style="border-color: black;"),
-                                  helper(radioButtons("E2refcountry", h4("Reference group of countries"),
+                                  helper(selectInput("E2refcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
                                                                      "Nordic countries + CH + BE + AT + IE + NL" = 3, 
                                                                      'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
@@ -1413,10 +1445,16 @@ shinyUI <- fluidPage(
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("E2yearreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
-                                  h4("IMEM correction"),
-                                  helper(checkboxInput("E2raymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  #h4("Duration of stay correction"),
+                                  # helper(checkboxInput("E2raymer", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  #        colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                  #        content = c('IMEMCorrection')),
+                                  helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
+                                  selectInput("E2raymer", label = NULL, 
+                                              choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
+                                              selected = 1),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTE2"),
                                   sliderInput(inputId = "E2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
@@ -1563,4 +1601,5 @@ shinyUI <- fluidPage(
 
 shinyApp(ui=shinyUI, server = shinyServer)
 
+#rsconnect::deployApp()
 

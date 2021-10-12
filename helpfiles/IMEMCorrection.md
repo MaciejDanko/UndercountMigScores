@@ -1,4 +1,4 @@
-When the option is activated a correction is used to adjust migration flows for the duration of stay different than 12 months. The correction coefficients are taken from the Raymer et al. 2003 paper and are as follows:
+When the option is different than "No correction" a correction is used to adjust migration flows for the duration of stay. The correction coefficients are taken from the Raymer et al. (2013) and Willekens (2019) papers:
 
 <br>
 <style>
@@ -19,19 +19,20 @@ tr:hover {background-color: #E0DDFF;}
 
 table {
   border-collapse: collapse;
-  width:80%;
+  width:95%;
 }
 
 </style>
 <center>
 
-|        Duration of stay in months       |        IMEM coefficient         |
-|:---------------------------------------:|:-------------------------------:|
-|                     0                   |              0.53               |
-|                     3                   |              0.63               |
-|                     6                   |              0.73               |
-|                    12                   |              1.00               |
-|                Permanent                |              2.26               |
+|Duration of stay <br>in months | IMEM <br>model | Expert <br>judgement (\*) | Poisson <br>model (\*) | Mixture <br>model (\*) 
+|:---:|:---:|:---:|:---:|:---:|
+| <b>0</b> |  0.53   | 0.51  | 0.79  | 0.51  |
+| <b>3</b> |  0.63   | 0.61  | 0.84  | 0.64  |
+| <b>6</b> |  0.73   | 0.81  | 0.89  | 0.71  |
+| <b>12</b> |  1.00   | 1.00  | 1.00  | 1.00 |
+| <b>Permanent <br>(or 5 years)</b>  |  2.26   | 1.61 | 2.61  | 1.80  |
+(\*) \- Willekens 2019
 <br>
 </center>
 
@@ -42,3 +43,5 @@ See help (?) in "Overview" section for more information on how IMEM correction c
 **References**
 
 <a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20">Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F. and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819.</a>
+
+<a href="https://sciendo.com/article/10.2478/jos-2019-0011"> Willekens, F. (2019), 'Evidence-Based Monitoring of International Migration Flows in Europe'. Journal of Official Statistics, Vol.35 (Issue 1), pp. 231-277.</a>
