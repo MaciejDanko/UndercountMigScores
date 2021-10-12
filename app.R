@@ -14,11 +14,7 @@ library(magicaxis)
 library(data.table)
 library(countrycode)
 
-loadaslist<-function(Name){
-  G<-new.env()
-  load(Name,G)
-  as.list(G)  
-}
+loadaslist<-function(Name){G<-new.env(); load(Name,G); as.list(G)}
 
 load('./data/MetaData.rda')
 
@@ -481,6 +477,7 @@ CalcCombineThreshols<-function(META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
   }
   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000"))) 
   RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000"))) 
+  RR<-formatStyle(RR, c(9,10), backgroundColor = "#fff0ee")
   RR<-formatStyle(RR, c(2,6,8), "border-right" = "solid 1px", "border-right-color"='black')
   RR
 }
@@ -513,6 +510,7 @@ summaryTable<-function(META, MODEL, COMBI, direction='I', COLO){
   RR<-formatStyle(RR, columns = "model score (A)", color=styleEqual(LEVELS, COLO)) 
   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED))) 
   RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED))) 
+  RR<-formatStyle(RR, c(7,8), backgroundColor = "#fff0ee")
   RR<-formatStyle(RR, c(2,6), "border-right" = "solid 1px", "border-right-color"='black')
   RR
 }
@@ -1163,7 +1161,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.5.2'),
+                                       h3(HTML('<b>UndercountMigScores v0.5.3</b>')),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1248,7 +1246,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[4],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
                                   tags$hr(style="border-color: black;"),
@@ -1272,12 +1270,12 @@ shinyUI <- fluidPage(
                                   #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
                                   tags$hr(style="border-color: black;"),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("Iraymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
                                               selected = 1),
-                                  # checkboxInput("", "Use IMEM correction for the duration of stay", value = TRUE),
+                                  # checkboxInput("", "Use Duration of stay correction for the duration of stay", value = TRUE),
                                          
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
@@ -1301,7 +1299,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[5],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
                                   tags$hr(style="border-color: black;"),
@@ -1322,11 +1320,11 @@ shinyUI <- fluidPage(
                                   #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
                                   # tags$hr(style="border-color: black;"),
                                   # h4("Duration of stay correction"),
-                                  # helper(checkboxInput("Eraymer", "Use IMEM correction for the duration of stay", value = TRUE),
-                                  #        colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                  # helper(checkboxInput("Eraymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
+                                  #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                   #        content = c('IMEMCorrection')),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("Eraymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
@@ -1354,7 +1352,7 @@ shinyUI <- fluidPage(
                                 
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (I)</b>).")),
                                   tags$hr(style="border-color: black;"),
@@ -1375,11 +1373,11 @@ shinyUI <- fluidPage(
                                   actionButton("I2yearreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   # h4("Duration of stay correction"),
-                                  # helper(checkboxInput("I2raymer", "Use IMEM correction for the duration of stay", value = TRUE),
-                                  #        colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                  # helper(checkboxInput("I2raymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
+                                  #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                   #        content = c('IMEMCorrection')),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("I2raymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
@@ -1426,7 +1424,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[7],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral model description',buttonLabel = 'Close',
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
                                          content='BilateralModel'),       
                                   tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (E)</b>).")),
                                   tags$hr(style="border-color: black;"),
@@ -1446,11 +1444,11 @@ shinyUI <- fluidPage(
                                   actionButton("E2yearreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   #h4("Duration of stay correction"),
-                                  # helper(checkboxInput("E2raymer", "Use IMEM correction for the duration of stay", value = TRUE),
-                                  #        colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                  # helper(checkboxInput("E2raymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
+                                  #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                   #        content = c('IMEMCorrection')),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="IMEM correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("E2raymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
