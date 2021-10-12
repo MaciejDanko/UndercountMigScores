@@ -1145,7 +1145,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.4.8'),
+                                       h3('UndercountMigScores v0.4.9'),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),

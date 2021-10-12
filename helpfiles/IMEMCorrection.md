@@ -25,7 +25,7 @@ table {
 </style>
 <center>
 
-|        Duration of stay in months       |        IMEM coefficient     |
+|        Duration of stay in months       |        IMEM coefficient         |
 |:---------------------------------------:|:-------------------------------:|
 |                     0                   |              0.53               |
 |                     3                   |              0.63               |
