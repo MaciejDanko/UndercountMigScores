@@ -77,7 +77,8 @@ We can simulate the migration process by drawing the number of migration events 
 
 As defined in previous section $U^E_{X,Y,y}$ and $U^I_{X,Y,y}$ are simply ratios of two migration processes. Each of these migration processes can be simulated independently as described above. 100,000 of simulations defines our bootstrap sample that is used to calculate the bootstrapped median, standard deviation, and the confidence intervals (percentile method, e.g., Efron and Tibshirani 1993).
 
-The obtained aggregates the migration into groups
+The ratios and their confidence intervals are calculated for each year, however in the model we need aggregates the migration into groups
+
 ... to be continued ...
 
 **References**
