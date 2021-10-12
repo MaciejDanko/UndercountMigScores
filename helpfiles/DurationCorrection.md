@@ -41,7 +41,7 @@ table {
 
 The values of the coefficients for durations of stay missing in the table are interpolated. 
 
-See help (?) in "Overview" section for more information on how IMEM correction coefficients are used in the bilateral flows ratio model.
+See help (?) in "Overview" section for more information on how duration of stay correction coefficients are used in the bilateral flows ratio model.
 
 ### **References**
 
