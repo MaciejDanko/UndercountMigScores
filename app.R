@@ -999,12 +999,12 @@ shinyServer <-  function(input, output, session) {
   )
   
   output$E2yearshow <- renderUI({
-    yrange <- paste('(<b>B</b>) - before ',input$E2year,', (<b>A</b>) from ',input$E2year,' onwards',sep='')
+    yrange <- paste('(<b>B</b>) - before ',input$E2year,', (<b>A</b>) from ',input$E2year,' on',sep='')
     h5(HTML(yrange))
   })
   
   output$I2yearshow <- renderUI({
-    yrange <- paste('(<b>B</b>) - before ',input$I2year,', (<b>A</b>) from ',input$I2year,' onwards',sep='')
+    yrange <- paste('(<b>B</b>) - before ',input$I2year,', (<b>A</b>) from ',input$I2year,' on',sep='')
     h5(HTML(yrange))
   })
   
@@ -1136,7 +1136,7 @@ coltxt='black'
 colsel='#873600'
 
 shinyUI <- fluidPage( 
-  titlePanel("UndercountMigScores",'UndercountMigScores'),
+  titlePanel(HTML('<span style="color:#000070;font-family:Serif,Georgia,Serif"><b>UndercountMigScores</b></span>'),HTML('<b>U</b>ndercount<b>M</b>ig<b>S</b>cores')),
   fluidRow(
     
     column(width = 9,
@@ -1161,7 +1161,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.3</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.5.5</b>')),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1367,7 +1367,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(h4('Threshold year'),
                                          colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year onward (<b>A</b>).
+                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
@@ -1438,7 +1438,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(h4('Threshold year'),
                                          colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year onward (<b>A</b>).
+                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("E2yearreset", "Reset"),
