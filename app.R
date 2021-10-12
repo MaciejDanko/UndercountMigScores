@@ -537,17 +537,8 @@ TrustNordic<-TRUE
 Meta_DeReg<-Recalc_Meta_DeReg(Meta_DeReg,MWt1,MWt2,MWt3,MWt4,MThr1,MThr2,TrustNordic)
 Meta_Reg<-Recalc_Meta_Reg(Meta_Reg, TrustNordic)
 
-#COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")
-#COLO=c("#80FF80",'#00DD00','#FFFF00','#FFDD80','#FF8080')
 COLO=c("#00DD00",'#008000','#FFA500','#FF0000','#800000')
-# col.pal=c(adjustcolor('green',alpha.f = 0.5),
-#           adjustcolor('green4',alpha.f = 0.5),
-#           adjustcolor('yellow2',alpha.f = 0.5),
-#           adjustcolor('orange',alpha.f = 0.5),
-#           adjustcolor('red2',alpha.f = 0.25))
-#tmp<-colnames(Meta_DeReg$x$data[,4:7])
-# WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registration of third country nationals','Monitoring third country nationals','Administrative corrections'),
-#                   " (",tmp,")",sep='')
+
 WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registration of third country nationals','Monitoring third country nationals','Administrative corrections'),sep='')
 CountriesL<-paste(countrycode::countrycode(Countries,'eurostat','country.name'),' (',Countries,')',sep='')
 Countries<-as.list(Countries)
@@ -1161,7 +1152,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.5</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.5.6</b>')),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1246,8 +1237,8 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[4],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
-                                         content='BilateralModel'),       
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                                         content='BilateralModel',size='l'),       
                                   tags$p(HTML("This page <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
                                   tags$hr(style="border-color: black;"),
                                   
@@ -1270,7 +1261,7 @@ shinyUI <- fluidPage(
                                   #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
                                   tags$hr(style="border-color: black;"),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("Iraymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
@@ -1299,8 +1290,8 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[5],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
-                                         content='BilateralModel'),       
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                                         content='BilateralModel',size='l'),       
                                   tags$p(HTML("This page <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
                                   tags$hr(style="border-color: black;"),
                                   
@@ -1324,7 +1315,7 @@ shinyUI <- fluidPage(
                                   #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                   #        content = c('IMEMCorrection')),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("Eraymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
@@ -1352,8 +1343,8 @@ shinyUI <- fluidPage(
                                 
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
-                                         content='BilateralModel'),       
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                                         content='BilateralModel',size='l'),       
                                   tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (I)</b>).")),
                                   tags$hr(style="border-color: black;"),
                                   
@@ -1377,7 +1368,7 @@ shinyUI <- fluidPage(
                                   #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                   #        content = c('IMEMCorrection')),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("I2raymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
@@ -1424,8 +1415,8 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[7],
                                 br(),br(),
                                 sidebarPanel(
-                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='Bilateral flows ratio model description',buttonLabel = 'Close',
-                                         content='BilateralModel'),       
+                                  helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                                         content='BilateralModel',size='l'),       
                                   tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (E)</b>).")),
                                   tags$hr(style="border-color: black;"),
                                   helper(selectInput("E2refcountry", h4("Reference group of countries"),
@@ -1448,7 +1439,7 @@ shinyUI <- fluidPage(
                                   #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
                                   #        content = c('IMEMCorrection')),
                                   helper(h4("Duration of stay correction"),
-                                         colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
+                                         colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('IMEMCorrection')),
                                   selectInput("E2raymer", label = NULL, 
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4), 
