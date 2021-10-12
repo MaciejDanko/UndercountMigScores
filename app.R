@@ -1127,7 +1127,7 @@ coltxt='black'
 colsel='#873600'
 
 shinyUI <- fluidPage( 
-  titlePanel(HTML('<span style="color:#000070;font-family:Serif,Georgia,Serif"><b>UndercountMigScores</b></span>'),HTML('<b>U</b>ndercount<b>M</b>ig<b>S</b>cores')),
+  titlePanel(HTML('<span style="color:#000070;font-family:Serif,Georgia,Serif"><b>UndercountMigScores</b></span>'),'UndercountMigScores'),
   fluidRow(
     
     column(width = 9,

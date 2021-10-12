@@ -28,6 +28,7 @@ table {
 <center>
 
 <caption>Table 1. Duration of stay correction coefficients. (\*) \- Willekens 2019.</caption>
+
 |Duration of stay <br>in months | IMEM <br>model | Expert <br>judgement (\*) | Poisson <br>model (\*) | Mixture <br>model (\*) 
 |:---:|:---:|:---:|:---:|:---:|
 | <b>0</b> |  0.53   | 0.51  | 0.79  | 0.51  |
