@@ -7,6 +7,7 @@ library(Cairo)
 library(devtools)
 library(DT)
 library(shiny)
+library(usethis)
 library(colourpicker)
 library(shinyhelper)
 library(magicaxis)
@@ -1145,7 +1146,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3('UndercountMigScores v0.4.9'),
+                                       h3('UndercountMigScores v0.4.10'),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1156,14 +1157,12 @@ shinyUI <- fluidPage(
                                        h4('Rostock, Germany'),
                                        h4('2021'),
                                        br(),
-                                       br(),
                                        h5('____________________________________________________________________________'),
-                                       h5('The newest version of the app is always available on GitHub. To run it use this R code:'),
-                                       h5(HTML('<span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span>')),
-                                       br(),
-                                       h5('You may need to update/install some dependencies:'),
-                                       h5(HTML('<span style="font-family: Courier New">install.packages(c("Cairo", "DT", "shiny", "colourpicker", <br>
-                                               "shinyhelper", "magicaxis", "data.table", "countrycodes"))</span>'))
+                                       h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),
+                                       h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyhelper")</span><br>')),
+                                       h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computers<br>
+                                       Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>'))
+
                                 )
                        ),          
                        tabPanel(title = PanelNames[2],
