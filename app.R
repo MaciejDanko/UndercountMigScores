@@ -533,12 +533,12 @@ wmodelb <- 1
 100*wmetab/(wimema+wmetab+wmodelb) # 10%
 100*wmodelb/(wimema+wmetab+wmodelb) # 70%
 
-wimema <- 0.25
-wimemb <- 0.30
-wmetaa <- 0.15
-wmetab <- 0.15
-wmodela <- 0.70
-wmodelb <- 0.65
+wimema <- 0.18
+wimemb <- 0.23
+wmetaa <- 0.12
+wmetab <- 0.12
+wmodela <- 1 - wimema - wmetaa
+wmodelb <- 1 - wimemb - wmetab
 
 
 mirror <- TRUE
@@ -1238,7 +1238,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.9</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.5.10</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
