@@ -14,5 +14,5 @@
   <h5>____________________________________________________________________________</h5>
   <h5>The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br></h5>
   <h5>You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes","data.table", "DT", "magicaxis", "shinyhelper")</span><br></h5>
-  <h5>If equations do not display correctly you may need to re-install mathjax on your computers<br>Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a></h5>
+  <h5>If equations do not display correctly you may need to re-install mathjax on your computer<br>Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a></h5>
 </div>

@@ -527,6 +527,8 @@ mirror <- TRUE
 
 RefCntrSel <- 3
 
+Step <-0.005
+
 MWt1 <- 1
 MWt2 <- 0.5
 MWt3 <- 0.5
@@ -556,6 +558,60 @@ shinyServer <-  function(input, output, session) {
 
   observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
 
+  ##################################################### Clonning
+  
+  observeEvent(input$E3clone,{
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
+    updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
+    updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
+    updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodelb)
+  })
+  
+  observeEvent(input$I3clone,{
+    updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
+    updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
+    updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
+    updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodelb)
+  })
+  
+  observeEvent(input$E3thclone,  {
+    updateSliderInput(session = session, inputId = "E3t1", value = input$I3t1)
+    updateSliderInput(session = session, inputId = "E3t2", value = input$I3t2)
+  })
+  
+  observeEvent(input$I3thclone,  {
+    updateSliderInput(session = session, inputId = "I3t1", value = input$E3t1)
+    updateSliderInput(session = session, inputId = "I3t2", value = input$E3t2)
+  })
+  
+  observeEvent(input$E2tclone,  {
+    updateSliderInput(session = session, inputId = "E2t1", value = input$I2t1)
+    updateSliderInput(session = session, inputId = "E2t2", value = input$I2t2)
+    updateSliderInput(session = session, inputId = "E2t3", value = input$I2t3)
+    updateSliderInput(session = session, inputId = "E2t4", value = input$I2t4)
+  })
+  
+  observeEvent(input$I2tclone,  {
+    updateSliderInput(session = session, inputId = "I2t1", value = input$E2t1)
+    updateSliderInput(session = session, inputId = "I2t2", value = input$E2t2)
+    updateSliderInput(session = session, inputId = "I2t3", value = input$E2t3)
+    updateSliderInput(session = session, inputId = "I2t4", value = input$E2t4)
+  })
+  
+  # observeEvent(input$E2yearclone,  {
+  #   updateSliderInput(session = session, inputId = "E2year", value = input$I2year)
+  # })
+  # 
+  # observeEvent(input$I2yearclone,  {
+  #   updateSliderInput(session = session, inputId = "I2year", value = input$E2year)
+  # })
+  
+  #####################################################
+  
   observeEvent(input$I2t1,  {
     updateSliderInput(session = session, inputId = "I2t2", max = input$I2t1)
     updateSliderInput(session = session, inputId = "I2t3", max = input$I2t2)
@@ -1152,7 +1208,8 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.7</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.5.8</b>')),
+                                       h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
                                        br(),
@@ -1166,7 +1223,7 @@ shinyUI <- fluidPage(
                                        h5('____________________________________________________________________________'),
                                        h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),
                                        h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyhelper")</span><br>')),
-                                       h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computers<br>
+                                       h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computer<br>
                                        Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>'))
                                 )
                        ),
@@ -1200,10 +1257,10 @@ shinyUI <- fluidPage(
                                   helper(h4('Weights'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content=c('The <b>score num</b> is calculated as a weighted mean which excludes all variables with "Unknown" records.')),
-                                  sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=0.001),
-                                  sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=0.001),
-                                  sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=0.001),
-                                  sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=0.001),
+                                  sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=Step),
+                                  sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=Step),
+                                  sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=Step),
+                                  sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=Step),
                                   actionButton("EMweightsreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4("Options"),
@@ -1214,8 +1271,8 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   #h4('Score classification thresholds'),
                                   uiOutput(outputId = "dynamicT1"),
-                                  sliderInput(inputId = "Emimetat1", label = "Low | Medium", min = 0, max = 1, value = MThr1, step=0.001),
-                                  sliderInput(inputId = "Emimetat2", label = "Medium | High", min = 0, max = 1, value = MThr2, step=0.001),
+                                  sliderInput(inputId = "Emimetat1", label = "Low | Medium", min = 0, max = 1, value = MThr1, step=Step),
+                                  sliderInput(inputId = "Emimetat2", label = "Medium | High", min = 0, max = 1, value = MThr2, step=Step),
                                   actionButton("EMthreshreset", "Reset"),
                                   tags$hr(style="border-color: black;"),
                                   h4("References"),
@@ -1362,6 +1419,7 @@ shinyUI <- fluidPage(
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
+                                  #actionButton("I2yearclone", "Clone from (E)"),
                                   tags$hr(style="border-color: black;"),
                                   # h4("Duration of stay correction"),
                                   # helper(checkboxInput("I2raymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
@@ -1375,11 +1433,12 @@ shinyUI <- fluidPage(
                                               selected = 1),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTI2"),
-                                  sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
-                                  sliderInput(inputId = "I2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=0.001), #thr3
-                                  sliderInput(inputId = "I2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=0.001), #thr2
-                                  sliderInput(inputId = "I2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=0.001), #thr1
+                                  sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=Step), #thr4
+                                  sliderInput(inputId = "I2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=Step), #thr3
+                                  sliderInput(inputId = "I2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=Step), #thr2
+                                  sliderInput(inputId = "I2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=Step), #thr1
                                   actionButton("I2treset", "Reset"),
+                                  actionButton("I2tclone", "Clone from (E)"),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
                                   checkboxInput("I2hide", "Hide countries with unknown bilateral flows", value = TRUE), #corrected
@@ -1433,6 +1492,7 @@ shinyUI <- fluidPage(
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("E2yearreset", "Reset"),
+                                  #actionButton("E2yearclone", "Clone from (I)"),
                                   tags$hr(style="border-color: black;"),
                                   #h4("Duration of stay correction"),
                                   # helper(checkboxInput("E2raymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
@@ -1446,11 +1506,12 @@ shinyUI <- fluidPage(
                                               selected = 1),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTE2"),
-                                  sliderInput(inputId = "E2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=0.001), #thr4
-                                  sliderInput(inputId = "E2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=0.001), #thr3
-                                  sliderInput(inputId = "E2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=0.001), #thr2
-                                  sliderInput(inputId = "E2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=0.001), #thr1
+                                  sliderInput(inputId = "E2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=Step), #thr4
+                                  sliderInput(inputId = "E2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=Step), #thr3
+                                  sliderInput(inputId = "E2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=Step), #thr2
+                                  sliderInput(inputId = "E2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=Step), #thr1
                                   actionButton("E2treset", "Reset"),
+                                  actionButton("E2tclone", "Clone from (I)"),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
                                   checkboxInput("E2hide", "Hide countries with unknown bilateral flows", value = TRUE), #corrected
@@ -1488,33 +1549,35 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of <b>score</b>s <b>num</b> obtained in previous pages'),
                                   uiOutput('I2yearshow'),
-                                  helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=0.001),
+                                  helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('B')),
-                                  helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=0.001),
+                                  helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('A')),
-                                  helper(sliderInput(inputId = "I3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=0.001),
+                                  helper(sliderInput(inputId = "I3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (I)</b> page used to calculate <b>combined score num (B)</b>'),
-                                  helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=0.001),
+                                  helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=0.001),
+                                  helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  helper(sliderInput(inputId = "I3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=0.001),
+                                  helper(sliderInput(inputId = "I3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
                                   actionButton("I3weightsreset", "Reset"),
+                                  actionButton("I3clone", "Clone from (E)"),
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
                                   checkboxInput("I3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTI3"),
-                                  sliderInput(inputId = "I3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=0.001),
-                                  sliderInput(inputId = "I3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=0.001),
-                                  actionButton("I3threshreset", "Reset")
+                                  sliderInput(inputId = "I3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
+                                  sliderInput(inputId = "I3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=Step),
+                                  actionButton("I3threshreset", "Reset"),
+                                  actionButton("I3thclone", "Clone from (E)")
                                 ),
                                 mainPanel(
                                   uiOutput(outputId = "I3dynamictabcaption"),
@@ -1531,33 +1594,35 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of <b>score</b>s <b>num</b> obtained in previous pages'),
                                   uiOutput('E2yearshow'),
-                                  helper(sliderInput(inputId = "E3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=0.001),
+                                  helper(sliderInput(inputId = "E3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('B')),
-                                  helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=0.001),
+                                  helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('A')),
-                                  helper(sliderInput(inputId = "E3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=0.001),
+                                  helper(sliderInput(inputId = "E3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (E)</b> page used to calculate <b>combined score num (B)</b>'),
-                                  helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=0.001),
+                                  helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=0.001),
+                                  helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  helper(sliderInput(inputId = "E3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=0.001),
+                                  helper(sliderInput(inputId = "E3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
                                   actionButton("E3weightsreset", "Reset"),
+                                  actionButton("E3clone", "Clone from (I)"),
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
                                   checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTE3"),
-                                  sliderInput(inputId = "E3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=0.001),
-                                  sliderInput(inputId = "E3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=0.001),
-                                  actionButton("E3threshreset", "Reset")
+                                  sliderInput(inputId = "E3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
+                                  sliderInput(inputId = "E3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=Step),
+                                  actionButton("E3threshreset", "Reset"),
+                                  actionButton("E3thclone", "Clone from (I)")
                                 ),
                                 mainPanel(
                                   uiOutput(outputId = "E3dynamictabcaption"),
