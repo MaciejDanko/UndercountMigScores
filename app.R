@@ -21,7 +21,7 @@ load('./data/MetaData.rda')
 DAT_IMEM<-loadaslist('./data/UndercountingIndex_IMEM.rda')
 DAT_POIS<-loadaslist('./data/UndercountingIndex_Willekens_Poisson.rda')
 DAT_EXPERT<-loadaslist('./data/UndercountingIndex_Willekens_Expert.rda')
-DAT_MIXED<-loadaslist('./data/UndercountingIndex_Willekens_Mixed.rda')
+DAT_MIXED<-loadaslist('./data/UndercountingIndex_Willekens_Mixture.rda')
 NORDIC<-DAT_IMEM$NORDIC
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
@@ -127,12 +127,12 @@ CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=1,
               NBoot=1e5, LEVELS=c('very low','low','medium','high','very high')){
 
   DAT0<-switch(corrected, '0' = DAT_IMEM, '1' = DAT_IMEM, '2' = DAT_EXPERT, '3' = DAT_POIS, '4' = DAT_MIXED)
-  RES<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_IE_NL,
-              '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = DAT0$ALL_COUNTRIES)
+  RES<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_NL,
+              '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = DAT0$ALL_COUNTRIES)
 
   # RES<-switch(refcountry, '1' = NORDIC, '2' = NORDIC_PLUS_BE_CH,
-  #             '3' = NORDIC_PLUS_AT_BE_CH_IE_NL,
-  #             '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = ALL_COUNTRIES)
+  #             '3' = NORDIC_PLUS_AT_BE_CH_NL,
+  #             '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = ALL_COUNTRIES)
   THRESH<-log10(1/c(1,thr1,thr2,thr3,thr4,1e-5))
 
   if (direction=='E' && corrected>0){
@@ -369,13 +369,13 @@ plot_ui_result_<-function(DAT, country, Draw='IUCraw', Dextr='IUC',Dsd='IUC_sd',
   legend('topleft',country,col=adjustcolor(country.col,0.4),bty='n',lty=1,cex=1.75,lwd=15.5)
 }
 
-#NORDIC_PLUS_AT_BE_CH_IE_NL[NORDIC_PLUS_AT_BE_CH_IE_NL$iso2=='LT',]
+#NORDIC_PLUS_AT_BE_CH_NL[NORDIC_PLUS_AT_BE_CH_NL$iso2=='LT',]
 
 plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer, logscale, plotCI){
   if (length(country)){
     DAT0<-switch(raymer, '0' = DAT_IMEM, '1' = DAT_IMEM, '2' = DAT_EXPERT, '3' = DAT_POIS, '4' = DAT_MIXED)
-    DAT<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_IE_NL,
-                '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_IE_NL, '5' = DAT0$ALL_COUNTRIES)
+    DAT<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_NL,
+                '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = DAT0$ALL_COUNTRIES)
 
     validC<-DAT$iso2[!is.na(DAT$ICnraw)]
     DAT<-DAT[DAT$iso2%in%validC,]
@@ -515,14 +515,32 @@ summaryTable<-function(META, MODEL, COMBI, direction='I', COLO){
   RR
 }
 
-thr1 <- 0.25
+thr1 <- 0.3
 thr2 <- 0.6
+
 wimema <- 0.25
-wimemb <- 0.25
-wmetaa <- 0.25
-wmetab <- 0.25
+wimemb <- 0.3
+wmetaa <- 0.15
+wmetab <- 0.15
 wmodela <- 1
 wmodelb <- 1
+
+100*wimema/(wimema+wmetaa+wmodela) # 15%
+100*wmetaa/(wimema+wmetaa+wmodela) # 10%
+100*wmodela/(wimema+wmetaa+wmodela) # 75%
+
+100*wimemb/(wimemb+wmetab+wmodelb) # 20%
+100*wmetab/(wimema+wmetab+wmodelb) # 10%
+100*wmodelb/(wimema+wmetab+wmodelb) # 70%
+
+wimema <- 0.25
+wimemb <- 0.30
+wmetaa <- 0.15
+wmetab <- 0.15
+wmodela <- 0.70
+wmodelb <- 0.65
+
+
 mirror <- TRUE
 
 RefCntrSel <- 3
@@ -533,6 +551,18 @@ MWt1 <- 1
 MWt2 <- 0.5
 MWt3 <- 0.5
 MWt4 <- 0.5
+
+MWt1/(MWt1+MWt2+MWt3+MWt4)
+MWt2/(MWt1+MWt2+MWt3+MWt4)
+MWt3/(MWt1+MWt2+MWt3+MWt4)
+MWt4/(MWt1+MWt2+MWt3+MWt4)
+
+MWt1 <- 0.4
+MWt2 <- 0.2
+MWt3 <- 0.2
+MWt4 <- 0.2
+
+
 MThr1 <- 0.3
 MThr2 <- 0.6
 TrustNordic<-TRUE
@@ -1069,7 +1099,7 @@ shinyServer <-  function(input, output, session) {
     h4(HTML(paste('<b>Table 3.</b> Classification of median bilateral flows ratio of immigration data for years 1998 - ',
                   input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
                                           by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95%
-                  interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel),
+                  interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified according to the <b>score classification thresholds</b> (left panel),
                   <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
                   ',sep='')))
   })
@@ -1078,7 +1108,7 @@ shinyServer <-  function(input, output, session) {
     h4(HTML(paste('<b>Table 4.</b> Classification of median bilateral flows ratio of emigration data for years 1998 - ',
                   input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
                                           by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).<b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95%
-                  interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel),
+                  interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified according to the <b>score classification thresholds</b> (left panel),
                   <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
                   ',sep='')))
   })
@@ -1087,7 +1117,7 @@ shinyServer <-  function(input, output, session) {
     h4(HTML(paste('<b>Table 5.</b> Classification of combined scores of immigration data for years 1998 - ',
                   input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). <b>IMEM score num</b> is the IMEM undercount classification (Raymer et al. 2013) converted to numerical value,
                   <b>metadata score num</b> is obtained from <b>Metadata classify (I)</b> page, <b>model score num (B)</b> obtained from <b>Model classify (I)</b> page.
-                  <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel).
+                  <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified according to the <b>score classification thresholds</b> (left panel).
                   ',sep='')))
   })
 
@@ -1105,7 +1135,7 @@ shinyServer <-  function(input, output, session) {
     h4(HTML(paste('<b>Table 6.</b> Classification of combined scores of emigration data for years 1998 - ',
                   input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). <b>IMEM score num</b> is the IMEM undercount classification (Raymer et al. 2013) converted to numerical value,
                   <b>metadata score num</b> is obtained from <b>Metadata classify (I)</b> page, <b>model score num (B)</b> obtained from <b>Model classify (I)</b> page.
-                  <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified into scores according to the <b>score classification thresholds</b> (left panel).
+                  <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified according to the <b>score classification thresholds</b> (left panel).
                   ',sep='')))
   })
 
@@ -1208,10 +1238,10 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.8</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.5.9</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
-                                       h4('Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data'),
+                                       h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
                                        br(),
                                        h4('Maciej J. Dańko'),
                                        h4(HTML('email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a>')),
@@ -1307,8 +1337,8 @@ shinyUI <- fluidPage(
 
                                   helper(selectInput("Irefcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
-                                                                     "Nordic countries + CH + BE + AT + IE + NL" = 3,
-                                                                     'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
+                                                                     "Nordic countries + CH + BE + AT + NL" = 3,
+                                                                     'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
                                                                      "All countries" = 5),selected = RefCntrSel),
                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
@@ -1358,8 +1388,8 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(selectInput("Erefcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
-                                                                     "Nordic countries + CH + BE + AT + IE + NL" = 3,
-                                                                     'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
+                                                                     "Nordic countries + CH + BE + AT + NL" = 3,
+                                                                     'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
                                                                      "All countries" = 5),selected = RefCntrSel),
                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
@@ -1407,8 +1437,8 @@ shinyUI <- fluidPage(
 
                                   helper(selectInput("I2refcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
-                                                                     "Nordic countries + CH + BE + AT + IE + NL" = 3,
-                                                                     'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
+                                                                     "Nordic countries + CH + BE + AT + NL" = 3,
+                                                                     'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
                                                                      "All countries" = 5),selected = RefCntrSel),
                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
@@ -1480,8 +1510,8 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(selectInput("E2refcountry", h4("Reference group of countries"),
                                                       choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
-                                                                     "Nordic countries + CH + BE + AT + IE + NL" = 3,
-                                                                     'Nordic countries + CH + BE + AT + IE + NL + DE + FR' = 4,
+                                                                     "Nordic countries + CH + BE + AT + NL" = 3,
+                                                                     'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
                                                                      "All countries" = 5),selected = RefCntrSel),
                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
