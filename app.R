@@ -691,29 +691,16 @@ IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.
 shinyServer <-  function(input, output, session) {
 
   observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
+  
   ##################################################### E=1
 
-  #verbatimTextOutput('I3WImemb'),verbatimTextOutput('I3WMetab'),verbatimTextOutput('I3WModelb'),
-  # 
-  # SA <- reactive(input$I3wimema + input$I3wmetaa + input$I3wmodela)
-  # SB <- reactive(input$I3wimemb + input$I3wmetab + input$I3wmodelb)
-  # 
-  # output$I3WImemb<-renderText({
-  #   paste('IMEM: ',round(100*(input$I3wimemb/SB()),1),'%',sep='')
-  # })
-  # 
+  
   output$I3WBPlot <- renderPlot(mypie(input$I3wimemb,input$I3wmetab,input$I3wmodelb,input$I3wimema,input$I3wmetaa,input$I3wmodela))
   
   output$E3WBPlot <- renderPlot(mypie(input$E3wimemb,input$E3wmetab,input$E3wmodelb,input$E3wimema,input$E3wmetaa,input$E3wmodela))
+  
   output$EMPlot <- renderPlot(mypie2(input$Emimetaw1,input$Emimetaw2,input$Emimetaw3,input$Emimetaw4))
-  # 
-  # output$I3WModelb<-renderText({
-  #   paste('Model: ',round(100*(input$I3wmodelb/SB()),1),'%',sep='')
-  # })
-  # 
-  # output$I3WMetab<-renderText({
-  #   paste('Meta: ',round(100*(input$I3wmetab/SB()),1),'%',sep='')
-  # })
+  
   # observeEvent(input$I3wmodela, {
   #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
   #   nwmetaa<-round((input$I3wmetaa+SA/2)/Step)*Step
@@ -748,94 +735,56 @@ shinyServer <-  function(input, output, session) {
   
   observeEvent(input$I3recalca, {
     SA <- input$I3wimema + input$I3wmetaa + input$I3wmodela
-    #SB <- input$I3wimemb + input$I3wmetab + input$I3wmodelb
-    #updateSliderInput(session = session, inputId = "I3wimemb", value = input$I3wimemb/SB)
     updateSliderInput(session = session, inputId = "I3wimema", value = input$I3wimema/SA)
-    #updateSliderInput(session = session, inputId = "I3wmetab", value = input$I3wmetab/SB)
     updateSliderInput(session = session, inputId = "I3wmetaa", value = input$I3wmetaa/SA)
-    #updateSliderInput(session = session, inputId = "I3wmodelb", value = input$I3wmodelb/SB)
     updateSliderInput(session = session, inputId = "I3wmodela", value = input$I3wmodela/SA)
   })
   
   observeEvent(input$E3recalcb, {
-    #SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
     SB <- input$E3wimemb + input$E3wmetab + input$E3wmodelb
     updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
-    #updateSliderInput(session = session, inputId = "E3wimema", value = input$E3wimema/SA)
     updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
-    #updateSliderInput(session = session, inputId = "E3wmetaa", value = input$E3wmetaa/SA)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
-    #updateSliderInput(session = session, inputId = "E3wmodela", value = input$E3wmodela/SA)
   })
 
   observeEvent(input$I3recalcb, {
-    #SA <- input$I3wimema + input$I3wmetaa + input$I3wmodela
     SB <- input$I3wimemb + input$I3wmetab + input$I3wmodelb
     updateSliderInput(session = session, inputId = "I3wimemb", value = input$I3wimemb/SB)
-    #updateSliderInput(session = session, inputId = "I3wimema", value = input$I3wimema/SA)
     updateSliderInput(session = session, inputId = "I3wmetab", value = input$I3wmetab/SB)
-    #updateSliderInput(session = session, inputId = "I3wmetaa", value = input$I3wmetaa/SA)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = input$I3wmodelb/SB)
-    #updateSliderInput(session = session, inputId = "I3wmodela", value = input$I3wmodela/SA)
   })
   
   observeEvent(input$E3recalca, {
     SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
-    #SB <- input$E3wimemb + input$E3wmetab + input$E3wmodelb
     updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
-    #updateSliderInput(session = session, inputId = "E3wimema", value = input$E3wimema/SA)
     updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
-    #updateSliderInput(session = session, inputId = "E3wmetaa", value = input$E3wmetaa/SA)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
-    #updateSliderInput(session = session, inputId = "E3wmodela", value = input$E3wmodela/SA)
   })
   
   
   ##################################################### Clonning
   
   observeEvent(input$E3clonea,{
-    #updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
     updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
-    #updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
     updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
-    #updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
     updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodela)
   })
 
   observeEvent(input$E3cloneb,{
     updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
-    #updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
     updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
-    #updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
-    #updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodela)
   })
-  
-    
-  # observeEvent(input$I3clone,{
-  #   updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
-  #   updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
-  #   updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
-  #   updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
-  #   updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
-  #   updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
-  # })
   
   observeEvent(input$I3cloneb,{
     updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
-    #updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
     updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
-    #updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
-    #updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
   })
   
   observeEvent(input$I3clonea,{
-    #updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
     updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
-    #updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
     updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
-    #updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
     updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
   })
   
@@ -1206,19 +1155,13 @@ shinyServer <-  function(input, output, session) {
 
   observeEvent(input$I3weightsresetb, {
     updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
-    #updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
     updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
-    #updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
-    #updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
   })
 
   observeEvent(input$I3weightsreseta, {
-    #updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
     updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
-    #updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
     updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
-    #updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
     updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
   })
   
@@ -1272,21 +1215,15 @@ shinyServer <-  function(input, output, session) {
   })
 
   observeEvent(input$E3weightsreseta, {
-    #updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
     updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
-    #updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
     updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
-    #updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
     updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
   })
 
   observeEvent(input$E3weightsresetb, {
     updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
-    #updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
     updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
-    #updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
-    #updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
   })
   
   observeEvent(input$E3threshreset, {
@@ -1551,7 +1488,6 @@ shinyUI <- fluidPage(
                                          content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.',
                                                    '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
                                   tags$hr(style="border-color: black;"),
-                                  #h4('Score classification thresholds'),
                                   uiOutput(outputId = "dynamicT1"),
                                   sliderInput(inputId = "Emimetat1", label = "Low | Medium", min = 0, max = 1, value = MThr1, step=Step),
                                   sliderInput(inputId = "Emimetat2", label = "Medium | High", min = 0, max = 1, value = MThr2, step=Step),
@@ -1597,10 +1533,7 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
 
-                                  # tags$hr(style="border-color: black;"),
-                                  # radioButtons("IStats", h4("Select the type of the plot"),
-                                  #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
-                                  
+
                                   tags$hr(style="border-color: black;"),
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
@@ -1608,8 +1541,6 @@ shinyUI <- fluidPage(
                                   selectInput("Iraymer", label = NULL,
                                               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4),
                                               selected = 1),
-                                  # checkboxInput("", "Use Duration of stay correction for the duration of stay", value = TRUE),
-
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
                                   #checkboxInput("Iextrapol", "Extrapolate missing values", value = FALSE),
@@ -1620,13 +1551,13 @@ shinyUI <- fluidPage(
                                 mainPanel(
                                   plotOutput(outputId = "ImiPlot", height="600px"),
                                   br(),
-                                  h4(HTML('<b>Figure 1.</b> Bilateral flows ratio for immigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
-                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).')),
+                                  h4(HTML('<b>Figure 1.</b> Bilateral flows ratios for immigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (<b>Reference group of countries</b>) reported by country X by the flows in the same direction reported by the <b>Reference group of countries</b>. The confidence intervals are calculated using percentile bootstrap method.')),
                                   div(style="display:inline-block;vertical-align:top;",
                                       h5('Choose a format and save the plot'),
                                       column(6,selectInput("Iformat", NULL,
                                                            choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                      column(6,downloadButton("Isaveplot", "Save plot")))
+                                      column(6,downloadButton("Isaveplot", "Save plot"))),
+                                  br(),br(),br(),br()
                                 )
                        ),
                        tabPanel(title = PanelNames[5],
@@ -1649,13 +1580,6 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                   tags$hr(style="border-color: black;"),
-                                  # radioButtons("EStats", h4("Select the type of the plot"),
-                                  #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
-                                  # tags$hr(style="border-color: black;"),
-                                  # h4("Duration of stay correction"),
-                                  # helper(checkboxInput("Eraymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
-                                  #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
-                                  #        content = c('DurationCorrection')),
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('DurationCorrection')),
@@ -1664,7 +1588,6 @@ shinyUI <- fluidPage(
                                               selected = 1),
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
-                                  #checkboxInput("Eextrapol", "Extrapolate missing values", value = FALSE),
                                   checkboxInput("Elogscale", "Use log-scale", value = TRUE),
                                   checkboxInput("EplotCI", "Plot confidence intervals", value = TRUE)
                                 ),
@@ -1672,13 +1595,13 @@ shinyUI <- fluidPage(
                                 mainPanel(
                                   plotOutput(outputId = "EmiPlot", height="600px"),
                                   br(),
-                                  h4(HTML('<b>Figure 2.</b> Bilateral flows ratio for Emigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
-                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).')),
+                                  h4(HTML('<b>Figure 2.</b> Bilateral flows ratios for emigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (<b>Reference group of countries</b>) reported by country X by the flows in the same direction reported by the <b>Reference group of countries</b>. The confidence intervals are calculated using percentile bootstrap method.')),
                                   div(style="display:inline-block;vertical-align:top;",
                                       h5('Choose a format and save the plot'),
                                       column(6,selectInput("Eformat", NULL,
                                                            choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                      column(6,downloadButton("Esaveplot", "Save plot")))
+                                      column(6,downloadButton("Esaveplot", "Save plot"))),
+                                  br(),br(),br(),br()
                                 )
                        ),
                        tabPanel(title = PanelNames[6],
@@ -1704,12 +1627,7 @@ shinyUI <- fluidPage(
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
-                                  #actionButton("I2yearclone", "Clone from (E)"),
                                   tags$hr(style="border-color: black;"),
-                                  # h4("Duration of stay correction"),
-                                  # helper(checkboxInput("I2raymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
-                                  #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
-                                  #        content = c('DurationCorrection')),
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('DurationCorrection')),
@@ -1777,12 +1695,7 @@ shinyUI <- fluidPage(
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("E2yearreset", "Reset"),
-                                  #actionButton("E2yearclone", "Clone from (I)"),
                                   tags$hr(style="border-color: black;"),
-                                  #h4("Duration of stay correction"),
-                                  # helper(checkboxInput("E2raymer", "Use Duration of stay correction for the duration of stay", value = TRUE),
-                                  #        colour='#FF0000',type='markdown',title="Duration of stay correction",buttonLabel = 'Close',
-                                  #        content = c('DurationCorrection')),
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('DurationCorrection')),
@@ -1868,9 +1781,6 @@ shinyUI <- fluidPage(
                                  actionButton("I3weightsreseta", "Reset"),
                                  actionButton("I3clonea", "Clone from (E)"),
                                  actionButton("I3recalca", HTML("&#8721 weights = 1")),                                  
-                                  # actionButton("I3weightsreset", "Reset"),
-                                  # actionButton("I3clone", "Clone from (E)"),
-                                  # actionButton("I3recalc", HTML("&#8721 weights = 1")),
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
                                   checkboxInput("I3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
