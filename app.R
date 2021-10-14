@@ -515,6 +515,110 @@ summaryTable<-function(META, MODEL, COMBI, direction='I', COLO){
   RR
 }
 
+pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FALSE, 
+               init.angle = if (clockwise) 90 else 0, density = NULL, angle = 45, 
+               col = NULL, border = NULL, lty = NULL, main = NULL, resize=1,...) 
+{
+  if (!is.numeric(x) || any(is.na(x) | x < 0)) 
+    stop("'x' values must be positive.")
+  if (is.null(labels)) 
+    labels <- as.character(seq_along(x))
+  else labels <- as.graphicsAnnot(labels)
+  x <- c(0, cumsum(x)/sum(x))
+  dx <- diff(x)
+  nx <- length(dx)
+  plot.new()
+  pin <- par("pin")
+  xlim <- ylim <- c(-1, 1)
+  if (pin[1L] > pin[2L]) 
+    xlim <- (pin[1L]/pin[2L]) * xlim
+  else ylim <- (pin[2L]/pin[1L]) * ylim
+  xlim<-xlim*resize
+  ylim<-ylim*resize
+  dev.hold()
+  on.exit(dev.flush())
+  plot.window(xlim, ylim, "", asp = 1)
+  if (is.null(col)) 
+    col <- if (is.null(density)) 
+      c("white", "lightblue", "mistyrose", "lightcyan", 
+        "lavender", "cornsilk")
+  else par("fg")
+  if (!is.null(col)) 
+    col <- rep_len(col, nx)
+  if (!is.null(border)) 
+    border <- rep_len(border, nx)
+  if (!is.null(lty)) 
+    lty <- rep_len(lty, nx)
+  angle <- rep(angle, nx)
+  if (!is.null(density)) 
+    density <- rep_len(density, nx)
+  twopi <- if (clockwise) 
+    -2 * pi
+  else 2 * pi
+  t2xy <- function(t) {
+    t2p <- twopi * t + init.angle * pi/180
+    list(x = radius * cos(t2p), y = radius * sin(t2p))
+  }
+  for (i in 1L:nx) {
+    n <- max(2, floor(edges * dx[i]))
+    P <- t2xy(seq.int(x[i], x[i + 1], length.out = n))
+    polygon(c(P$x, 0), c(P$y, 0), density = density[i], angle = angle[i], 
+            border = border[i], col = col[i], lty = lty[i])
+    P <- t2xy(mean(x[i + 0:1]))
+    lab <- as.character(labels[i])
+    if (!is.na(lab) && nzchar(lab)) {
+      #lines(c(1, 1.05) * P$x, c(1, 1.05) * P$y)
+      text(1.1 * P$x, 1.1 * P$y, eval(substitute(expression(bold(d)),list(d=paste(labels[i])))), xpd = TRUE, 
+           adj = ifelse(P$x < 0, 1, 0), cex=1.8, ...)
+    }
+  }
+  title(main = main, ...)
+  invisible(NULL)
+}
+
+mypie<-function(x1,y1,z1, 
+                x2,y2,z2,resize=1){
+  options(bitmapType="cairo")
+  Z1<-x1+y1+z1
+  Z2<-x2+y2+z2
+  piecol<-c('#FFAACC','#AACCFF','#90DD90')
+  labels1<-paste(format(round(100*c(x1/Z1,y1/Z1,z1/Z1),1),2),'%')
+  labels2<-paste(format(round(100*c(x2/Z2,y2/Z2,z2/Z2),1),2),'%')
+  #bg<-par('bg')
+  #par(bg=adjustcolor('white',0.2))
+  par(mar=c(0,3,0,3),oma=c(0,0,0,0),mfrow=c(1,3))
+  pie2(c(x1,y1,z1),border=0,col=piecol,labels = labels1,edges=500,resize = resize)
+  text(0,0,expression(bold(B)),cex=2.5)
+  pie2(c(x2,y2,z2),border=0,col=piecol,labels = labels2,edges=500,resize = resize)
+  text(0,0,expression(bold(A)),cex=2.5)
+  plot(1:2,1:2,type='n',axes=FALSE)
+  legend('left',legend=c('IMEM','Metadata','Model'),bty='o', 
+         bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=2)
+  #par(bg=bg)
+}
+
+mypie2<-function(x1,y1,z1,w1,resize=1){
+  options(bitmapType="cairo")
+  Z1<-x1+y1+z1+w1
+  piecol<-c('#FFAACC','#AACCFF','#EE9940','#90DD90')
+  labels1<-paste(format(round(100*c(x1/Z1,y1/Z1,z1/Z1,w1/Z1),1),2),'%')
+  #bg<-par('bg')
+  #par(bg=adjustcolor('white',0.2))
+  par(mar=c(0,3,0,3),oma=c(0,0,0,0))
+  layout(matrix(c(1,2,2),1,3),1,3)
+  pie2(c(x1,y1,z1,w1),border=0,col=piecol,labels = labels1,edges=500,resize = resize)
+  plot(1:2,1:2,type='n',axes=FALSE)
+  legend('left',legend=c('Obligation of registration','Obligation of registration third country nationals',
+                         'Monitoring third country nationals', 'Administrative corrections'),bty='o', 
+         bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=1.8)
+  #par(bg=bg)
+}
+mypie2(0.1,0.2,0.52,0.2,0.85)
+# d=1:3
+# mypie(0.1,0.2,0.52,0.2,0.2,0.52,0.85)
+# text(1.5,1,eval(substitute(expression(bold(d)),list(d='5'))),cex=2)
+# text(1.5,1,expression(bold("5")),cex=2)
+
 thr1 <- 0.3
 thr2 <- 0.6
 
@@ -587,27 +691,155 @@ IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.
 shinyServer <-  function(input, output, session) {
 
   observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
+  ##################################################### E=1
 
+  #verbatimTextOutput('I3WImemb'),verbatimTextOutput('I3WMetab'),verbatimTextOutput('I3WModelb'),
+  # 
+  # SA <- reactive(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  # SB <- reactive(input$I3wimemb + input$I3wmetab + input$I3wmodelb)
+  # 
+  # output$I3WImemb<-renderText({
+  #   paste('IMEM: ',round(100*(input$I3wimemb/SB()),1),'%',sep='')
+  # })
+  # 
+  output$I3WBPlot <- renderPlot(mypie(input$I3wimemb,input$I3wmetab,input$I3wmodelb,input$I3wimema,input$I3wmetaa,input$I3wmodela))
+  
+  output$E3WBPlot <- renderPlot(mypie(input$E3wimemb,input$E3wmetab,input$E3wmodelb,input$E3wimema,input$E3wmetaa,input$E3wmodela))
+  output$EMPlot <- renderPlot(mypie2(input$Emimetaw1,input$Emimetaw2,input$Emimetaw3,input$Emimetaw4))
+  # 
+  # output$I3WModelb<-renderText({
+  #   paste('Model: ',round(100*(input$I3wmodelb/SB()),1),'%',sep='')
+  # })
+  # 
+  # output$I3WMetab<-renderText({
+  #   paste('Meta: ',round(100*(input$I3wmetab/SB()),1),'%',sep='')
+  # })
+  # observeEvent(input$I3wmodela, {
+  #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  #   nwmetaa<-round((input$I3wmetaa+SA/2)/Step)*Step
+  #   nwimema<-1-input$I3wmodela-nwmetaa
+  #   updateSliderInput(session = session, inputId = "I3wimema", value = nwimema)
+  #   updateSliderInput(session = session, inputId = "I3wmetaa", value = nwmetaa)
+  # })
+  # 
+  # observeEvent(input$I3wimema, {
+  #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  #   nwmetaa<-round((input$I3wmetaa+SA/2)/Step)*Step
+  #   nwmodela<-1-input$I3wimema-nwmetaa
+  #   updateSliderInput(session = session, inputId = "I3wmodela", value = nwmodela)
+  #   updateSliderInput(session = session, inputId = "I3wmetaa", value = nwmetaa)
+  # })
+  # 
+  # observeEvent(input$I3wmetaa, {
+  #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  #   nwimema<-round((input$I3wimema+SA/2)/Step)*Step
+  #   nwmodela<-1-input$I3wmetaa-nwimema
+  #   updateSliderInput(session = session, inputId = "I3wmodela", value = nwmodela)
+  #   updateSliderInput(session = session, inputId = "I3wimema", value = nwimema)
+  # })
+  
+  observeEvent(input$EMrecalc, {
+    SA <- input$Emimetaw1 + input$Emimetaw2 + input$Emimetaw3 + input$Emimetaw4
+    updateSliderInput(session = session, inputId = "Emimetaw1", value = input$Emimetaw1/SA)
+    updateSliderInput(session = session, inputId = "Emimetaw2", value = input$Emimetaw2/SA)
+    updateSliderInput(session = session, inputId = "Emimetaw3", value = input$Emimetaw3/SA)
+    updateSliderInput(session = session, inputId = "Emimetaw4", value = input$Emimetaw4/SA)
+  })
+  
+  observeEvent(input$I3recalca, {
+    SA <- input$I3wimema + input$I3wmetaa + input$I3wmodela
+    #SB <- input$I3wimemb + input$I3wmetab + input$I3wmodelb
+    #updateSliderInput(session = session, inputId = "I3wimemb", value = input$I3wimemb/SB)
+    updateSliderInput(session = session, inputId = "I3wimema", value = input$I3wimema/SA)
+    #updateSliderInput(session = session, inputId = "I3wmetab", value = input$I3wmetab/SB)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = input$I3wmetaa/SA)
+    #updateSliderInput(session = session, inputId = "I3wmodelb", value = input$I3wmodelb/SB)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = input$I3wmodela/SA)
+  })
+  
+  observeEvent(input$E3recalcb, {
+    #SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
+    SB <- input$E3wimemb + input$E3wmetab + input$E3wmodelb
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
+    #updateSliderInput(session = session, inputId = "E3wimema", value = input$E3wimema/SA)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
+    #updateSliderInput(session = session, inputId = "E3wmetaa", value = input$E3wmetaa/SA)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
+    #updateSliderInput(session = session, inputId = "E3wmodela", value = input$E3wmodela/SA)
+  })
+
+  observeEvent(input$I3recalcb, {
+    #SA <- input$I3wimema + input$I3wmetaa + input$I3wmodela
+    SB <- input$I3wimemb + input$I3wmetab + input$I3wmodelb
+    updateSliderInput(session = session, inputId = "I3wimemb", value = input$I3wimemb/SB)
+    #updateSliderInput(session = session, inputId = "I3wimema", value = input$I3wimema/SA)
+    updateSliderInput(session = session, inputId = "I3wmetab", value = input$I3wmetab/SB)
+    #updateSliderInput(session = session, inputId = "I3wmetaa", value = input$I3wmetaa/SA)
+    updateSliderInput(session = session, inputId = "I3wmodelb", value = input$I3wmodelb/SB)
+    #updateSliderInput(session = session, inputId = "I3wmodela", value = input$I3wmodela/SA)
+  })
+  
+  observeEvent(input$E3recalca, {
+    SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
+    #SB <- input$E3wimemb + input$E3wmetab + input$E3wmodelb
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
+    #updateSliderInput(session = session, inputId = "E3wimema", value = input$E3wimema/SA)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
+    #updateSliderInput(session = session, inputId = "E3wmetaa", value = input$E3wmetaa/SA)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
+    #updateSliderInput(session = session, inputId = "E3wmodela", value = input$E3wmodela/SA)
+  })
+  
+  
   ##################################################### Clonning
   
-  observeEvent(input$E3clone,{
-    updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
+  observeEvent(input$E3clonea,{
+    #updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
     updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
-    updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
+    #updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
     updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
+    #updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
+    updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodela)
+  })
+
+  observeEvent(input$E3cloneb,{
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
+    #updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
+    #updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
-    updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodelb)
+    #updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodela)
   })
   
-  observeEvent(input$I3clone,{
+    
+  # observeEvent(input$I3clone,{
+  #   updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
+  #   updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
+  #   updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
+  #   updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
+  #   updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
+  #   updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
+  # })
+  
+  observeEvent(input$I3cloneb,{
     updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
-    updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
+    #updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
     updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
-    updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
+    #updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
-    updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodelb)
+    #updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
   })
   
+  observeEvent(input$I3clonea,{
+    #updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
+    updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
+    #updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
+    #updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
+  })
+  
+    
   observeEvent(input$E3thclone,  {
     updateSliderInput(session = session, inputId = "E3t1", value = input$I3t1)
     updateSliderInput(session = session, inputId = "E3t2", value = input$I3t2)
@@ -972,15 +1204,25 @@ shinyServer <-  function(input, output, session) {
     updateSliderInput(session = session, inputId = "I3t2", min = input$I3t1)
   })
 
-  observeEvent(input$I3weightsreset, {
+  observeEvent(input$I3weightsresetb, {
     updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
-    updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
+    #updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
     updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
-    updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
+    #updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
-    updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
+    #updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
   })
 
+  observeEvent(input$I3weightsreseta, {
+    #updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
+    updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
+    #updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
+    #updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
+  })
+  
+  
   observeEvent(input$I3threshreset, {
     updateSliderInput(session = session, inputId = "I3t1", value = thr1)
     updateSliderInput(session = session, inputId = "I3t2", value = thr2)
@@ -1029,15 +1271,24 @@ shinyServer <-  function(input, output, session) {
     updateSliderInput(session = session, inputId = "E3t2", min = input$E3t1)
   })
 
-  observeEvent(input$E3weightsreset, {
-    updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
+  observeEvent(input$E3weightsreseta, {
+    #updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
     updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
-    updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
+    #updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
     updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
-    updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
+    #updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
     updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
   })
 
+  observeEvent(input$E3weightsresetb, {
+    updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
+    #updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
+    #updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
+    #updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
+  })
+  
   observeEvent(input$E3threshreset, {
     updateSliderInput(session = session, inputId = "E3t1", value = thr1)
     updateSliderInput(session = session, inputId = "E3t2", value = thr2)
@@ -1089,7 +1340,7 @@ shinyServer <-  function(input, output, session) {
     h4(HTML(paste('<b>Figure 3.</b> Median bilateral flows ratio of immigration data for years 1998 - ',
                   input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
                                           by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95%
-                  interquantile confidence intervals, background colors reflect classification based on the tresholds.
+                  interquantile confidence intervals, background colors reflect classification based on the thresholds.
                   If ratio is 1 there is no under- or over- counting. Ratios higher than 1 indicate overcounting,
                   while ratios lower than 1 indicate undercounting of immigration flows. The lower the ratio value the higher the undercounting.
                   ',sep='')))
@@ -1107,7 +1358,7 @@ shinyServer <-  function(input, output, session) {
   output$E2dynamictabcaption <- renderUI({
     h4(HTML(paste('<b>Table 4.</b> Classification of median bilateral flows ratio of emigration data for years 1998 - ',
                   input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
-                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).<b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95%
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95%
                   interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified according to the <b>score classification thresholds</b> (left panel),
                   <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
                   ',sep='')))
@@ -1141,9 +1392,9 @@ shinyServer <-  function(input, output, session) {
 
   output$E2dynamicfigcaption <- renderUI({
     h4(HTML(paste('<b>Figure 4.</b> Median bilateral flows ratio of emigration data for years 1998 - ',
-                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
                                           by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95%
-                  interquantile confidence intervals, background colors reflect clasification based on the tresholds.
+                  interquantile confidence intervals, background colors reflect classification based on the thresholds.
                   If ratio is 1 there is no under- or over- counting. Ratios higher than 1 indicate overcounting,
                   while ratios lower than 1 indicate undercounting of emigration flows. The lower the ratio value the higher the undercounting.',sep='')))
   })
@@ -1238,7 +1489,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.11</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.5.12</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
@@ -1292,6 +1543,7 @@ shinyUI <- fluidPage(
                                   sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=Step),
                                   sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=Step),
                                   actionButton("EMweightsreset", "Reset"),
+                                  actionButton("EMrecalc", HTML("&#8721 weights = 1")),                                  
                                   tags$hr(style="border-color: black;"),
                                   h4("Options"),
                                   helper(checkboxInput("nordicemi", 'Trust Nordic countries', value = TrustNordic),
@@ -1314,6 +1566,8 @@ shinyUI <- fluidPage(
                                   ISBN 92-894-6051-2.")
                                 ),
                                 mainPanel(
+                                  plotOutput('EMPlot', height='200', width='80%'),
+                                  tags$hr(style="border-color: black;"),
                                   h4(HTML('<b>Table 2.</b> Emigration undercounting related metadata and its classification.')),
                                   downloadButton("downloadEMData", "Download table"),
                                   br(),
@@ -1346,6 +1600,7 @@ shinyUI <- fluidPage(
                                   # tags$hr(style="border-color: black;"),
                                   # radioButtons("IStats", h4("Select the type of the plot"),
                                   #              choices = list("Estimate + bootstrapped confidence intervals (∓ 1.96*SD)" = 1, "Bootstrapped median + 95% interquantiles" = 2), selected = 2),
+                                  
                                   tags$hr(style="border-color: black;"),
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
@@ -1365,7 +1620,7 @@ shinyUI <- fluidPage(
                                 mainPanel(
                                   plotOutput(outputId = "ImiPlot", height="600px"),
                                   br(),
-                                  h4(HTML('<b>Figure 1.</b> Bilateral flows ratio for immigration data. The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                                  h4(HTML('<b>Figure 1.</b> Bilateral flows ratio for immigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
                                           by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).')),
                                   div(style="display:inline-block;vertical-align:top;",
                                       h5('Choose a format and save the plot'),
@@ -1417,7 +1672,7 @@ shinyUI <- fluidPage(
                                 mainPanel(
                                   plotOutput(outputId = "EmiPlot", height="600px"),
                                   br(),
-                                  h4(HTML('<b>Figure 2.</b> Bilateral flows ratio for Emigration data. The ratio is calcualted by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                                  h4(HTML('<b>Figure 2.</b> Bilateral flows ratio for Emigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
                                           by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>).')),
                                   div(style="display:inline-block;vertical-align:top;",
                                       h5('Choose a format and save the plot'),
@@ -1445,7 +1700,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(h4('Threshold year'),
                                          colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
+                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the threshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("I2yearreset", "Reset"),
@@ -1518,7 +1773,7 @@ shinyUI <- fluidPage(
                                   tags$hr(style="border-color: black;"),
                                   helper(h4('Threshold year'),
                                          colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the treshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
+                                         content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the threshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
                                                    <b>Threshold year</b> is identical for both immigration end emigration data.')),
                                   sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
                                   actionButton("E2yearreset", "Reset"),
@@ -1579,26 +1834,43 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of <b>score</b>s <b>num</b> obtained in previous pages'),
                                   uiOutput('I2yearshow'),
-                                  helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
+                                
+                                    helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('B')),
-                                  helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
-                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
-                                         content=IMEMc('A')),
+                                 
                                   helper(sliderInput(inputId = "I3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (I)</b> page used to calculate <b>combined score num (B)</b>'),
-                                  helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
+                                  
+                                  helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
+                                         colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
+                                         content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
+                                  
+                                  actionButton("I3weightsresetb", "Reset"),
+                                  actionButton("I3cloneb", "Clone from (E)"),
+                                  actionButton("I3recalcb", HTML("&#8721 weights = 1")),
+                                  
+                                  tags$hr(style="border-color: black; border-top: dashed 1px"),
+                                  
+                                  helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
+                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                         content=IMEMc('A')),
+                                  
+                                 helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
-                                         colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
-                                         content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
+                                  
                                   helper(sliderInput(inputId = "I3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  actionButton("I3weightsreset", "Reset"),
-                                  actionButton("I3clone", "Clone from (E)"),
+                                 
+                                 actionButton("I3weightsreseta", "Reset"),
+                                 actionButton("I3clonea", "Clone from (E)"),
+                                 actionButton("I3recalca", HTML("&#8721 weights = 1")),                                  
+                                  # actionButton("I3weightsreset", "Reset"),
+                                  # actionButton("I3clone", "Clone from (E)"),
+                                  # actionButton("I3recalc", HTML("&#8721 weights = 1")),
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
                                   checkboxInput("I3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
@@ -1610,6 +1882,8 @@ shinyUI <- fluidPage(
                                   actionButton("I3thclone", "Clone from (E)")
                                 ),
                                 mainPanel(
+                                  plotOutput('I3WBPlot', height='200', width='80%'),
+                                  tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "I3dynamictabcaption"),
                                   downloadButton("I3download", "Download table"),
                                   br(),
@@ -1627,23 +1901,38 @@ shinyUI <- fluidPage(
                                   helper(sliderInput(inputId = "E3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('B')),
-                                  helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
-                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
-                                         content=IMEMc('A')),
+                                  
                                   helper(sliderInput(inputId = "E3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (E)</b> page used to calculate <b>combined score num (B)</b>'),
+                                  
+                                  helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
+                                         colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
+                                         content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
+                            
+                                  actionButton("E3weightsresetb", "Reset"),
+                                  actionButton("E3cloneb", "Clone from (I)"),
+                                  actionButton("E3recalcb", HTML("&#8721 weights = 1")),
+                                  
+                                  tags$hr(style="border-color: black; border-top: dashed 1px"),
+                                  
+                                  
+                                  helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
+                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                         content=IMEMc('A')),
+                                  
                                   helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
-                                         colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
-                                         content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
+                                  
                                   helper(sliderInput(inputId = "E3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
-                                  actionButton("E3weightsreset", "Reset"),
-                                  actionButton("E3clone", "Clone from (I)"),
+                                  
+                                  actionButton("E3weightsreseta", "Reset"),
+                                  actionButton("E3clonea", "Clone from (I)"),
+                                  actionButton("E3recalca", HTML("&#8721 weights = 1")),
+                                  
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
                                   checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
@@ -1655,6 +1944,8 @@ shinyUI <- fluidPage(
                                   actionButton("E3thclone", "Clone from (I)")
                                 ),
                                 mainPanel(
+                                  plotOutput('E3WBPlot', height='200', width='80%'),
+                                  tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "E3dynamictabcaption"),
                                   downloadButton("E3download", "Download table"),
                                   br(),
