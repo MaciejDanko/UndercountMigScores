@@ -1,5 +1,4 @@
-<br>
-[![DOI](https://zenodo.org/badge/414693180.svg)](https://zenodo.org/badge/latestdoi/414693180)
+<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>
 <div class="col-sm-12" align="center">
   <h3>UndercountMigScores v0.5.12</h3>
   <h4><a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/</a></h4>
