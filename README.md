@@ -1,5 +1,7 @@
+<br>
+[![DOI](https://zenodo.org/badge/414693180.svg)](https://zenodo.org/badge/latestdoi/414693180)
 <div class="col-sm-12" align="center">
-  <h3>UndercountMigScores v0.5.11</h3>
+  <h3>UndercountMigScores v0.5.12</h3>
   <h4><a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/</a></h4>
   <br>
   <h4>Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data</h4>
