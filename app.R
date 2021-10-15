@@ -1439,7 +1439,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML('<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>')),
-                                       h3(HTML('<b>UndercountMigScores v0.6.1</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.6.2</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
@@ -1453,7 +1453,7 @@ shinyUI <- fluidPage(
                                       
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
-                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.1. (2021)<br>
+                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.2. (2021)<br>
                                                Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata.
                                                <br>doi:10.5281/zenodo.5570996. url:https://github.com/MaciejDanko/UndercountMigScore')),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
@@ -1522,6 +1522,7 @@ shinyUI <- fluidPage(
                                   ISBN 92-894-6051-2.")
                                 ),
                                 mainPanel(
+                                  h4('Normalized weights'),
                                   plotOutput('EMPlot', height='200', width='80%'),
                                   tags$hr(style="border-color: black;"),
                                   h4(HTML('<b>Table 2.</b> Emigration undercounting related metadata and its classification.')),
@@ -1812,6 +1813,7 @@ shinyUI <- fluidPage(
                                   actionButton("I3thclone", "Clone from (E)")
                                 ),
                                 mainPanel(
+                                  h4('Normalized mixing weights'),
                                   plotOutput('I3WBPlot', height='200', width='80%'),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "I3dynamictabcaption"),
@@ -1874,6 +1876,7 @@ shinyUI <- fluidPage(
                                   actionButton("E3thclone", "Clone from (I)")
                                 ),
                                 mainPanel(
+                                  h4('Normalized mixing weights'),
                                   plotOutput('E3WBPlot', height='200', width='80%'),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "E3dynamictabcaption"),
