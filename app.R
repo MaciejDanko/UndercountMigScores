@@ -1392,6 +1392,19 @@ shinyServer <-  function(input, output, session) {
     )
   })
 
+  output$downloadBIB<- downloadHandler(
+    filename = function() {
+      paste('UndercountMigScores', '.bib', sep='') },
+    content = function(filename) {
+      con <- file('CITATION.bib', encoding = "UTF-8")
+      con2 <- file(filename, encoding = "UTF-8")
+      z<-readLines(con)
+      writeLines(z, con2)
+      close(con)
+      close(con2)
+    }
+  )
+  
 }
 
 colabout="#A9DFBF"
@@ -1425,11 +1438,9 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[1],
                                 column(12,offset=0, align="center",
                                        br(),
-                                       br(),
-                                       h3(HTML('<b>UndercountMigScores v0.5.12</b>')),
-                                       h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
-                                       
                                        h3(HTML('<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>')),
+                                       h3(HTML('<b>UndercountMigScores v0.6.1</b>')),
+                                       h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
                                        br(),
@@ -1439,12 +1450,19 @@ shinyUI <- fluidPage(
                                        h4('Max Planck Institute for Demographic Research'),
                                        h4('Rostock, Germany'),
                                        h4('2021'),
-                                       br(),
+                                      
+                                       h5('____________________________________________________________________________'),
+                                       h4('How to cite this software?'),
+                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.1. (2021)<br>
+                                               Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata.
+                                               <br>doi:10.5281/zenodo.5570996. url:https://github.com/MaciejDanko/UndercountMigScore')),
+                                       downloadButton("downloadBIB", "Download citation in .bib format"),
                                        h5('____________________________________________________________________________'),
                                        h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),
                                        h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyhelper")</span><br>')),
                                        h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computer<br>
-                                       Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>'))
+                                       Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>')),
+                                       br(),br(),br(),br()
                                 )
                        ),
                        tabPanel(title = PanelNames[2],

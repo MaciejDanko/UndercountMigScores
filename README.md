@@ -1,6 +1,6 @@
 <a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>
 <div class="col-sm-12" align="center">
-  <h3>UndercountMigScores v0.5.12</h3>
+  <h3>UndercountMigScores v0.6.1</h3>
   <h4><a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/</a></h4>
   <br>
   <h4>Combining Eurostat metadata undercounting migration scores and the scores based on bilateral flows ratio of Eurostat migration data</h4>
@@ -11,7 +11,11 @@
   <h4>Max Planck Institute for Demographic Research</h4>
   <h4>Rostock, Germany</h4>
   <h4>2021</h4>
-  <br>
+  <h5>____________________________________________________________________________</h5>
+  <h4>How to cite this software?</h4>
+  <h5>HTML('Maciej J. Dańko. UndercountMigScores v0.6.1. (2021)<br>
+      Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata.
+      <br>doi:10.5281/zenodo.5570996. url:https://github.com/MaciejDanko/UndercountMigScore'</h5>
   <h5>____________________________________________________________________________</h5>
   <h5>The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br></h5>
   <h5>You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes","data.table", "DT", "magicaxis", "shinyhelper")</span><br></h5>
