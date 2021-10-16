@@ -1439,7 +1439,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML('<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>')),
-                                       h3(HTML('<b>UndercountMigScores v0.6.2</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.6.3</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
@@ -1453,7 +1453,7 @@ shinyUI <- fluidPage(
                                       
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
-                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.2. (2021)<br>
+                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.3. (2021)<br>
                                                Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata.
                                                <br>doi:10.5281/zenodo.5570996. url:https://github.com/MaciejDanko/UndercountMigScore')),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
@@ -1499,6 +1499,10 @@ shinyUI <- fluidPage(
                                   sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=Step),
                                   sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=Step),
                                   sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=Step),
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
                                   actionButton("EMweightsreset", "Reset"),
                                   actionButton("EMrecalc", HTML("&#8721 weights = 1")),                                  
                                   tags$hr(style="border-color: black;"),
@@ -1661,8 +1665,15 @@ shinyUI <- fluidPage(
                                   sliderInput(inputId = "I2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=Step), #thr3
                                   sliderInput(inputId = "I2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=Step), #thr2
                                   sliderInput(inputId = "I2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=Step), #thr1
+                                  
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Model classify (E)</b> page.'),
+                                  
+                              
                                   actionButton("I2treset", "Reset"),
                                   actionButton("I2tclone", "Clone from (E)"),
+                                  
                                   tags$hr(style="border-color: black;"),
                                   h4('Graphical options'),
                                   checkboxInput("I2hide", "Hide countries with unknown bilateral flows", value = TRUE), #corrected
@@ -1729,6 +1740,10 @@ shinyUI <- fluidPage(
                                   sliderInput(inputId = "E2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=Step), #thr3
                                   sliderInput(inputId = "E2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=Step), #thr2
                                   sliderInput(inputId = "E2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=Step), #thr1
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Model classify (I)</b> page.'),
+                                  
                                   actionButton("E2treset", "Reset"),
                                   actionButton("E2tclone", "Clone from (I)"),
                                   tags$hr(style="border-color: black;"),
@@ -1781,6 +1796,10 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
                                   
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
                                   actionButton("I3weightsresetb", "Reset"),
                                   actionButton("I3cloneb", "Clone from (E)"),
                                   actionButton("I3recalcb", HTML("&#8721 weights = 1")),
@@ -1799,6 +1818,10 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
                                  
+                                 helper(tags$span(' '),
+                                        colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                        content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                 
                                  actionButton("I3weightsreseta", "Reset"),
                                  actionButton("I3clonea", "Clone from (E)"),
                                  actionButton("I3recalca", HTML("&#8721 weights = 1")),                                  
@@ -1809,6 +1832,10 @@ shinyUI <- fluidPage(
                                   uiOutput(outputId = "dynamicTI3"),
                                   sliderInput(inputId = "I3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
                                   sliderInput(inputId = "I3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=Step),
+                                 helper(tags$span(' '),
+                                        colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                        content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page.'),
+                                 
                                   actionButton("I3threshreset", "Reset"),
                                   actionButton("I3thclone", "Clone from (E)")
                                 ),
@@ -1841,7 +1868,11 @@ shinyUI <- fluidPage(
                                   helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
-                            
+                                  
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (I)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
                                   actionButton("E3weightsresetb", "Reset"),
                                   actionButton("E3cloneb", "Clone from (I)"),
                                   actionButton("E3recalcb", HTML("&#8721 weights = 1")),
@@ -1861,10 +1892,15 @@ shinyUI <- fluidPage(
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
                                   
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (I)</b>, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
                                   actionButton("E3weightsreseta", "Reset"),
                                   actionButton("E3clonea", "Clone from (I)"),
                                   actionButton("E3recalca", HTML("&#8721 weights = 1")),
-                                  
+
+                                                                    
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
                                   checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
@@ -1872,6 +1908,10 @@ shinyUI <- fluidPage(
                                   uiOutput(outputId = "dynamicTE3"),
                                   sliderInput(inputId = "E3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
                                   sliderInput(inputId = "E3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=Step),
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (I)</b>.'),
+                                  
                                   actionButton("E3threshreset", "Reset"),
                                   actionButton("E3thclone", "Clone from (I)")
                                 ),
