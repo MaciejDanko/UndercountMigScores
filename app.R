@@ -14,6 +14,8 @@ library(magicaxis)
 library(data.table)
 library(countrycode)
 
+options(bitmapType="cairo")
+
 loadaslist<-function(Name){G<-new.env(); load(Name,G); as.list(G)}
 
 load('./data/MetaData.rda')
@@ -1439,10 +1441,10 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML('<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>')),
-                                       h3(HTML('<b>UndercountMigScores v0.6.3</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.6.4</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
-                                       h4('Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata'),
+                                       h4('Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat'),
                                        br(),
                                        h4('Maciej J. Dańko'),
                                        h4(HTML('email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a>')),
@@ -1453,9 +1455,9 @@ shinyUI <- fluidPage(
                                       
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
-                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.3. (2021)<br>
+                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.4. (2021)<br>
                                                Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata.
-                                               <br>doi:10.5281/zenodo.5570996. url:https://github.com/MaciejDanko/UndercountMigScore')),
+                                               <br>doi:10.5281/zenodo.5571324. url:https://github.com/MaciejDanko/UndercountMigScore')),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
                                        h5('____________________________________________________________________________'),
                                        h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),

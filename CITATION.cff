@@ -5,7 +5,7 @@ authors:
     given-names: Maciej J.
     orcid: https://orcid.org/0000-0002-7924-9022
 title: "UndercountMigScores. Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata"
-version: 0.6.3
-doi: 10.5281/zenodo.5570996
+version: 0.6.4
+doi: 10.5281/zenodo.5571324
 date-released: 2021-10-16
 url: https://github.com/MaciejDanko/UndercountMigScores
