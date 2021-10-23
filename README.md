@@ -13,7 +13,7 @@
   <h4>2021</h4>
   <h5>____________________________________________________________________________</h5>
   <h4>How to cite this software?</h4>
-  <h5>HTML('Maciej J. Dańko. UndercountMigScores v0.6.4. (2021)<br>
+  <h5>Maciej J. Dańko. UndercountMigScores v0.6.4. (2021)<br>
       Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat
       <br>doi:10.5281/zenodo.5594133. url:https://github.com/MaciejDanko/UndercountMigScore'</h5>
   <h5>____________________________________________________________________________</h5>
