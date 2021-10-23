@@ -1456,7 +1456,7 @@ shinyUI <- fluidPage(
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
                                        h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.4. (2021)<br>
-                                               Assessing the undercounting of official statistics on migration flows using official Eurostat data and metadata.
+                                               Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat.
                                                <br>doi:10.5281/zenodo.5571324. url:https://github.com/MaciejDanko/UndercountMigScore')),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
                                        h5('____________________________________________________________________________'),
