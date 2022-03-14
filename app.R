@@ -17,13 +17,39 @@ library(countrycode)
 options(bitmapType="cairo")
 
 loadaslist<-function(Name){G<-new.env(); load(Name,G); as.list(G)}
+toeurostat<-function(x) {x[x=='GR']<-'EL'; x[x=='GB']<-'UK'; x}
 
 load('./data/MetaData.rda')
+
+IMEM$Country[IMEM$Country=='EL']<-'GR'
+IMEM<-IMEM[!is.na(IMEM$Country),]
+IMEM<-IMEM[order(IMEM$Country),]
+Meta_DeReg$iso2[Meta_DeReg$iso2=='EL']<-'GR'
+Meta_DeReg<-Meta_DeReg[order(Meta_DeReg$iso2),]
+Meta_Reg$iso2[Meta_DeReg$iso2=='EL']<-'GR'
+Meta_Reg<-Meta_DeReg[order(Meta_DeReg$iso2),]
+
 
 DAT_IMEM<-loadaslist('./data/UndercountingIndex_IMEM.rda')
 DAT_POIS<-loadaslist('./data/UndercountingIndex_Willekens_Poisson.rda')
 DAT_EXPERT<-loadaslist('./data/UndercountingIndex_Willekens_Expert.rda')
 DAT_MIXED<-loadaslist('./data/UndercountingIndex_Willekens_Mixture.rda')
+
+sortisoyear<-function(z) {
+  lapply(z, function(x) {
+  x$iso2[x$iso2=='EL']<-'GR'
+  x$ind<-paste(x$iso2,x$year)
+  x<-x[order(x$ind),]
+  x$ind<-NULL
+  x
+  })
+}
+
+DAT_IMEM<-sortisoyear(DAT_IMEM)
+DAT_POIS<-sortisoyear(DAT_POIS)
+DAT_EXPERT<-sortisoyear(DAT_EXPERT)
+DAT_MIXED<-sortisoyear(DAT_MIXED)
+
 NORDIC<-DAT_IMEM$NORDIC
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
@@ -238,14 +264,23 @@ CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=1,
   resBnum <- round((as.numeric(resB)-1)/(length(THRESH)-2),4)
   resAnum <- round((as.numeric(resA)-1)/(length(THRESH)-2),4)
 
+  stand<-function(x,r) (x-r[1])/diff(r)
+  
+  resBnum2 <- round(stand(negi(log10(B)),range(negi(log10(B)),negi(log10(A)),na.rm = TRUE)),4)
+  resAnum2 <- round(stand(negi(log10(A)),range(negi(log10(B)),negi(log10(A)),na.rm = TRUE)),4)
+  
+  #stop('UK is missing!')
+  
   res<-data.frame(iso2=UG,
-                  country=countrycode::countrycode(UG,'eurostat','country.name'),
+                  country=countrycode::countrycode(toeurostat(UG),'eurostat','country.name'),
                   B=round(RESLOStat,4),
                   B.score=resB,
-                  B.score.num=resBnum,
+                  #B.score.num=resBnum,
+                  B.score.num=resBnum2,
                   A=round(RESHIStat,4),
                   A.score=resA,
-                  A.score.num=resAnum,
+                  #A.score.num=resAnum,
+                  A.score.num=resAnum2,
                   stringsAsFactors = FALSE,
                   check.names = FALSE)
   res
@@ -386,7 +421,7 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
     PAL <- c(
       "dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black", "gold1", "skyblue2", "#FB9A99", "palegreen2",
       "#CAB2D6", "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
-      "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown")
+      "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown","orange")
     PAL<-PAL[order(nchar(PAL))]
     DAT$col<-PAL[DAT$col]
     DAT<-DAT[DAT$iso2%in%country,]
@@ -416,7 +451,10 @@ CalcCombineThreshols<-function(META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
 
   LIMEM<-c('Low','High')
   IMEMi<-IMEM[1:nrow(META),]
-  if(!all(IMEMi$Country==META$iso2)) stop()
+  if(!all(IMEMi$Country==META$iso2)) {
+    print(cbind(IMEMi$Country,META$iso2))
+    stop('wrong country names')
+  }
   if(direction=='I') posI<-2 else if(direction=='E') posI<-3
   IMEMc<-factor(firstCap(unlist(IMEMi[,posI])),levels=LIMEM)
   IMEMi<-as.numeric(IMEMc)-1
@@ -678,7 +716,7 @@ Meta_Reg<-Recalc_Meta_Reg(Meta_Reg, TrustNordic)
 COLO=c("#00DD00",'#008000','#FFA500','#FF0000','#800000')
 
 WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registration of third country nationals','Monitoring third country nationals','Administrative corrections'),sep='')
-CountriesL<-paste(countrycode::countrycode(Countries,'eurostat','country.name'),' (',Countries,')',sep='')
+CountriesL<-paste(countrycode::countrycode(toeurostat(Countries),'eurostat','country.name'),' (',Countries,')',sep='')
 Countries<-as.list(Countries)
 names(Countries)<-CountriesL
 PanelNames<-c('About','Metadata classify (I)','Metadata classify (E)','Model plots (I)','Model plots (E)',
@@ -688,6 +726,8 @@ IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.
          0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting.','',
                      paste('Weighted <b>IMEM score num</b> is used to calculate <b>combined score num (',k,')</b>',sep=''),'',
                      '<b>References</b>','<a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20">Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F. and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819.</a>')
+
+
 
 
 shinyServer <-  function(input, output, session) {
@@ -1441,7 +1481,7 @@ shinyUI <- fluidPage(
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML('<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>')),
-                                       h3(HTML('<b>UndercountMigScores v0.6.4</b>')),
+                                       h3(HTML('<b>UndercountMigScores v0.6.5</b>')),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
                                        h4('Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat'),
@@ -1455,7 +1495,7 @@ shinyUI <- fluidPage(
                                       
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
-                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.4. (2021)<br>
+                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.5. (2021)<br>
                                                Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat.
                                                <br>DOI: 10.5281/zenodo.5594133. URL:https://github.com/MaciejDanko/UndercountMigScore')),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
@@ -1829,7 +1869,7 @@ shinyUI <- fluidPage(
                                  actionButton("I3recalca", HTML("&#8721 weights = 1")),                                  
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
-                                  checkboxInput("I3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
+                                  checkboxInput("I3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Extrapolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTI3"),
                                   sliderInput(inputId = "I3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
@@ -1905,7 +1945,7 @@ shinyUI <- fluidPage(
                                                                     
                                   tags$hr(style="border-color: black;"),
                                   h4('Options'),
-                                  checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Interpolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
+                                  checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Extrapolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
                                   tags$hr(style="border-color: black;"),
                                   uiOutput(outputId = "dynamicTE3"),
                                   sliderInput(inputId = "E3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
