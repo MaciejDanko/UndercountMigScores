@@ -421,7 +421,7 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
     PAL <- c(
       "dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black", "gold1", "skyblue2", "#FB9A99", "palegreen2",
       "#CAB2D6", "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
-      "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown","orange")
+      "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown","orange","green2")
     PAL<-PAL[order(nchar(PAL))]
     DAT$col<-PAL[DAT$col]
     DAT<-DAT[DAT$iso2%in%country,]

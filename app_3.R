@@ -1,0 +1,2385 @@
+rm(list=ls())
+
+#Sys.setlocale("LC_ALL","en_US.UTF-8")
+#install.packages(c('Cairo','DT','shiny','colourpicker','shinyhelper','magicaxis','data.table','countrycodes'))
+
+library(Cairo)
+library(RColorBrewer)
+library(devtools)
+library(DT)
+library(shiny)
+library(shinyWidgets)
+library(usethis)
+library(colourpicker)
+library(shinyhelper)
+library(magicaxis)
+library(data.table)
+library(countrycode)
+library(xlsx)
+source('./code/UNDERCOUNTING_PKG_APP.R')
+
+
+options(bitmapType="cairo")
+
+#loadaslist<-function(Name){G<-new.env(); load(Name,G); as.list(G)}
+toeurostat<-function(x) {x[x=='GR']<-'EL'; x[x=='GB']<-'UK'; x}
+
+#load('./data/MetaData.rda')
+
+# IMEM$Country[IMEM$Country=='EL']<-'GR'
+# IMEM<-IMEM[!is.na(IMEM$Country),]
+# IMEM<-IMEM[order(IMEM$Country),]
+# Meta_DeReg$iso2[Meta_DeReg$iso2=='EL']<-'GR'
+# Meta_DeReg<-Meta_DeReg[order(Meta_DeReg$iso2),]
+# Meta_Reg$iso2[Meta_Reg$iso2=='EL']<-'GR'
+# Meta_Reg<-Meta_Reg[order(Meta_Reg$iso2),]
+# 
+# 
+# DAT_IMEM<-loadaslist('./data/UndercountingIndex_IMEM.rda')
+# DAT_POIS<-loadaslist('./data/UndercountingIndex_Willekens_Poisson.rda')
+# DAT_EXPERT<-loadaslist('./data/UndercountingIndex_Willekens_Expert.rda')
+# DAT_MIXED<-loadaslist('./data/UndercountingIndex_Willekens_Mixture.rda')
+
+# sortisoyear<-function(z) {
+#   lapply(z, function(x) {
+#   x$iso2[x$iso2=='EL']<-'GR'
+#   x$ind<-paste(x$iso2,x$year)
+#   x<-x[order(x$ind),]
+#   x$ind<-NULL
+#   x
+#   })
+# }
+# 
+# DAT_IMEM<-sortisoyear(DAT_IMEM)
+# DAT_POIS<-sortisoyear(DAT_POIS)
+# DAT_EXPERT<-sortisoyear(DAT_EXPERT)
+# DAT_MIXED<-sortisoyear(DAT_MIXED)
+
+
+Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
+
+colnames(Meta_Reg)<-c("iso2", "country", "registration obligation", "time limit", "comment", "score" )
+colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-registration obligation third country nationals",
+                        "monitoring third country nationals",
+                        "administrative corrections",'comment')
+
+Countries<-CountriesS<-unique(NORDIC4$iso2[!is.na(NORDIC4$ICn)|!is.na(NORDIC4$ECn)])
+
+BB <- c(1, 0.75, 0.5, 0.25, 0.125, 1e-5)
+
+DT2DF<-function(x) if (class(x)[1]=='datatables') {
+  z<-x$x$data
+  if (colnames(z)[1]%in%c('',' ','  ')) z<-z[,-1]
+  data.frame(z, stringsAsFactors = FALSE, check.names = FALSE, check.rows = FALSE)
+} else data.frame(x, stringsAsFactors = FALSE, check.names = FALSE, check.rows = FALSE)
+
+colMedians <- function(x) apply(x,2,median, na.rm=TRUE)
+colSd <- function(x) apply(x,2,sd, na.rm=TRUE)
+colQlo <- function(x) apply(x,2,quantile, probs=0.025, na.rm=TRUE)
+colQhi <- function(x) apply(x,2,quantile, probs=0.975, na.rm=TRUE)
+
+Recalc_Meta_DeReg<-function(MetaDeReg,w1,w2,w3,w4,t1,t2, trustnordic){
+  cat(w1,w2,w3,w4,t1,t2,trustnordic,'\n')
+  MetaDeReg<-DT2DF(MetaDeReg)
+  L3col<-c('Low','Medium','High')
+  nominator<- w1*(tolower(paste(MetaDeReg[,3]))=='yes')+
+    w2*(tolower(paste(MetaDeReg[,4]))=='yes')+
+    w3*(tolower(paste(MetaDeReg[,5]))=='yes')+
+    w4*(tolower(paste(MetaDeReg[,6]))=='yes')
+  denominator<-w1*(tolower(paste(MetaDeReg[,3]))!='unknown')+
+    w2*(tolower(paste(MetaDeReg[,4]))!='unknown')+
+    w3*(tolower(paste(MetaDeReg[,5]))!='unknown')+
+    w4*(tolower(paste(MetaDeReg[,6]))!='unknown')
+  score_num<- 1 - nominator / denominator
+  score<-paste(cut(score_num,c(0,t1,t2,1),L3col,include.lowest = TRUE))
+  isNORDIC<-MetaDeReg$iso2 %in%c('IS','SE','NO','DK','FI')
+  if (trustnordic){
+    score[isNORDIC]<-L3col[1]
+    score_num[(is.nan(score_num)|is.na(score_num))&isNORDIC]<-0
+  }
+  MetaDeReg$`score num`<-round(score_num,3)
+  MetaDeReg$score<-score
+  MetaDeReg$score[is.na(score_num)]<-'Unknown'
+  MetaDeReg<-datatable(MetaDeReg, options=list(pageLength=nrow(MetaDeReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+  MetaDeReg<-formatStyle(MetaDeReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaDeReg<-formatStyle(MetaDeReg, c(2,7), "border-right" = "solid 1px", "border-right-color"='black')
+  MetaDeReg
+}
+
+Recalc_Meta_Reg<-function(MetaReg, trustnordic=TRUE){
+  cat(trustnordic,class(MetaReg),'\n')
+  MetaReg<-DT2DF(MetaReg)
+  MetaReg$score<-NULL
+  MetaReg$`score num`<-NULL
+  L3col<-c('Low','Medium','High')
+  isNORDIC<-MetaReg$iso2 %in%c('IS','SE','NO','DK','FI')
+  MetaReg$`score num`<-(tolower(MetaReg[,3])=='no') + 0.5*(tolower(MetaReg$`time limit`)=='no limit')+ 0.5*(tolower(MetaReg$comment)=='no sanctions')
+  MetaReg$score<-L3col[MetaReg$`score num`*2+1]
+  unk<-tolower(MetaReg[,3])=='unknown'
+  MetaReg$score[unk]<-'Unknown'
+  MetaReg$`score num`[unk]<-NA
+  if (trustnordic){
+    MetaReg$score[isNORDIC] <- L3col[1]
+    MetaReg$`score num`[isNORDIC] <- 0
+  }
+  MetaReg<-datatable(MetaReg, rownames=FALSE, options=list(pageLength=nrow(MetaReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+  MetaReg<-formatStyle(MetaReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaReg<-formatStyle(MetaReg, columns = "time limit", fontWeight = styleEqual('No limit', c("bold")))
+  MetaReg<-formatStyle(MetaReg, columns = "comment", fontWeight = styleEqual('No sanctions', c("bold")))
+  MetaReg<-formatStyle(MetaReg, c(2,5), "border-right" = "solid 1px", "border-right-color"='black')
+  MetaReg
+}
+
+firstCap<-function(x) {
+  x<-paste(x)
+  tmp<-paste(toupper(substr(x,1,1)),substr(x,2,nchar(x)),sep='')
+  tmp[tmp=='NA']<-NA
+  tmp
+}
+
+# reformatIE2tab<-function(tab, chide=TRUE, COLO){
+#   tab<-DT2DF(tab)
+#   if (chide) tab<-tab[tab[,1]%in%Countries,]
+#   cat(COLO,'\n')
+#   #COLO<-adjustcolor(COLO,blue.f = 0.9,red.f = 0.9,#008000.f = 0.9)
+#   tab$B.score<-firstCap(tab$B.score)
+#   tab$A.score<-firstCap(tab$A.score)
+#   colnames(tab)<-c('iso2','country','median (B)','lo (B)','hi (B)','score (B)','score num (B)','median (A)','lo (A)','hi (A)','score (A)','score num (A)')
+#   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
+#   tab<-datatable(tab,options=list(pageLength=nrow(tab), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))),
+#                  rownames=FALSE)
+#   tab<-formatStyle(tab, columns = "score (B)", color=styleEqual(LEVELS, COLO))
+#   tab<-formatStyle(tab, c(2,7), "border-right" = "solid 1px", "border-right-color"='black')
+#   tab<-formatStyle(tab, columns = "score (A)", color=styleEqual(LEVELS, COLO))
+#   tab
+# }
+
+
+# 
+# 
+# CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=1,
+#               thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5],
+#               NBoot=1e5, LEVELS=c('very low','low','medium','high','very high')){
+# 
+#   DAT0<-switch(corrected, '0' = DAT_IMEM, '1' = DAT_IMEM, '2' = DAT_EXPERT, '3' = DAT_POIS, '4' = DAT_MIXED)
+#   RES<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_NL,
+#               '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = DAT0$ALL_COUNTRIES)
+# 
+#   # RES<-switch(refcountry, '1' = NORDIC, '2' = NORDIC_PLUS_BE_CH,
+#   #             '3' = NORDIC_PLUS_AT_BE_CH_NL,
+#   #             '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = ALL_COUNTRIES)
+#   THRESH<-log10(1/c(1,thr1,thr2,thr3,thr4,1e-5))
+# 
+#   if (direction=='E' && corrected>0){
+#     RES$Y<-RES$ECraw
+#     RES$YE<-RES$EC
+#     RES$Ysd<-RES$EC_sd
+#     RES$W<-RES$POPEn
+#   } else if (direction=='E' && corrected==0){
+#     RES$Y<-RES$EUCraw
+#     RES$YE<-RES$EUC
+#     RES$Ysd<-RES$EUC_sd
+#     RES$W<-RES$POPEn
+#   } else if (direction=='I' && corrected>0){
+#     RES$Y<-RES$ICraw
+#     RES$YE<-RES$IC
+#     RES$Ysd<-RES$IC_sd
+#     RES$W<-RES$POPIn
+#   } else if (direction=='I' && corrected==0){
+#     RES$Y<-RES$IUCraw
+#     RES$YE<-RES$IUC
+#     RES$Ysd<-RES$IUC_sd
+#     RES$W<-RES$POPIn
+#   }
+# 
+#   cols<-c('iso2','Y','YE','Ysd','W','year')
+#   RESLO<-RES[RES$year<threshyear,cols]
+#   RESHI<-RES[RES$year>=threshyear,cols]
+# 
+#   UG<-unique(RES$iso2)
+# 
+#   RESHIStat<-lapply(UG, function(k) {
+#     cat(k,'\n')
+#     tmp<-RESHI[RESHI$iso2==k,]
+#     Qua<-c(NA,NA,NA)
+#     Qme<-NA
+#     if (!all(is.na(tmp$Y))) {
+#       org<-tmp<-tmp[!is.na(tmp$Y),]
+#       tmp<-tmp[!is.na(tmp$Ysd),]
+#       H<-tmp$W/sum(tmp$W)
+#       if (length(H)>0){
+#         ToBoot<-NBoot
+#         YY<-NULL
+#         for (j in 1:5) {
+#           BOOTini<-sample(seq_along(H), ToBoot, prob=H, replace = TRUE)
+#           YYy<-as.vector(rnorm(ToBoot,tmp$Y[BOOTini],tmp$Ysd[BOOTini]))
+#           YYy<-YYy[YYy>0]
+#           YY<-c(YY,YYy)
+#           ToBoot<-ToBoot-length(YY)
+#           if ((ToBoot/NBoot)<0.01) break
+#         }
+#         Qua<-quantile(YY,probs=c(0.025,0.5,0.975))
+#         Qme<-mean(YY)
+#       } else {
+#         Qua<-c(NA,median(org$Y),NA)
+#         Qme<-mean(org$Y)
+#       }
+#     }
+#     list(iso2=k, median=Qua[2], q_lo=Qua[1], q_hi=Qua[3], mean=Qme)#, sd=Qsd)
+#   })
+#   RESHIStat<-data.frame(data.table::rbindlist(RESHIStat),stringsAsFactors = FALSE)
+# 
+#   RESLOStat<-lapply(UG, function(k) {
+#     cat(k,'\n')
+#     tmp<-RESLO[RESLO$iso2==k,]
+#     Qua<-c(NA,NA,NA)
+#     Qme<-NA
+#     if (!all(is.na(tmp$Y))) {
+#       tmp<-tmp[!is.na(tmp$Y),]
+#       tmp<-tmp[!is.na(tmp$Ysd),]
+#       H<-tmp$W/sum(tmp$W)
+#       if (length(H)>0){
+#         ToBoot<-NBoot
+#         YY<-NULL
+#         for (j in 1:5) {
+#           BOOTini<-sample(seq_along(H), ToBoot, prob=H, replace = TRUE)
+#           YYy<-as.vector(rnorm(ToBoot,tmp$Y[BOOTini],tmp$Ysd[BOOTini]))
+#           YYy<-YYy[YYy>0]
+#           YY<-c(YY,YYy)
+#           ToBoot<-ToBoot-length(YY)
+#           if ((ToBoot/NBoot)<0.01) break
+#         }
+# 
+#         Qua<-quantile(YY, probs=c(0.025,0.5,0.975))
+#         Qme<-mean(YY)
+#       }
+#     }
+#     list(iso2=k, median=Qua[2], q_lo=Qua[1], q_hi=Qua[3], mean=Qme)#, sd=Qsd)
+#   })
+#   RESLOStat<-data.frame(data.table::rbindlist(RESLOStat),stringsAsFactors = FALSE)
+# 
+#   negi<-function(x) {x[x>=0]<- 1e-9; abs(x)}
+#   B <- RESLOStat$median
+#   A <- RESHIStat$median
+#   RESLOStat<-data.frame(Est = RESLOStat$median, lo.CI = RESLOStat$q_lo, hi.CI = RESLOStat$q_hi)
+#   RESHIStat<-data.frame(Est = RESHIStat$median, lo.CI = RESHIStat$q_lo, hi.CI = RESHIStat$q_hi)
+# 
+#   cat(' >> ',THRESH,'\n')
+#   resB <- cut(x=negi(log10(B)), breaks=THRESH,include.lowest=TRUE,labels=LEVELS)
+#   resA <- cut(x=negi(log10(A)), breaks=THRESH,include.lowest=TRUE,labels=LEVELS)
+# 
+#   resBnum <- round((as.numeric(resB)-1)/(length(THRESH)-2),4)
+#   resAnum <- round((as.numeric(resA)-1)/(length(THRESH)-2),4)
+# 
+#   stand<-function(x,r) (x-r[1])/diff(r)
+#   
+#   resBnum2 <- round(stand(negi(log10(B)),range(negi(log10(B)),negi(log10(A)),na.rm = TRUE)),4)
+#   resAnum2 <- round(stand(negi(log10(A)),range(negi(log10(B)),negi(log10(A)),na.rm = TRUE)),4)
+#   
+#   #stop('UK is missing!')
+#   
+#   res<-data.frame(iso2=UG,
+#                   country=countrycode::countrycode(toeurostat(UG),'eurostat','country.name'),
+#                   B=round(RESLOStat,4),
+#                   B.score=resB,
+#                   #B.score.num=resBnum,
+#                   B.score.num=resBnum2,
+#                   A=round(RESHIStat,4),
+#                   A.score=resA,
+#                   #A.score.num=resAnum,
+#                   A.score.num=resAnum2,
+#                   stringsAsFactors = FALSE,
+#                   check.names = FALSE)
+#   res
+# }
+# 
+# plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=2008, plotci=TRUE, logscale=TRUE, colCI='#FFFFFF',hidec=FALSE,
+#                   #COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")
+#                   COLO){
+#   if (hidec) RES<-RES[RES$iso2 %in% Countries,]
+#   if (logscale) flog10<-log10 else flog10<-function(x) identity(x)
+#   THRESH<-flog10(1/c(1+(!logscale)*99,thr1,thr2,thr3,thr4,1e-5))
+#   if (!logscale) THRESH = 1/THRESH
+#   #COL=c(rgb(0.8,0.4,0.1),rgb(0.3,0.4,0.9))
+#   COL<-c('#D5D505','#000080')
+#   COLd<-c('#A0A005','#000080')
+#   #COLl<-c('#D5D505','#000090')
+#   if (logscale) neg2NA<-function(x) {x[x<=0]<-NA;x} else neg2NA<-function(x) {x[x<=0]<-0;x}
+#   X<-rbind(flog10(RES$B.Est),flog10(RES$A.Est))
+#   par(oma=c(0,0,2,0),mar=c(2.65,4,2.5,0))
+#   YLIM<-flog10(c(min(neg2NA(RES$B.lo.CI),neg2NA(RES$A.lo.CI),neg2NA(RES$B.Est),neg2NA(RES$A.Est),na.rm=TRUE),
+#                  max(RES$B.hi.CI,RES$A.hi.CI,RES$A.Est,RES$B.Est,na.rm = TRUE)))
+#   if(!logscale) YLIM<-1.1*c(0,max(min(2,YLIM[2]),RES$A.Est,RES$B.Est,na.rm = TRUE))
+#   z<-barplot(X,axes=F,beside=TRUE,col=COL, ylim=YLIM)
+#   axis(1, at=colMeans(z),labels = RES$iso2,las=3,cex.axis=1.3, font=1);
+#   mtext('Bilateral flows ratio',2,2.5,cex=1.5)
+#   box();box();
+#   # col.pal=c(adjustcolor('green',alpha.f = 0.5),
+#   #           adjustcolor('green4',alpha.f = 0.5),
+#   #           adjustcolor('yellow2',alpha.f = 0.5),
+#   #           adjustcolor('orange',alpha.f = 0.5),
+#   #           adjustcolor('red2',alpha.f = 0.25))
+#   col.pal<-COLO
+#   if(logscale){
+#     rect(-10,-THRESH[6],max(z)*2,THRESH[6],col=col.pal[5],border=NA)
+#     rect(-10,-THRESH[5],max(z)*2,THRESH[6],col=col.pal[4],border=NA)
+#     rect(-10,-THRESH[4],max(z)*2,THRESH[6],col=col.pal[3],border=NA)
+#     rect(-10,-THRESH[3],max(z)*2,THRESH[6],col=col.pal[2],border=NA)
+#     rect(-10,-THRESH[2],max(z)*2,THRESH[6],col=col.pal[1],border=NA)
+#     abline(h=-THRESH,lwd=2)
+#   } else {
+#     rect(-10,20,max(z)*2,-1,col=col.pal[5],border=NA)
+#     rect(-10,THRESH[5],max(z)*2,20,col=col.pal[4],border=NA)
+#     rect(-10,THRESH[4],max(z)*2,20,col=col.pal[3],border=NA)
+#     rect(-10,THRESH[3],max(z)*2,20,col=col.pal[2],border=NA)
+#     rect(-10,THRESH[2],max(z)*2,20,col=col.pal[1],border=NA)
+#     abline(h=THRESH[-length(THRESH)],lwd=2)
+#   }
+#   abline(v=colMeans(z),lty=3,col=rgb(0.6,0.6,0.6))
+# 
+#   axis(3, at=z[1,]-0.15,labels =toupper(RES$B.score),las=3,cex.axis=0.75,col.axis=COLd[1],padj=0.5)
+#   axis(3, at=z[2,]+0.15,labels =toupper(RES$A.score),las=3,cex.axis=0.75,col.axis=COLd[2],padj=0.5)
+#   z<-barplot(X,axes=F,beside=TRUE,col=COL,add=TRUE);box();box()
+#   if (logscale) magicaxis::magaxis(2,unlog=T,cex.axis=1.5) else axis(2,cex.axis=1.5)
+#   if (plotci) {
+#     LOCI<-rbind(flog10(RES$B.lo.CI),flog10(RES$A.lo.CI))
+#     HICI<-rbind(flog10(RES$B.hi.CI),flog10(RES$A.hi.CI))
+#     for (j in 1:2) for(k in 1:ncol(z)){
+#       lines(c(z[j,k],z[j,k]),c(LOCI[j,k],HICI[j,k]),lwd=2,col=colCI)
+#     }
+#   }
+#   if(logscale) lpos<-'bottomright' else lpos<-'topright'
+#   legend(lpos,bty='o',c(paste('Before',threshyear), paste('After',threshyear-1)),text.col = COL,fill=COL,cex=1.5,
+#          bg=adjustcolor('white',0.3),box.col=adjustcolor('white',0.3))
+# 
+# }
+# 
+
+direction='I';
+#metadata
+w1=0.5; w2=0.1; w3=0.1; w4=0.3; t1=0.3; t2=0.6; ItrustNordic = TRUE; EtrustNordic = TRUE;
+#model
+ncp=1; separated=FALSE; additive=TRUE; refcountries=9; durationCorrection = 13;
+IgnoreOverCounting = TRUE;
+TranslateGroups = 5;
+#mixing
+useimputation=TRUE;
+threshyear = 2008; FinalGroups = 5; w_imemA = 0.1; w_imemB = 0.25; w_metaA = 0.1; w_metaB = 0.15; w_modelA = 0.8;w_modelB = 0.6
+
+
+CalcModel<-function(#META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
+  #wimemb=0.5, wmetaa=0.2, wmetab=0.2, wmodela=1, wmodelb=1,
+  #mirror=TRUE, direction='I',
+  
+  # direction='I',
+  # #metadata
+  # w1=0.5, w2=0.1, w3=0.1, w4=0.3, t1=0.3, t2=0.6, ItrustNordic = TRUE, EtrustNordic = TRUE,
+  # #model
+  # ncp=1, separated=FALSE, additive=TRUE, refcountries=9, durationCorrection = 13,
+  # IgnoreOverCounting = TRUE,
+  # TranslateGroups = 5,
+  # #mixing
+  # useimputation=TRUE,
+  # threshyear = 2008, FinalGroups = 5, w_imemA = 0.1, w_imemB = 0.25, w_metaA = 0.1, w_metaB = 0.15, w_modelA = 0.8,w_modelB = 0.6){
+  # 
+  direction,
+  #metadata
+  w1, w2, w3, w4, t1, t2, ItrustNordic, EtrustNordic,
+  #model
+  ncp, separated, additive, refcountries, durationCorrection,
+  IgnoreOverCounting,
+  TranslateGroups,
+  #mixing
+  useimputation,
+  threshyear, FinalGroups, w_imemA, w_imemB , w_metaA , w_metaB , w_modelA ,w_modelB ){
+  
+  
+  RES<-get_undercounting(direction=direction,immi_meta_options=list(w1 = w1,
+                                                                    w2 = w2,
+                                                                    w3 = w3,
+                                                                    w4 = w4,
+                                                                    t1 = t1,
+                                                                    t2 = t2,
+                                                                    trustNordic = ItrustNordic),
+                         emi_meta_options=list(trustNordic = EtrustNordic),
+                         model_options = list(ncp=ncp,
+                                              useimputation=useimputation,
+                                              weighted=FALSE,
+                                              separated=separated,
+                                              additive=additive,
+                                              refcountries=refcountries,
+                                              durationCorrection = durationCorrection),
+                         model_classification_options = list(
+                           UserThresholds=NA,
+                           IgnoreOverCounting = IgnoreOverCounting,
+                           TranslateGroups = TranslateGroups
+                         ),
+                         mixing_options=list(
+                           threshyear = threshyear,
+                           FinalGroups = FinalGroups,
+                           w_imemA = w_imemA,
+                           w_imemB = w_imemB,
+                           w_metaA = w_metaA,
+                           w_metaB = w_metaB,
+                           w_modelA = w_modelA,
+                           w_modelB = w_modelB))
+  RES
+}
+
+################################################################################
+# if I add option to change the threshold they have to be reset on every change of reference country and other paprameters
+# RES$R.UserThresholds
+################################################################################
+
+plotModel<-function(RES, shownodat=TRUE) {
+  par(mar=c(4,3,1.5,8.5),oma=c(0,0,0,0))
+  LEVELS<-1:RES$model.groups
+  LEVELS[1]<-paste(LEVELS[1],'(lowest)')
+  LEVELS[RES$model.groups]<-paste(LEVELS[RES$model.groups],'(highest)')
+  if (shownodat) {
+    my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS, namat =  RES$NoData[rownames(RES$R.Score.Num),])
+  } else {
+    my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS)
+  }
+}
+
+getModel<-function(RES) { #to be xported as xlsx or rdata
+  list(
+    score = data.frame((1-RES$R.Score.Num)*(RES$model.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
+    nodata = data.frame(RES$NoData[rownames(RES$R.Score.Num),],check.names = FALSE, stringsAsFactors = FALSE),
+    logindex = data.frame(RES$R.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
+    logindexthresholds = data.frame(Thresholds=unname(RES$R.UserThresholds))
+  )
+}
+
+saveModel<-function(filename, RES){
+  RES<-getModel(RES)
+  xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$raw, file = filename, sheetName = 'log ratio', append = TRUE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$rawthresholds, file = filename, sheetName = 'log ratio thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
+}
+
+
+plotCombined<-function(RES, shownodat=TRUE) {
+  par(mar=c(4,3,1.5,9.2),oma=c(0,0,0,0))
+  if (shownodat) {
+    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS, namat =  RES$NoData[rownames(RES$C.Score.Num),])
+  } else {
+    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS)
+  }
+}
+
+getCombined<-function(RES) {
+  list(score=data.frame(RES$C.Score,check.names = FALSE, stringsAsFactors = FALSE),
+       scorenum=data.frame((1-RES$C.Score.Num)*(RES$final.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE),
+       nodata=data.frame(RES$NoData,check.names = FALSE, stringsAsFactors = FALSE),
+       raw=data.frame(RES$C.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
+       rawthresholds = data.frame(Thresholds=unname(RES$C.UserThresholds))
+  )
+}
+
+saveCombined<-function(filename, RES){
+  RES<-getCombined(RES)
+  xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$scorenum, file = filename, sheetName = 'scorenum', append = TRUE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$raw, file = filename, sheetName = 'raw', append = TRUE, row.names = TRUE, col.names = TRUE)
+  xlsx::write.xlsx(RES$rawthresholds, file = filename, sheetName = 'thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
+}
+#   
+#   RES$R.Score.Num
+#   
+#   cat(thr1, thr2, wimema, wimemb, wmetaa, wmetab, wmodela, wmodelb, mirror, '\n')
+#   META<-DT2DF(META)
+#   Msc<-META$`score num`
+# 
+#   LIMEM<-c('Low','High')
+#   IMEMi<-IMEM[1:nrow(META),]
+#   if(!all(IMEMi$Country==META$iso2)) {
+#     print(cbind(IMEMi$Country,META$iso2))
+#     stop('wrong country names')
+#   }
+#   if(direction=='I') posI<-2 else if(direction=='E') posI<-3
+#   IMEMc<-factor(firstCap(unlist(IMEMi[,posI])),levels=LIMEM)
+#   IMEMi<-as.numeric(IMEMc)-1
+# 
+#   MODEL<-DT2DF(MODEL)
+#   Bsc<-MODEL$B.score.num
+#   Asc<-MODEL$A.score.num
+# 
+#   L3<-c('Low' ,'Medium', 'High')
+# 
+#   namod<-function(x,y){
+#     z<-rep(y,length(x))
+#     z[is.na(x)]<-0
+#     z
+#   }
+# 
+#   na2zero<-function(x) {x[is.na(x)]<-0; x}
+# 
+#   IAsc<-is.na(Asc)
+#   IBsc<-is.na(Bsc)
+# 
+#   IAsc2<-IAsc&!IBsc
+#   IBsc2<-IBsc&!IAsc
+# 
+#   IAsc<-IAsc2
+#   IBsc<-IBsc2
+# 
+#   if (mirror){
+#     Asc[is.na(Asc)]<-Bsc[is.na(Asc)]
+#     Bsc[is.na(Bsc)]<-Asc[is.na(Bsc)]
+#   }
+# 
+#   BM<-na2zero(Bsc*wmodelb)
+#   BI<-na2zero(IMEMi*wimemb)
+#   BE<-na2zero(Msc*wmetab)
+#   AM<-na2zero(Asc*wmodela)
+#   AI<-na2zero(IMEMi*wimema)
+#   AE<-na2zero(Msc*wmetaa)
+#   Bres<-(BM+BI+BE)/(namod(Bsc,wmodelb)+namod(IMEMi,wimemb)+namod(Msc,wmetab))
+#   Ares<-(AM+AI+AE)/(namod(Asc,wmodela)+namod(IMEMi,wimema)+namod(Msc,wmetaa))
+# 
+#   Bscore<-cut(Bres,c(0,thr1,thr2,1),L3,include.lowest = TRUE)
+#   Ascore<-cut(Ares,c(0,thr1,thr2,1),L3,include.lowest = TRUE)
+#   if (!mirror) {
+#     RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'metadata score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc,
+#                    'combined score num (B)' = round(Bres,3), 'combined score num (A)' = round(Ares,3), 'combined score (B)' = Bscore, 'combined score (A)' = Ascore,
+#                    check.names = FALSE, stringsAsFactors = FALSE)
+#     RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+#   } else {
+# 
+#     RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'metadata score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc,
+#                    'combined score num (B)' = round(Bres,3), 'combined score num (A)' = round(Ares,3), 'combined score (B)' = Bscore, 'combined score (A)' = Ascore,
+#                    Indb = IBsc, Inda = IAsc,
+#                    check.names = FALSE, stringsAsFactors = FALSE)
+#     RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft',
+#                                                    columnDefs = list(list(className = 'dt-center', targets = '_all'),
+#                                                                      list(visible=FALSE, targets=c(11,10)))
+#     ))
+#     RR<-formatStyle(RR, columns = c("model score num (A)","model score num (B)"), valueColumns = c('Inda','Indb'), color=styleEqual(1,"magenta"))
+#   }
+#   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+#   RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+#   RR<-formatStyle(RR, c(9,10), backgroundColor = "#fff0ee")
+#   RR<-formatStyle(RR, c(2,6,8), "border-right" = "solid 1px", "border-right-color"='black')
+#   RR
+# }
+
+# summaryTable<-function(META, MODEL, COMBI, direction='I', COLO){
+#   META<-DT2DF(META)
+#   COMBI<-DT2DF(COMBI)
+#   MODEL<-DT2DF(MODEL)
+#   LIMEM<-c('Low','High')
+#   IMEMi<-IMEM[1:nrow(META),]
+#   if(!all(IMEMi$Country==META$iso2)) stop()
+#   if(direction=='I') posI<-2 else if(direction=='E') posI<-3
+#   IMEMc<-factor(firstCap(unlist(IMEMi[,posI])),levels=LIMEM)
+# 
+#   RED<-"#FF0000"#'#AA0000'
+#   GREEN<-"#008000"#'#00AA00'
+#   ORANGE<-"#FFA500"#'#FF7F00'
+#   # LIGHTRED<-'#FF5555'
+#   # LIGHTGREEN<-'#7FEE7F'
+#   # COLO<-c(LIGHTGREEN,GREEN,ORANGE,RED,LIGHTRED)
+#   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
+#   RR<-data.frame(iso2=META$iso2, country=META$country,'IMEM score' = IMEMc, 'metadata score' = META$score,
+#                  "model score (B)" = firstCap(MODEL$B.score), "model score (A)" = firstCap(MODEL$A.score),
+#                  "combined score (B)" = COMBI$`combined score (B)`,"combined score (A)" = COMBI$`combined score (A)`,
+#                  stringsAsFactors = FALSE, check.names = FALSE)
+#   RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+#   RR<-formatStyle(RR, columns = "IMEM score", color=styleEqual(c('Low','High'), c(GREEN,RED)))
+#   RR<-formatStyle(RR, columns = "metadata score", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED)))
+#   RR<-formatStyle(RR, columns = "model score (B)", color=styleEqual(LEVELS, COLO))
+#   RR<-formatStyle(RR, columns = "model score (A)", color=styleEqual(LEVELS, COLO))
+#   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED)))
+#   RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED)))
+#   RR<-formatStyle(RR, c(7,8), backgroundColor = "#fff0ee")
+#   RR<-formatStyle(RR, c(2,6), "border-right" = "solid 1px", "border-right-color"='black')
+#   RR
+# }
+
+pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FALSE, 
+                init.angle = if (clockwise) 90 else 0, density = NULL, angle = 45, 
+                col = NULL, border = NULL, lty = NULL, main = NULL, resize=1,...) 
+{
+  if (!is.numeric(x) || any(is.na(x) | x < 0)) 
+    stop("'x' values must be positive.")
+  if (is.null(labels)) 
+    labels <- as.character(seq_along(x))
+  else labels <- as.graphicsAnnot(labels)
+  x <- c(0, cumsum(x)/sum(x))
+  dx <- diff(x)
+  nx <- length(dx)
+  plot.new()
+  pin <- par("pin")
+  xlim <- ylim <- c(-1, 1)
+  if (pin[1L] > pin[2L]) 
+    xlim <- (pin[1L]/pin[2L]) * xlim
+  else ylim <- (pin[2L]/pin[1L]) * ylim
+  xlim<-xlim*resize
+  ylim<-ylim*resize
+  dev.hold()
+  on.exit(dev.flush())
+  plot.window(xlim, ylim, "", asp = 1)
+  if (is.null(col)) 
+    col <- if (is.null(density)) 
+      c("white", "lightblue", "mistyrose", "lightcyan", 
+        "lavender", "cornsilk")
+  else par("fg")
+  if (!is.null(col)) 
+    col <- rep_len(col, nx)
+  if (!is.null(border)) 
+    border <- rep_len(border, nx)
+  if (!is.null(lty)) 
+    lty <- rep_len(lty, nx)
+  angle <- rep(angle, nx)
+  if (!is.null(density)) 
+    density <- rep_len(density, nx)
+  twopi <- if (clockwise) 
+    -2 * pi
+  else 2 * pi
+  t2xy <- function(t) {
+    t2p <- twopi * t + init.angle * pi/180
+    list(x = radius * cos(t2p), y = radius * sin(t2p))
+  }
+  for (i in 1L:nx) {
+    n <- max(2, floor(edges * dx[i]))
+    P <- t2xy(seq.int(x[i], x[i + 1], length.out = n))
+    polygon(c(P$x, 0), c(P$y, 0), density = density[i], angle = angle[i], 
+            border = border[i], col = col[i], lty = lty[i])
+    P <- t2xy(mean(x[i + 0:1]))
+    lab <- as.character(labels[i])
+    if (!is.na(lab) && nzchar(lab)) {
+      #lines(c(1, 1.05) * P$x, c(1, 1.05) * P$y)
+      text(1.1 * P$x, 1.1 * P$y, eval(substitute(expression(bold(d)),list(d=paste(labels[i])))), xpd = TRUE, 
+           adj = ifelse(P$x < 0, 1, 0), cex=1.8, ...)
+    }
+  }
+  title(main = main, ...)
+  invisible(NULL)
+}
+
+mypie<-function(x1,y1,z1, 
+                x2,y2,z2,resize=1){
+  options(bitmapType="cairo")
+  Z1<-x1+y1+z1
+  Z2<-x2+y2+z2
+  piecol<-c('#FFAACC','#AACCFF','#90DD90')
+  labels1<-paste(format(round(100*c(x1/Z1,y1/Z1,z1/Z1),1),2),'%')
+  labels2<-paste(format(round(100*c(x2/Z2,y2/Z2,z2/Z2),1),2),'%')
+  #bg<-par('bg')
+  #par(bg=adjustcolor('white',0.2))
+  par(mar=c(0,3,0,3),oma=c(0,0,0,0),mfrow=c(1,3))
+  pie2(c(x1,y1,z1),border=0,col=piecol,labels = labels1,edges=500,resize = resize)
+  text(0,0,expression(bold(B)),cex=2.5)
+  pie2(c(x2,y2,z2),border=0,col=piecol,labels = labels2,edges=500,resize = resize)
+  text(0,0,expression(bold(A)),cex=2.5)
+  plot(1:2,1:2,type='n',axes=FALSE)
+  legend('left',legend=c('IMEM','Metadata','Model'),bty='o', 
+         bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=2)
+  #par(bg=bg)
+}
+
+mypie2<-function(x1,y1,z1,w1,resize=1){
+  options(bitmapType="cairo")
+  Z1<-x1+y1+z1+w1
+  piecol<-c('#FFAACC','#AACCFF','#EE9940','#90DD90')
+  labels1<-paste(format(round(100*c(x1/Z1,y1/Z1,z1/Z1,w1/Z1),1),2),'%')
+  #bg<-par('bg')
+  #par(bg=adjustcolor('white',0.2))
+  par(mar=c(0,3,0,3),oma=c(0,0,0,0))
+  layout(matrix(c(1,2,2),1,3),1,3)
+  pie2(c(x1,y1,z1,w1),border=0,col=piecol,labels = labels1,edges=500,resize = resize)
+  plot(1:2,1:2,type='n',axes=FALSE)
+  legend('left',legend=c('Obligation of registration','Obligation of registration third country nationals',
+                         'Monitoring third country nationals', 'Administrative corrections'),bty='o', 
+         bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=1.8)
+  #par(bg=bg)
+}
+mypie2(0.1,0.2,0.52,0.2,0.85)
+# d=1:3
+# mypie(0.1,0.2,0.52,0.2,0.2,0.52,0.85)
+# text(1.5,1,eval(substitute(expression(bold(d)),list(d='5'))),cex=2)
+# text(1.5,1,expression(bold("5")),cex=2)
+
+thr1 <- 0.25
+thr2 <- 0.5
+
+wimema <- 0.25
+wimemb <- 0.3
+wmetaa <- 0.15
+wmetab <- 0.15
+wmodela <- 1
+wmodelb <- 1
+
+100*wimema/(wimema+wmetaa+wmodela) # 15%
+100*wmetaa/(wimema+wmetaa+wmodela) # 10%
+100*wmodela/(wimema+wmetaa+wmodela) # 75%
+
+100*wimemb/(wimemb+wmetab+wmodelb) # 20%
+100*wmetab/(wimema+wmetab+wmodelb) # 10%
+100*wmodelb/(wimema+wmetab+wmodelb) # 70%
+
+wimema <- 0.20
+wimemb <- 0.25
+wmetaa <- 0.10
+wmetab <- 0.10
+wmodela <- 1 - wimema - wmetaa
+wmodelb <- 1 - wimemb - wmetab
+
+
+mirror <- TRUE
+
+RefCntrSel <- 3
+
+Step <-0.005
+
+MWt1 <- 1
+MWt2 <- 0.5
+MWt3 <- 0.5
+MWt4 <- 0.5
+
+MWt1/(MWt1+MWt2+MWt3+MWt4)
+MWt2/(MWt1+MWt2+MWt3+MWt4)
+MWt3/(MWt1+MWt2+MWt3+MWt4)
+MWt4/(MWt1+MWt2+MWt3+MWt4)
+
+MWt1 <- 0.4
+MWt2 <- 0.2
+MWt3 <- 0.2
+MWt4 <- 0.2
+
+
+MThr1 <- 0.3
+MThr2 <- 0.6
+TrustNordic<-TRUE
+Meta_DeReg<-Recalc_Meta_DeReg(Meta_DeReg,MWt1,MWt2,MWt3,MWt4,MThr1,MThr2,TrustNordic)
+Meta_Reg<-Recalc_Meta_Reg(Meta_Reg, TrustNordic)
+
+COLO=c("#00DD00",'#008000','#FFA500','#FF0000','#800000')
+
+WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registration of third country nationals','Monitoring third country nationals','Administrative corrections'),sep='')
+CountriesL<-paste(countrycode::countrycode(toeurostat(Countries),'eurostat','country.name'),' (',Countries,')',sep='')
+Countries<-as.list(Countries)
+names(Countries)<-CountriesL
+PanelNames<-c('About','Immigration metadata','Emigration metadata','Immigration model','Emigration model',
+              'X','X','Combined immigration scores','Combined emigration scores','X','X', 'Help')
+
+IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.imem.cpc.ac.uk/About.aspx">Integrated Modeling of European Migration</a>) undercount classification (Raymer et al. 2013) converted to numerical value (<b>IMEM score num</b>), where
+         0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting.','',
+                     paste('Weighted <b>IMEM score num</b> is used to calculate <b>combined score num (',k,')</b>',sep=''),'',
+                     '<b>References</b>','<a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20">Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F. and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819.</a>')
+
+
+
+
+shinyServer <-  function(input, output, session) {
+  
+  observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
+  
+  ##################################################### E=1
+  
+  
+  output$I3WBPlot <- renderPlot(mypie(input$I3wimemb,input$I3wmetab,input$I3wmodelb,input$I3wimema,input$I3wmetaa,input$I3wmodela))
+  
+  output$E3WBPlot <- renderPlot(mypie(input$E3wimemb,input$E3wmetab,input$E3wmodelb,input$E3wimema,input$E3wmetaa,input$E3wmodela))
+  
+  output$EMPlot <- renderPlot(mypie2(input$Emimetaw1,input$Emimetaw2,input$Emimetaw3,input$Emimetaw4))
+  
+  # observeEvent(input$I3wmodela, {
+  #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  #   nwmetaa<-round((input$I3wmetaa+SA/2)/Step)*Step
+  #   nwimema<-1-input$I3wmodela-nwmetaa
+  #   updateSliderInput(session = session, inputId = "I3wimema", value = nwimema)
+  #   updateSliderInput(session = session, inputId = "I3wmetaa", value = nwmetaa)
+  # })
+  # 
+  # observeEvent(input$I3wimema, {
+  #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  #   nwmetaa<-round((input$I3wmetaa+SA/2)/Step)*Step
+  #   nwmodela<-1-input$I3wimema-nwmetaa
+  #   updateSliderInput(session = session, inputId = "I3wmodela", value = nwmodela)
+  #   updateSliderInput(session = session, inputId = "I3wmetaa", value = nwmetaa)
+  # })
+  # 
+  # observeEvent(input$I3wmetaa, {
+  #   SA <- 1-(input$I3wimema + input$I3wmetaa + input$I3wmodela)
+  #   nwimema<-round((input$I3wimema+SA/2)/Step)*Step
+  #   nwmodela<-1-input$I3wmetaa-nwimema
+  #   updateSliderInput(session = session, inputId = "I3wmodela", value = nwmodela)
+  #   updateSliderInput(session = session, inputId = "I3wimema", value = nwimema)
+  # })
+  
+  observeEvent(input$EMrecalc, {
+    SA <- input$Emimetaw1 + input$Emimetaw2 + input$Emimetaw3 + input$Emimetaw4
+    updateSliderInput(session = session, inputId = "Emimetaw1", value = input$Emimetaw1/SA)
+    updateSliderInput(session = session, inputId = "Emimetaw2", value = input$Emimetaw2/SA)
+    updateSliderInput(session = session, inputId = "Emimetaw3", value = input$Emimetaw3/SA)
+    updateSliderInput(session = session, inputId = "Emimetaw4", value = input$Emimetaw4/SA)
+  })
+  
+  observeEvent(input$I3recalca, {
+    SA <- input$I3wimema + input$I3wmetaa + input$I3wmodela
+    updateSliderInput(session = session, inputId = "I3wimema", value = input$I3wimema/SA)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = input$I3wmetaa/SA)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = input$I3wmodela/SA)
+  })
+  
+  observeEvent(input$E3recalcb, {
+    SB <- input$E3wimemb + input$E3wmetab + input$E3wmodelb
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
+  })
+  
+  observeEvent(input$I3recalcb, {
+    SB <- input$I3wimemb + input$I3wmetab + input$I3wmodelb
+    updateSliderInput(session = session, inputId = "I3wimemb", value = input$I3wimemb/SB)
+    updateSliderInput(session = session, inputId = "I3wmetab", value = input$I3wmetab/SB)
+    updateSliderInput(session = session, inputId = "I3wmodelb", value = input$I3wmodelb/SB)
+  })
+  
+  observeEvent(input$E3recalca, {
+    SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
+  })
+  
+  
+  ##################################################### Clonning
+  
+  observeEvent(input$E3clonea,{
+    updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
+    updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
+    updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodela)
+  })
+  
+  observeEvent(input$E3cloneb,{
+    updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
+  })
+  
+  observeEvent(input$I3cloneb,{
+    updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
+    updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
+    updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
+  })
+  
+  observeEvent(input$I3clonea,{
+    updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
+  })
+  
+  
+  observeEvent(input$E3thclone,  {
+    updateSliderInput(session = session, inputId = "E3t1", value = input$I3t1)
+    updateSliderInput(session = session, inputId = "E3t2", value = input$I3t2)
+  })
+  
+  observeEvent(input$I3thclone,  {
+    updateSliderInput(session = session, inputId = "I3t1", value = input$E3t1)
+    updateSliderInput(session = session, inputId = "I3t2", value = input$E3t2)
+  })
+  
+  observeEvent(input$E2tclone,  {
+    updateSliderInput(session = session, inputId = "E2t1", value = input$I2t1)
+    updateSliderInput(session = session, inputId = "E2t2", value = input$I2t2)
+    updateSliderInput(session = session, inputId = "E2t3", value = input$I2t3)
+    updateSliderInput(session = session, inputId = "E2t4", value = input$I2t4)
+  })
+  
+  observeEvent(input$I2tclone,  {
+    updateSliderInput(session = session, inputId = "I2t1", value = input$E2t1)
+    updateSliderInput(session = session, inputId = "I2t2", value = input$E2t2)
+    updateSliderInput(session = session, inputId = "I2t3", value = input$E2t3)
+    updateSliderInput(session = session, inputId = "I2t4", value = input$E2t4)
+  })
+  
+  # observeEvent(input$E2yearclone,  {
+  #   updateSliderInput(session = session, inputId = "E2year", value = input$I2year)
+  # })
+  # 
+  # observeEvent(input$I2yearclone,  {
+  #   updateSliderInput(session = session, inputId = "I2year", value = input$E2year)
+  # })
+  
+  #####################################################
+  
+  observeEvent(input$I2t1,  {
+    updateSliderInput(session = session, inputId = "I2t2", max = input$I2t1)
+    updateSliderInput(session = session, inputId = "I2t3", max = input$I2t2)
+    updateSliderInput(session = session, inputId = "I2t4", max = input$I2t3)
+  })
+  
+  observeEvent(input$I2t4,  {
+    updateSliderInput(session = session, inputId = "I2t3", min = input$I2t4)
+    updateSliderInput(session = session, inputId = "I2t2", min = input$I2t3)
+    updateSliderInput(session = session, inputId = "I2t1", min = input$I2t2)
+  })
+  
+  observeEvent(input$I2t2,  {
+    updateSliderInput(session = session, inputId = "I2t3", max = input$I2t2)
+    updateSliderInput(session = session, inputId = "I2t4", max = input$I2t3)
+    updateSliderInput(session = session, inputId = "I2t1", min = input$I2t2)
+  })
+  
+  observeEvent(input$I2t3,  {
+    updateSliderInput(session = session, inputId = "I2t4", max = input$I2t3)
+    updateSliderInput(session = session, inputId = "I2t2", min = input$I2t3)
+    updateSliderInput(session = session, inputId = "I2t1", min = input$I2t2)
+  })
+  
+  observeEvent(input$I2treset,  {
+    updateSliderInput(session = session, inputId = "I2t4", value = BB[5])
+    updateSliderInput(session = session, inputId = "I2t3", value = BB[4])
+    updateSliderInput(session = session, inputId = "I2t2", value = BB[3])
+    updateSliderInput(session = session, inputId = "I2t1", value = BB[2])
+  })
+  
+  observeEvent(input$I2yearreset,  {
+    updateSliderInput(session = session, inputId = "I2year", value = 2008)
+  })
+  
+  
+  ###############################
+  
+  observeEvent(input$E2t1,  {
+    updateSliderInput(session = session, inputId = "E2t2", max = input$E2t1)
+    updateSliderInput(session = session, inputId = "E2t3", max = input$E2t2)
+    updateSliderInput(session = session, inputId = "E2t4", max = input$E2t3)
+  })
+  
+  observeEvent(input$E2t4,  {
+    updateSliderInput(session = session, inputId = "E2t3", min = input$E2t4)
+    updateSliderInput(session = session, inputId = "E2t2", min = input$E2t3)
+    updateSliderInput(session = session, inputId = "E2t1", min = input$E2t2)
+  })
+  
+  observeEvent(input$E2t2,  {
+    updateSliderInput(session = session, inputId = "E2t3", max = input$E2t2)
+    updateSliderInput(session = session, inputId = "E2t4", max = input$E2t3)
+    updateSliderInput(session = session, inputId = "E2t1", min = input$E2t2)
+  })
+  
+  observeEvent(input$E2t3,  {
+    updateSliderInput(session = session, inputId = "E2t4", max = input$E2t3)
+    updateSliderInput(session = session, inputId = "E2t2", min = input$E2t3)
+    updateSliderInput(session = session, inputId = "E2t1", min = input$E2t2)
+  })
+  
+  observeEvent(input$E2treset,  {
+    updateSliderInput(session = session, inputId = "E2t4", value = BB[5])
+    updateSliderInput(session = session, inputId = "E2t3", value = BB[4])
+    updateSliderInput(session = session, inputId = "E2t2", value = BB[3])
+    updateSliderInput(session = session, inputId = "E2t1", value = BB[2])
+  })
+  
+  observeEvent(input$E2yearreset,  {
+    updateSliderInput(session = session, inputId = "E2year", value = 2008)
+  })
+  
+  
+  ############################### E2year
+  
+  observeEvent(input$E2year,  {
+    updateSliderInput(session = session, inputId = "I2year", value = input$E2year)
+  })
+  
+  observeEvent(input$I2year,  {
+    updateSliderInput(session = session, inputId = "E2year", value = input$I2year)
+  })
+  
+  
+  ###############################
+  
+  
+  observeEvent(input$Emimetat2,  {
+    updateSliderInput(session = session, inputId = "Emimetat1", max = input$Emimetat2)
+  })
+  
+  observeEvent(input$Emimetat1,  {
+    updateSliderInput(session = session, inputId = "Emimetat2", min = input$Emimetat1)
+  })
+  
+  observeEvent(input$EMweightsreset, {
+    updateSliderInput(session = session, inputId = "Emimetaw1", value = MWt1)
+    updateSliderInput(session = session, inputId = "Emimetaw2", value = MWt2)
+    updateSliderInput(session = session, inputId = "Emimetaw3", value = MWt3)
+    updateSliderInput(session = session, inputId = "Emimetaw4", value = MWt4)
+  })
+  
+  observeEvent(input$EMthreshreset, {
+    updateSliderInput(session = session, inputId = "Emimetat1", value = MThr1)
+    updateSliderInput(session = session, inputId = "Emimetat2", value = MThr2)
+  })
+  
+  #####################
+  
+  observeEvent(input$Eall,{
+    updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = CountriesS )
+  })
+  
+  observeEvent(input$Enone,{
+    updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = '' )
+  })
+  
+  #####################
+  
+  observeEvent(input$Iall,{
+    updateCheckboxGroupInput(session = session, inputId = "Icountry", selected = CountriesS )
+  })
+  
+  observeEvent(input$Inone,{
+    updateCheckboxGroupInput(session = session, inputId = "Icountry", selected = '' )
+  })
+  
+  
+  ######################
+  
+  ImmiMetaScores<-reactive({
+    Recalc_Meta_Reg(Meta_Reg, input$nordicimmi)
+  })
+  
+  EmiMetaScores<-reactive({
+    Recalc_Meta_DeReg(Meta_DeReg, input$Emimetaw1, input$Emimetaw2, input$Emimetaw3, input$Emimetaw4,
+                      input$Emimetat1, input$Emimetat2, input$nordicemi)
+  })
+  
+  output$table1<-renderDT({
+    ImmiMetaScores()
+  })
+  
+  output$table2<-renderDT({
+    EmiMetaScores()
+  })
+  
+  output$downloadIMData<- downloadHandler(
+    filename = function() {
+      paste('Immi_Meta_Scores', '.csv', sep='') },
+    content = function(file) {
+      write.csv(DT2DF(ImmiMetaScores()), file,row.names = FALSE)
+    }
+  )
+  
+  output$downloadEMData<- downloadHandler(
+    filename = function() {
+      paste('Emi_Meta_Scores', '.csv', sep='') },
+    content = function(file) {
+      write.csv(DT2DF(EmiMetaScores()), file,row.names = FALSE)
+    }
+  )
+  
+  ###################
+  
+  output$Esaveplot<- downloadHandler(
+    filename = function() {
+      paste('Emi_Undercounting_Ratio.', input$Eformat, sep='') },
+    content = function(file) {
+      ffo <- input$Eformat
+      if(ffo=='pdf') {
+        pdf(file,8,6)
+      } else if(ffo=='png'){
+        png(file,width=8*600,height=6*600,res=600)
+      } else if(ffo=='tiff'){
+        tiff(file,width=8*600,height=6*600,res=600,compression = 'rle')
+      }
+      plot_ui_result('E',
+                     country=input$Ecountry,
+                     refcountry=input$Erefcountry,
+                     stats=2,
+                     extrapol=FALSE,
+                     raymer=input$Eraymer,
+                     logscale=input$Elogscale,
+                     plotCI=input$EplotCI)
+      dev.off()
+    }
+  )
+  
+  
+  observeEvent(input$Iraymer,{
+    if(as.numeric(input$Iraymer)<5) {
+      updateSelectInput(session = session, inputId = "Irefcountry", selected = 9) 
+    } else {
+      updateSelectInput(session = session, inputId = "Irefcountry", selected = as.numeric(input$Iraymer)-4) 
+    }
+  })
+  
+  
+  output$Isaveplot<- downloadHandler(
+    filename = function() {
+      paste('Immi_Undercounting_Ratio.', input$Iformat, sep='') },
+    content = function(file) {
+      ffo <- input$Iformat
+      if(ffo=='pdf') {
+        pdf(file,8,6)
+      } else if(ffo=='png'){
+        png(file,width=8*600,height=6*600,res=600)
+      } else if(ffo=='tiff'){
+        tiff(file,width=8*600,height=6*600,res=600,compression = 'rle')
+      }
+      plot_ui_result('I',
+                     country=input$Icountry,
+                     refcountry=input$Irefcountry,
+                     stats=2,
+                     extrapol=input$Iimputations,
+                     raymer=input$Iraymer,
+                     logscale=input$Ilogscale,
+                     plotCI=input$IplotCI,
+                     additive = input$Iadditive,
+                     separated = input$Iseparated,
+                     ncp=input$Incp)
+      dev.off()
+    }
+  )
+  
+  output$EmiPlot <- renderPlot({
+    plot_ui_result('E',
+                   country=input$Ecountry,
+                   refcountry=input$Erefcountry,
+                   stats=2,
+                   extrapol=FALSE,
+                   raymer=input$Eraymer,
+                   logscale=input$Elogscale,
+                   plotCI=input$EplotCI)
+  })
+  
+  output$ImiPlot <- renderPlot({
+    plot_ui_result('I',
+                   country=input$Icountry,
+                   refcountry=input$Irefcountry,
+                   stats=2,
+                   extrapol=input$Iimputations,
+                   raymer=input$Iraymer,
+                   logscale=input$Ilogscale,
+                   plotCI=input$IplotCI,
+                   additive = input$Iadditive,
+                   separated = input$Iseparated,
+                   ncp=input$Incp
+    )
+  })
+  
+  
+  #############################
+  # direction='I',
+  # #metadata
+  # w1=0.5, w2=0.1, w3=0.1, w4=0.3, t1=0.3, t2=0.6, ItrustNordic = TRUE, EtrustNordic = TRUE,
+  # #model
+  # ncp=1, separated=FALSE, additive=TRUE, refcountries=9, durationCorrection = 13,
+  # IgnoreOverCounting = TRUE,
+  # TranslateGroups = 5,
+  # #mixing
+  # useimputation=TRUE,
+  # threshyear = 2008, FinalGroups = 5, w_imemA = 0.1, w_imemB = 0.25, 
+  # w_metaA = 0.1, w_metaB = 0.15, w_modelA = 0.8,w_modelB = 0.6){
+  #   
+  
+  CORRITAB<-reactive({
+    get_correction('I', input$Iraymer, input$Iadditive, input$Iseparated)
+  })
+  
+  output$corrItab <- renderTable({
+    CORRITAB()}, 
+    bordered = TRUE,  
+    spacing = 'xs',  
+    width = '100%', 
+    align = 'c'
+  )  
+  
+  RESI<-reactive({
+    CalcModel(direction='I',
+              w1=input$Emimetaw1, w2=input$Emimetaw2,
+              w3=input$Emimetaw3, w4=input$Emimetaw4,
+              t1=input$Emimetat1, t2=input$Emimetat2,
+              ItrustNordic = input$nordicemi,
+              EtrustNordic = input$nordicimmi,
+              
+              additive = input$Iadditive,
+              separated = input$Iseparated,
+              ncp = input$Incp,
+              refcountries = input$Irefcountry,
+              durationCorrection = input$Iraymer,
+              IgnoreOverCounting = input$IIgnoreOverCounting,
+              TranslateGroups = input$ITranslateGroups,
+              threshyear = input$IYear,
+              FinalGroups = input$IFinalGroups,
+              useimputation = input$Iimputations,
+              #thr1=input$I3t1, thr2=input$I3t2,
+              w_imemA = input$I3wimema,
+              w_imemB = input$I3wimemb,
+              w_metaA = input$I3wmetaa,
+              w_metaB = input$I3wmetab,
+              w_modelA = input$I3wmodela,
+              w_modelB = input$I3wmodelb)#, mirror=input$I3mirror,"I")
+  })
+  
+  output$ImiPlotB <- renderPlot({
+    plotModel(RESI(), shownodat=input$INoData)
+  })  
+  
+  output$IsaveplotB<- downloadHandler(
+    filename = function() {
+      paste('Immi_Model_Scores.', input$IformatB, sep='') },
+    content = function(file) {
+      ffo <- input$IformatB
+      if(ffo=='pdf') {
+        pdf(file,8,6)
+      } else if(ffo=='png'){
+        png(file,width=8*600,height=6*600,res=600)
+      } else if(ffo=='tiff'){
+        tiff(file,width=8*600,height=6*600,res=600,compression = 'rle')
+      }
+      plotModel(RESI(), shownodat=input$INoData)
+      dev.off()
+    }
+  )
+  
+  output$IsavedataB<- downloadHandler(
+    filename = function() {
+      paste('Immi_Model_Scores', '.xlsx', sep='') },
+    content = function(filename) {
+      saveModel(filename, RESI())
+    }
+  )
+  
+  
+  #############################
+  
+  output$ImiPlot2 <- renderPlot({
+    plotCombined(RESI(), shownodat=input$INoData2)
+  })  
+  
+  
+  # I2CBA<-reactive({
+  #   CBA(input$I2refcountry, input$I2year, 'I',input$I2raymer, input$I2t1, input$I2t2,
+  #       input$I2t3, input$I2t4, 1e4)
+  # })
+  # 
+  # output$I2download<- downloadHandler(
+  #   filename = function() {
+  #     paste('Immi_Undercounting_Scores', '.csv', sep='') },
+  #   content = function(file) {
+  #     write.csv(DT2DF(reformatIE2tab(I2CBA(), input$I2hide, COLO)), file,row.names = FALSE)
+  #   }
+  # )
+  
+  
+  # output$I2table<-renderDT({
+  #   reformatIE2tab(I2CBA(), input$I2hide, COLO)
+  # })
+  
+  output$I2miPlot <- renderPlot({
+    plot.BA(I2CBA(),input$I2t1, input$I2t2,
+            input$I2t3, input$I2t4, input$I2year, input$I2plotCI, input$I2logscale, input$I2colorCI, input$I2hide, COLO=COLO)
+  })
+  
+  #############################
+  
+  E2CBA<-reactive({
+    CBA(input$E2refcountry, input$E2year, 'E',input$E2raymer, input$E2t1, input$E2t2,
+        input$E2t3, input$E2t4, 1e4)
+  })
+  
+  # output$E2download<- downloadHandler(
+  #   filename = function() {
+  #     paste('Emi_Undercounting_Scores', '.csv', sep='') },
+  #   content = function(file) {
+  #     write.csv(DT2DF(reformatIE2tab(E2CBA() , input$I2hide, COLO)), file,row.names = FALSE)
+  #   }
+  # )
+  
+  output$E2saveplot<- downloadHandler(
+    filename = function() {
+      paste('Emi_Undercounting_Scores.', input$E2format, sep='') },
+    content = function(file) {
+      ffo <- input$E2format
+      if(ffo=='pdf') {
+        pdf(file,8,6)
+      } else if(ffo=='png'){
+        png(file,width=8*600,height=6*600,res=600)
+      } else if(ffo=='tiff'){
+        tiff(file,width=8*600,height=6*600,res=600,compression = 'rle')
+      }
+      plot.BA(E2CBA(),input$E2t1, input$E2t2,
+              input$E2t3, input$E2t4, input$E2year, input$E2plotCI, input$E2logscale, input$E2colorCI, input$E2hide,COLO)
+      dev.off()
+    }
+  )
+  
+  # output$E2table<-renderDT({
+  #   reformatIE2tab(E2CBA(), input$E2hide, COLO)
+  # })
+  
+  output$E2miPlot <- renderPlot({
+    plot.BA(E2CBA(),input$E2t1, input$E2t2,
+            input$E2t3, input$E2t4, input$E2year, input$E2plotCI, input$E2logscale, input$E2colorCI, input$E2hide, COLO)
+  })
+  
+  #########################3
+  
+  observeEvent(input$I3t2,  {
+    updateSliderInput(session = session, inputId = "I3t1", max = input$I3t2)
+  })
+  
+  observeEvent(input$I3t1,  {
+    updateSliderInput(session = session, inputId = "I3t2", min = input$I3t1)
+  })
+  
+  observeEvent(input$I3weightsresetb, {
+    updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
+    updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
+    updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
+  })
+  
+  observeEvent(input$I3weightsreseta, {
+    updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
+  })
+  
+  
+  observeEvent(input$I3threshreset, {
+    updateSliderInput(session = session, inputId = "I3t1", value = thr1)
+    updateSliderInput(session = session, inputId = "I3t2", value = thr2)
+  })
+  
+  I3tabre<-reactive(CalcCombineThreshols(ImmiMetaScores(), I2CBA(),
+                                         thr1=input$I3t1, thr2=input$I3t2,
+                                         wimema=input$I3wimema,
+                                         wimemb=input$I3wimemb, wmetaa=input$I3wmetaa,
+                                         wmetab=input$I3wmetab, wmodela=input$I3wmodela,
+                                         wmodelb=input$I3wmodelb, mirror=input$I3mirror,"I"))
+  output$I3table<-renderDT({
+    I3tabre()
+  })
+  
+  I4tabre<-reactive(summaryTable(ImmiMetaScores(),I2CBA(), I3tabre(), 'I', COLO))
+  
+  output$I4table<-renderDT({
+    I4tabre()
+  })
+  
+  output$I3download<- downloadHandler(
+    filename = function() {
+      paste('Immi_Combined_Scores', '.csv', sep='') },
+    content = function(file) {
+      write.csv(DT2DF(I3tabre()), file,row.names = FALSE)
+    }
+  )
+  
+  output$I4download<- downloadHandler(
+    filename = function() {
+      paste('Immi_Summary_Scores', '.csv', sep='') },
+    content = function(file) {
+      write.csv(DT2DF(I4tabre()), file,row.names = FALSE)
+    }
+  )
+  
+  #########################3
+  
+  
+  observeEvent(input$E3t2,  {
+    updateSliderInput(session = session, inputId = "E3t1", max = input$E3t2)
+  })
+  
+  observeEvent(input$E3t1,  {
+    updateSliderInput(session = session, inputId = "E3t2", min = input$E3t1)
+  })
+  
+  observeEvent(input$E3weightsreseta, {
+    updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
+    updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
+    updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
+  })
+  
+  observeEvent(input$E3weightsresetb, {
+    updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
+  })
+  
+  observeEvent(input$E3threshreset, {
+    updateSliderInput(session = session, inputId = "E3t1", value = thr1)
+    updateSliderInput(session = session, inputId = "E3t2", value = thr2)
+  })
+  
+  E3tabre<-reactive(CalcCombineThreshols(EmiMetaScores(), E2CBA(),
+                                         thr1=input$E3t1, thr2=input$E3t2,
+                                         wimema=input$E3wimema,
+                                         wimemb=input$E3wimemb, wmetaa=input$E3wmetaa,
+                                         wmetab=input$E3wmetab, wmodela=input$E3wmodela,
+                                         wmodelb=input$E3wmodelb, mirror=input$E3mirror,"E"))
+  output$E3table<-renderDT({
+    E3tabre()
+  })
+  
+  E4tabre<-reactive(summaryTable(EmiMetaScores(),E2CBA(), E3tabre(), 'E', COLO))
+  
+  output$E4table<-renderDT({
+    E4tabre()
+  })
+  
+  output$E3download<- downloadHandler(
+    filename = function() {
+      paste('Emi_Combined_Scores', '.csv', sep='') },
+    content = function(file) {
+      write.csv(DT2DF(E3tabre()), file,row.names = FALSE)
+    }
+  )
+  
+  output$E4download<- downloadHandler(
+    filename = function() {
+      paste('Emi_Summary_Scores', '.csv', sep='') },
+    content = function(file) {
+      write.csv(DT2DF(E4tabre()), file,row.names = FALSE)
+    }
+  )
+  
+  output$E2yearshow <- renderUI({
+    yrange <- paste('(<b>B</b>) - before ',input$E2year,', (<b>A</b>) from ',input$E2year,' on',sep='')
+    h5(HTML(yrange))
+  })
+  
+  output$I2yearshow <- renderUI({
+    yrange <- paste('(<b>B</b>) - before ',input$I2year,', (<b>A</b>) from ',input$I2year,' on',sep='')
+    h5(HTML(yrange))
+  })
+  
+  output$I2dynamicfigcaption <- renderUI({
+    h4(HTML(paste('<b>Figure 3.</b> Median bilateral flows ratio of immigration data for years 1998 - ',
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95%
+                  interquantile confidence intervals, background colors reflect classification based on the thresholds.
+                  If ratio is 1 there is no under- or over- counting. Ratios higher than 1 indicate overcounting,
+                  while ratios lower than 1 indicate undercounting of immigration flows. The lower the ratio value the higher the undercounting.
+                  ',sep='')))
+  })
+  
+  output$I2dynamictabcaption <- renderUI({
+    h4(HTML(paste('<b>Table 3.</b> Classification of median bilateral flows ratio of immigration data for years 1998 - ',
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95%
+                  interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified according to the <b>score classification thresholds</b> (left panel),
+                  <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
+                  ',sep='')))
+  })
+  
+  output$E2dynamictabcaption <- renderUI({
+    h4(HTML(paste('<b>Table 4.</b> Classification of median bilateral flows ratio of emigration data for years 1998 - ',
+                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). <b>lo</b> and <b>hi</b> denotes the lower and upper bounds of bootstrapped 95%
+                  interquantile confidence intervals of estimated <b>median</b>s. Both <b>A</b> and <b>B</b> <b>median</b>s are classified according to the <b>score classification thresholds</b> (left panel),
+                  <b>score num</b> is a numerical representation of the <b>score</b>. Empty records denotes missing bilateral data.
+                  ',sep='')))
+  })
+  
+  output$I3dynamictabcaption <- renderUI({
+    h4(HTML(paste('<b>Table 5.</b> Classification of combined scores of immigration data for years 1998 - ',
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>). <b>IMEM score num</b> is the IMEM undercount classification (Raymer et al. 2013) converted to numerical value,
+                  <b>metadata score num</b> is obtained from <b>Metadata classify (I)</b> page, <b>model score num (B)</b> obtained from <b>Model classify (I)</b> page.
+                  <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified according to the <b>score classification thresholds</b> (left panel).
+                  ',sep='')))
+  })
+  
+  output$I4dynamictabcaption <- renderUI({
+    h4(HTML(paste('<b>Table 7.</b> Summary of obtained scores of immigration data for years 1998 - ',
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>).',sep='')))
+  })
+  
+  output$E4dynamictabcaption <- renderUI({
+    h4(HTML(paste('<b>Table 8.</b> Summary of obtained scores of emigration data for years 1998 - ',
+                  input$I2year-1,' (<b>B</b>) and ',input$I2year,' - 2019 (<b>A</b>).',sep='')))
+  })
+  
+  output$E3dynamictabcaption <- renderUI({
+    h4(HTML(paste('<b>Table 6.</b> Classification of combined scores of emigration data for years 1998 - ',
+                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). <b>IMEM score num</b> is the IMEM undercount classification (Raymer et al. 2013) converted to numerical value,
+                  <b>metadata score num</b> is obtained from <b>Metadata classify (I)</b> page, <b>model score num (B)</b> obtained from <b>Model classify (I)</b> page.
+                  <b>combined score num</b>s are weighted means of these variables (see <b>Mixing weights</b> on the left panel). Both <b>A</b> and <b>B</b> <b>combined score num</b>s are classified according to the <b>score classification thresholds</b> (left panel).
+                  ',sep='')))
+  })
+  
+  output$E2dynamicfigcaption <- renderUI({
+    h4(HTML(paste('<b>Figure 4.</b> Median bilateral flows ratio of emigration data for years 1998 - ',
+                  input$E2year-1,' (<b>B</b>) and ',input$E2year,' - 2019 (<b>A</b>). The ratio is calculated by dividing flows from a country X to a group of good data quality countries (the <b>Reference group of countries</b>) reported by country X
+                                          by the same type of flow reported by the group of good data quality countries (the <b>Reference group of countries</b>). Bars shows the ratio, vertical thin lines show bootstrapped 95%
+                  interquantile confidence intervals, background colors reflect classification based on the thresholds.
+                  If ratio is 1 there is no under- or over- counting. Ratios higher than 1 indicate overcounting,
+                  while ratios lower than 1 indicate undercounting of emigration flows. The lower the ratio value the higher the undercounting.',sep='')))
+  })
+  
+  output$dynamicT1 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('The <b>score num</b> is classified into <b>score</b> as follows:','',
+                       paste("<b>score num</b> from 0 to", input$Emimetat1,': <b>score</b> = <span style="color:#008000">Low</span>'),
+                       paste("<b>score num</b> from ",input$Emimetat1,"to", input$Emimetat2,': <b>score</b> = <span style="color:#FFA500">Medium</span>'),
+                       paste("<b>score num</b> from ",input$Emimetat2,'to 1 : <b>score</b> = <span style="color:#FF0000">High</span>'))
+    )
+  })
+  
+  output$dynamicTI2 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('Median bilateral flow ratios (<b>median (B)</b> and <b>median (A)</b>) are classified into <b>score</b>s (<b>(B)</b> and <b>(A)</b>) as follows:','',
+                       paste("<b>median</b> from 0 to", input$I2t4,': <b>score</b> = <span style="color:',COLO[5],'">Very high</span>, <b> score num</b> = 1'),
+                       paste("<b>median</b> from ",input$I2t4,"to", input$I2t3,': <b>score</b> = <span style="color:',COLO[4],'">High</span>, <b> score num</b> = 0.75'),
+                       paste("<b>median</b> from ",input$I2t3,"to", input$I2t2,': <b>score</b> = <span style="color:',COLO[3],'">Medium</span>, <b> score num</b> = 0.5'),
+                       paste("<b>median</b> from ",input$I2t2,"to", input$I2t1,': <b>score</b> = <span style="color:',COLO[2],'">Low</span>, <b> score num</b> = 0.25'),
+                       paste("<b>median</b> from ",input$I2t1,'to 1 : <b>score</b> = <span style="color:',COLO[1],'">Very low</span>, <b> score num</b> = 0'))
+           
+    )
+  })
+  
+  output$dynamicTE2 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('Median bilateral flow ratios (<b>median (B)</b> and <b>median (A)</b>) are classified into <b>score</b>s (<b>(B)</b> and <b>(A)</b>) as follows:','',
+                       paste("<b>median</b> from 0 to", input$E2t4,': <b>score</b> = <span style="color:',COLO[5],'">Very high</span>, <b> score num</b> = 1'),
+                       paste("<b>median</b> from ",input$E2t4,"to", input$E2t3,': <b>score</b> = <span style="color:',COLO[4],'">High</span>, <b> score num</b> = 0.75'),
+                       paste("<b>median</b> from ",input$E2t3,"to", input$E2t2,': <b>score</b> = <span style="color:',COLO[3],'">Medium</span>, <b> score num</b> = 0.5'),
+                       paste("<b>median</b> from ",input$E2t2,"to", input$E2t1,': <b>score</b> = <span style="color:',COLO[2],'">Low</span>, <b> score num</b> = 0.25'),
+                       paste("<b>median</b> from ",input$E2t1,'to 1 : <b>score</b> = <span style="color:',COLO[1],'">Very low</span>, <b> score num</b> = 0'))
+           
+    )
+  })
+  
+  output$dynamicTI3 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('The <b>combined  score num</b> is classified into <b>combined score</b> as follows:','',
+                       paste("<b>combined score num</b> from 0 to", input$I3t1,': <b>combined score</b> = <span style="color:#008000">Low</span>'),
+                       paste("<b>combined score num</b> from ",input$I3t1,"to", input$I3t2,': <b>combined score</b> = <span style="color:#FFA500">Medium</span>'),
+                       paste("<b>combined score num</b> from ",input$I3t2,'to 1 : <b>combined score</b> = <span style="color:#FF0000">High</span>'))
+    )
+  })
+  
+  output$dynamicTE3 <-renderUI({
+    helper(h4('Score classification thresholds'),
+           colour='#FF0000',type='inline',title='Score classification thresholds',buttonLabel = 'Close',
+           content = c('The <b>combined score num</b> is classified into <b>combined score</b> as follows:','',
+                       paste("<b>combined score num</b> from 0 to", input$E3t1,': <b>combined score</b> = <span style="color:#008000">Low</span>'),
+                       paste("<b>combined score num</b> from ",input$E3t1,"to", input$E3t2,': <b>combined score</b> = <span style="color:#FFA500">Medium</span>'),
+                       paste("<b>combined score num</b> from ",input$E3t2,'to 1 : <b>combined score</b> = <span style="color:#FF0000">High</span>'))
+    )
+  })
+  
+  output$downloadBIB<- downloadHandler(
+    filename = function() {
+      paste('UndercountMigScores', '.bib', sep='') },
+    content = function(filename) {
+      con <- file('CITATION.bib', encoding = "UTF-8")
+      con2 <- file(filename, encoding = "UTF-8")
+      z<-readLines(con)
+      writeLines(z, con2)
+      close(con)
+      close(con2)
+    }
+  )
+  
+}
+
+colabout="#A9DFBF"
+colimmi="#AED6F1"
+colemi="#FAD7A0"
+coltxt='black'
+colsel='#873600'
+
+shinyUI <- fluidPage(
+  titlePanel(HTML('<span style="color:#000070;font-family:Serif,Georgia,Serif"><b>UndercountMigScores</b></span>'),'UndercountMigScores'),
+  fluidRow(
+    column(width = 9,
+           tags$head(tags$style("h3 {margin-top:0px;}", media="screen", type="text/css")),
+           tags$head(tags$style("h4 {margin-top:0px;}", media="screen", type="text/css")),
+           tags$head(tags$style("img {border:1px; border-color: #E3E3E3; border-style: solid;}", media="screen", type="text/css")),
+           tags$head(tags$style(".well {border:2px; border-color: #E3E3E3; border-style: solid; padding-bottom: 5px}", media="screen", type="text/css")),
+           
+           tags$style(HTML(paste("
+                          .tabbable > .nav > li > a {background-color: aqua;  color:black; border-width: medium}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[1],"'] {background-color: ",colabout,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[2],"'] {background-color: ",colimmi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[3],"'] {background-color: ",colemi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[4],"'] {background-color: ",colimmi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[5],"'] {background-color: ",colemi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[6],"'] {background-color: ",colimmi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[7],"'] {background-color: ",colemi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[8],"'] {background-color: ",colimmi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[9],"'] {background-color: ",colemi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[10],"'] {background-color: ",colimmi,"; color:",coltxt,"}
+                          .tabbable > .nav > li > a[data-value='",PanelNames[11],"'] {background-color: ",colemi,"; color:",coltxt,"}
+                          .tabbable > .nav > li[class=active] > a {border-width: medium; color:",colsel,
+                                 ";border-color:#775544; text-shadow: 0.7px 0.7px ",colsel,"}",sep=''))),
+           br(),
+           tabsetPanel(type='tabs',
+                       tabPanel(title = PanelNames[1],
+                                column(12,offset=0, align="center",
+                                       br(),
+                                       h3(HTML('<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>')),
+                                       h3(HTML('<b>UndercountMigScores v0.6.5</b>')),
+                                       h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
+                                       br(),
+                                       h4('Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat'),
+                                       br(),
+                                       h4('Maciej J. Dańko'),
+                                       h4(HTML('email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a>')),
+                                       br(),
+                                       h4('Max Planck Institute for Demographic Research'),
+                                       h4('Rostock, Germany'),
+                                       h4('2021'),
+                                       
+                                       h5('____________________________________________________________________________'),
+                                       h4('How to cite this software?'),
+                                       h5(HTML('Maciej J. Dańko. UndercountMigScores v0.6.5. (2021)<br>
+                                               Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat.
+                                               <br>DOI: 10.5281/zenodo.5594133. URL:https://github.com/MaciejDanko/UndercountMigScore')),
+                                       downloadButton("downloadBIB", "Download citation in .bib format"),
+                                       h5('____________________________________________________________________________'),
+                                       h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),
+                                       h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "colourpicker", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyhelper")</span><br>')),
+                                       h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computer<br>
+                                       Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>')),
+                                       br(),br(),br(),br()
+                                )
+                       ),
+                       tabPanel(title = PanelNames[2],
+                                br(), br(),
+                                sidebarPanel(
+                                  
+                                  h4("Options"),
+                                  helper(checkboxInput("nordicimmi", "Trust Nordic countries", value = TrustNordic),
+                                         colour='#FF0000',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
+                                         content=c('No obligation of registration = <span style="color:#FF0000">High</span> undercounting, obligation of registration = <span style="color:#008000">Low</span> undercounting,
+                                                                                                           but if <b>No limit</b> or <b>No sanctions</b> occur the score is changed to <span style="color:#FFA500">Medium</span>.',
+                                                   '','The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.','',
+                                                   'Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
+                                  tags$hr(style="border-color: black;"),
+                                  h4("References"),
+                                  tags$body('Tab4a (page 20) of'),
+                                  tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=21", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. Deliverable 6.2")
+                                ),
+                                mainPanel(
+                                  h4(HTML('<b>Table 1.</b> Immigration undercounting related metadata and its classification.')),
+                                  downloadButton("downloadIMData", "Download table"),
+                                  br(),
+                                  DTOutput('table1'),
+                                  br(), br()
+                                )
+                       ),
+                       tabPanel(title = PanelNames[3],
+                                br(), br(),
+                                sidebarPanel(
+                                  helper(h4('Weights'),
+                                         colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                         content=c('The <b>score num</b> is calculated as a weighted mean which excludes all variables with "Unknown" records.')),
+                                  sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=Step),
+                                  sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=Step),
+                                  sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=Step),
+                                  sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=Step),
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
+                                  actionButton("EMweightsreset", "Reset"),
+                                  actionButton("EMrecalc", HTML("&#8721 weights = 1")),                                  
+                                  tags$hr(style="border-color: black;"),
+                                  h4("Options"),
+                                  helper(checkboxInput("nordicemi", 'Trust Nordic countries', value = TrustNordic),
+                                         colour='#FF0000',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
+                                         content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.',
+                                                   '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
+                                  tags$hr(style="border-color: black;"),
+                                  uiOutput(outputId = "dynamicT1"),
+                                  sliderInput(inputId = "Emimetat1", label = "Low | Medium", min = 0, max = 1, value = MThr1, step=Step),
+                                  sliderInput(inputId = "Emimetat2", label = "Medium | High", min = 0, max = 1, value = MThr2, step=Step),
+                                  actionButton("EMthreshreset", "Reset"),
+                                  tags$hr(style="border-color: black;"),
+                                  h4("References"),
+                                  tags$body('Table 4b of'),
+                                  tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=22", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. Deliverable 6.2"),
+                                  br(),
+                                  tags$body('Table 1.6 of'),
+                                  tags$a(href="https://ec.europa.eu/eurostat/ramon/statmanuals/files/KS-CC-03-005-EN.pdf#page=22", "Eurostat (2003) Demographic statistics: Definitions and methods of collection in 31 European Countries. ISSN 1725-065X
+                                  ISBN 92-894-6051-2.")
+                                ),
+                                mainPanel(
+                                  h4('Normalized weights'),
+                                  plotOutput('EMPlot', height='200', width='80%'),
+                                  tags$hr(style="border-color: black;"),
+                                  h4(HTML('<b>Table 2.</b> Emigration undercounting related metadata and its classification.')),
+                                  downloadButton("downloadEMData", "Download table"),
+                                  br(),
+                                  DTOutput('table2'),
+                                  br(), br()
+                                )
+                       ),
+                       tabPanel(title = PanelNames[4],
+                                br(),br(),
+                                sidebarPanel(
+                                  helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                                         content='BilateralModel',size='l'),
+                                  
+                                  #tags$p(HTML("This page <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
+                                  tags$hr(style="border-color: black;"),
+                                  
+                                  # checkboxGroupInput("Icountry", h4("Countries selection"),
+                                  #                    choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
+                                  
+                                  helper(h4("Duration of stay correction"),
+                                         colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
+                                         content = c('DurationCorrection')),
+                                  # selectInput("Iraymer", label = NULL,
+                                  #             choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4),
+                                  #             selected = 1),
+                                  # 
+                                  
+                                  selectInput("Iraymer", label = NULL,
+                                              choices = list(
+                                                'Uncorrected' = 0,
+                                                'IMEM model (Raymer 2013)'=1,
+                                                'Eexpert judgment (Willekens 2019)'=2,
+                                                'Poisson model (Willekens 2019)'=3,
+                                                'Mixture model (Willekens 2019)'=4,
+                                                'Optimization: Nordic Coutries (Without IS)'=5,
+                                                'Optimization: Nordic Coutries'=6,
+                                                'Optimization: Nordic Coutries +BE'=7,
+                                                'Optimization: Nordic Coutries +CH'=8,
+                                                'Optimization: Nordic Coutries +NL'=9,
+                                                'Optimization: Nordic Coutries +BE+CH'=10,
+                                                'Optimization: Nordic Coutries +BE+NL'=11,
+                                                'Optimization: Nordic Coutries +CH+NL'=12,
+                                                'Optimization: Nordic Coutries +BE+CH+NL'=13,
+                                                'Optimization: Nordic Coutries +AT+BE+CH+NL'=14,
+                                                'Optimization: Nordic Coutries +AT+BE+CH+DE+NL'=15,
+                                                'Optimization: Nordic Coutries +AT+BE+CH+DE+FR+NL'=16,
+                                                'Optimization: Nordic Coutries +AT+BE+CH+DE+FR+IE+NL'=17,
+                                                'Optimization: Nordic Coutries +AT+BE+CH+DE+FR+IE+NL+UK'=18,
+                                                'Optimization: All countries'=19),
+                                              selected = 1),
+                                  
+                                  tableOutput('corrItab'),
+                                  #div(id = 'corrItab', class = "shiny-html-output",style="border-color: red; border: red;"),
+                                  tags$head(tags$style("#corrItab table {background-color: white; }", media="screen", type="text/css")),
+                                  tags$head(tags$style("#corrItab table th {background-color: #CCBBFF; }", media="screen", type="text/css")),
+                                  
+                                  conditionalPanel(condition = "input.Iraymer > 0",
+                                                   checkboxInput("Iseparated", "Use duration corrrection parameters calculated separately for immigration", value = FALSE),
+                                                   checkboxInput("Iadditive", "Use additive optimization criteria (otherwise multiplicative)", value = TRUE),
+                                                   
+                                                   tags$hr(style="border-color: black;"),
+                                                   helper(selectInput("Irefcountry", h4("Reference group of countries"),
+                                                                      # choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
+                                                                      #                "Nordic countries + CH + BE + AT + NL" = 3,
+                                                                      #                'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
+                                                                      #                "All countries" = 5),
+                                                                      choices = list('Nordic countries (without IS)'=1,'Nordic countries'=2,'Nordic countries+BE'=3,'Nordic countries+CH'=4,'Nordic countries+NL'=5,
+                                                                                     'Nordic countries+BE+CH'=6,'Nordic countries+BE+NL'=7,'Nordic countries+CH+NL'=8,
+                                                                                     'Nordic countries+BE+CH+NL'=9,'Nordic countries+AT+BE+CH+NL'=10,
+                                                                                     'Nordic countries+AT+BE+CH+DE+NL'=11,'Nordic countries+AT+BE+CH+DE+FR+NL'=12,
+                                                                                     'Nordic countries+AT+BE+CH+DE+FR+IE+NL'=13,'Nordic countries+AT+BE+CH+DE+FR+IE+NL+UK'=14,'All countries'=15),
+                                                                      selected = RefCntrSel),
+                                                          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                                                   
+                                                   
+                                                   #tags$hr(style="border-color: black;"),
+                                                   
+                                                   ##############################################################3333
+                                                   
+                                                   # direction='I',
+                                                   # #metadata
+                                                   # w1=0.5, w2=0.1, w3=0.1, w4=0.3, t1=0.3, t2=0.6, ItrustNordic = TRUE, EtrustNordic = TRUE,
+                                                   # #model
+                                                   # ncp=1, separated=FALSE, additive=TRUE, refcountries=9, durationCorrection = 13,
+                                                   # IgnoreOverCounting = TRUE,
+                                                   # TranslateGroups = 5,
+                                                   # #mixing
+                                                   # useimputation=TRUE,
+                                                   # threshyear = 2008, FinalGroups = 5, w_imemA = 0.1, w_imemB = 0.25, w_metaA = 0.1, w_metaB = 0.15, w_modelA = 0.8,w_modelB = 0.6){
+                                                   # 
+                                                   
+                                                   # this should appear conditioaaly to the reference countries
+                                                   
+                                                   # radioButtons("Iadditivive", label = h3("Radio buttons"),
+                                                   #              choices = list("Choice 1" = 1, "Choice 2" = 2, "Choice 3" = 3), 
+                                                   #              selected = 1),
+                                  ),
+                                  tags$hr(style="border-color: black;"),
+                                  #h4('Model options'),
+                                  #tags$hr(style="border-color: black; border-top: dashed 1px"),
+                                  h4('Imputations of missing values'),
+                                  checkboxInput("Iimputations", "Use PCA imputations", value = TRUE),
+                                  conditionalPanel(condition = "input.Iimputations == true",
+                                                   sliderInput(inputId = "Incp", label = 'ncp', min = 1, max = 5, value = 1, step=1, sep='')),
+                                  #tags$hr(style="border-color: black; border-top: dashed 1px"),
+                                  tags$hr(style="border-color: black;"),
+                                  h4('Classification options'),
+                                  checkboxInput("IIgnoreOverCounting", "Ignore over-counting", value = TRUE),
+                                  
+                                  sliderInput(inputId = "ITranslateGroups", label = 'Model sensitivity', min = 2, max = 10, value = 5, step=1, sep=''),               
+                                  #tags$hr(style="border-color: black;"),
+                                  
+                                  ###############################################################
+                                  # tags$hr(style="border-color: black;"),
+                                  # h4('Graphical options'),
+                                  # #checkboxInput("Iextrapol", "Extrapolate missing values", value = FALSE),
+                                  
+                                ),
+                                #br(),br(),
+                                # sidebarPanel(width=8,
+                                
+                                #),
+                                sidebarPanel(width=8,
+                                             style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
+                                             radioGroupButtons(
+                                               inputId = "Ipanels",
+                                               label = NULL,#"Select the result panel", 
+                                               justified= TRUE,
+                                               width='100%',
+                                               individual=FALSE,
+                                               #checkIcon = list(  yes = icon("check-square")),
+                                               choiceNames = c("Inspect bilateral flows ratios", "Classification of model undercounting"),
+                                               choiceValues = 1:2,
+                                               status = "danger"
+                                             )),
+                                tags$head(tags$style("#Ipanels .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
+                                tags$head(tags$style("#Ipanels .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
+                                # <div class="btn-group btn-group-toggle" role="group">
+                                #   <button class="btn radiobtn btn-danger active">
+                                #   <span class="radio-btn-icon-yes">
+                                #   <i class="fa fa-check-square" role="presentation" aria-label="check-square icon"></i>
+                                #   </span>
+                                #   <span class="radio-btn-icon-no"></span>
+                                #   <input type="radio" autocomplete="off" name="Ipanels" value="1" checked="checked">
+                                #   Inspect bilateral flows ratios
+                                # </button>
+                                #   </div>
+                                # <button class="btn radiobtn btn-danger active">
+                                #   <span class="radio-btn-icon-yes">
+                                #   <i class="fa fa-check-square" role="presentation" aria-label="check-square icon"></i>
+                                #   </span>
+                                #   <span class="radio-btn-icon-no">
+                                #   <i class="fa fa-square-o" role="presentation" aria-label="square-o icon"></i>
+                                #   </span>
+                                #   <input type="radio" autocomplete="off" name="Ipanels" value="2">
+                                #   Classification of model undercounting
+                                # </button>
+                                sidebarPanel(width=8,
+                                             #tags$hr(style="border-color: black;"),
+                                             conditionalPanel(condition = "input.Ipanels == 1",
+                                                              checkboxGroupInput("Icountry", h4("Countries selection"),
+                                                                                 choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
+                                                              actionButton("Iall", "All"),actionButton("Inone", "None"),
+                                                              tags$hr(style="border-color: black;"),
+                                                              #tags$hr(style="border-color: black;"),
+                                                              #h4('Graphical options'),
+                                                              
+                                                              # checkboxInput("Ilogscale", "Use log-scale", value = TRUE),
+                                                              # checkboxInput("IplotCI", "Plot confidence intervals", value = TRUE),
+                                                              
+                                                              tags$hr(style="border-color: black;"),
+                                                              h4(HTML('<b>Bilateral flows ratios for immigration data</b>. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (<b>Reference group of countries</b>) reported by country X by the flows in the same direction reported by the <b>Reference group of countries</b>. The confidence intervals are calculated using percentile bootstrap method.')),
+                                                              
+                                                              #mainPanel(
+                                                              plotOutput(outputId = "ImiPlot", height="600px", width='100%'),
+                                                              br(),
+                                                              div(style="display:inline-block;vertical-align:top;",
+                                                                  column(6,checkboxInput("Ilogscale", "Use log-scale", value = TRUE)),
+                                                                  column(6,checkboxInput("IplotCI", "Plot confidence intervals", value = TRUE)),
+                                                              ),
+                                                              div(style="display:inline-block;vertical-align:top;",
+                                                                  h5('Choose a format and save the plot'),
+                                                                  column(6,selectInput("Iformat", NULL,
+                                                                                       choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                                                                  column(6,downloadButton("Isaveplot", "Save plot")))
+                                                              # br(),br(),#br(),br()
+                                                              #)
+                                             ),
+                                             conditionalPanel(condition = "input.Ipanels == 2",
+                                                              #tags$hr(style="border-color: black;"),
+                                                              #h4('Graphical options'),
+                                                              
+                                                              # checkboxInput("INoData", "Mark no data", value = TRUE),
+                                                              # tags$hr(style="border-color: black;"),
+                                                              #mainPanel(
+                                                              h4(HTML('<b>Classification of the bilateral flow ratios.</b>')),
+                                                              plotOutput(outputId = "ImiPlotB", height="600px", width='100%'),
+                                                              # br(),
+                                                              # div(style="display:inline-block;vertical-align:top;",
+                                                              #     column(11,checkboxInput("INoData", "Mark no data", value = TRUE))
+                                                              # ),
+                                                              # 
+                                                              # div(style="display:inline-block;vertical-align:top;",
+                                                              #     h5('Choose a format and save the plot'),
+                                                              #     column(6,selectInput("IformatB", NULL,
+                                                              #                          choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                                                              #     column(6,downloadButton("IsaveplotB", "Save plot"))),
+                                                              
+                                                              div(style="display:inline-block;vertical-align:bottom;",
+                                                                  column(3,
+                                                                         #br(),
+                                                                         h4(HTML('&#160;')),
+                                                                         
+                                                                         # <div class="form-group shiny-input-container">
+                                                                         #   <div class="checkbox">
+                                                                         #   <label>
+                                                                         #   <input id="INoData2" type="checkbox" checked="checked" class="shiny-bound-input">
+                                                                         #   <span>Mark no data</span>
+                                                                         #   </label>
+                                                                         #   </div>
+                                                                         #   </div>
+                                                                         checkboxInput("INoData", "Mark no data", value = TRUE)),
+                                                                  
+                                                                  column(3,h5(HTML('Image format')),selectInput("IformatB", NULL,
+                                                                                                                choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                                                                  
+                                                                  column(3,h5(HTML('&#160;')),downloadButton("IsaveplotB", "Save image")),
+                                                                  column(3,h5(HTML('&#160;')),downloadButton("IsavedataB", "Save results as xlsx"))
+                                                              ),
+                                                              #br(),br(),#br(),br()
+                                             ),
+                                ),
+                                mainPanel(br(),br(),br(),br(),br())
+                       ),
+                       tabPanel(title = PanelNames[5],
+                                br(),br(),
+                                # sidebarPanel(
+                                #   helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                                #          content='BilateralModel',size='l'),
+                                #   tags$p(HTML("This page <b>can only be used to view</b> the results of the bilateral flows ratio model. Any changes made here will not affect the final classification of undercounting score.")),
+                                #   tags$hr(style="border-color: black;"),
+                                #   
+                                #   checkboxGroupInput("Ecountry", h4("Countries selection"),
+                                #                      choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
+                                #   actionButton("Eall", "All"),actionButton("Enone", "None"),
+                                #   tags$hr(style="border-color: black;"),
+                                #   helper(selectInput("Erefcountry", h4("Reference group of countries"),
+                                #                      choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
+                                #                                     "Nordic countries + CH + BE + AT + NL" = 3,
+                                #                                     'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
+                                #                                     "All countries" = 5),selected = RefCntrSel),
+                                #          
+                                #          colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                                #          content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                                #   tags$hr(style="border-color: black;"),
+                                #   helper(h4("Duration of stay correction"),
+                                #          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
+                                #          content = c('DurationCorrection')),
+                                #   selectInput("Eraymer", label = NULL,
+                                #               choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4),
+                                #               selected = 1),
+                                #   tags$hr(style="border-color: black;"),
+                                #   h4('Graphical options'),
+                                #   checkboxInput("Elogscale", "Use log-scale", value = TRUE),
+                                #   checkboxInput("EplotCI", "Plot confidence intervals", value = TRUE)
+                                # ),
+                                # br(),br(),
+                                # mainPanel(
+                                #   plotOutput(outputId = "EmiPlot", height="600px"),
+                                #   br(),
+                                #   h4(HTML('<b>Figure 2.</b> Bilateral flows ratios for emigration data. The ratio is calculated by dividing flows from a country X to a group of good data quality countries (<b>Reference group of countries</b>) reported by country X by the flows in the same direction reported by the <b>Reference group of countries</b>. The confidence intervals are calculated using percentile bootstrap method.')),
+                                #   div(style="display:inline-block;vertical-align:top;",
+                                #       h5('Choose a format and save the plot'),
+                                #       column(6,selectInput("Eformat", NULL,
+                                #                            choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                                #       column(6,downloadButton("Esaveplot", "Save plot"))),
+                                br(),br(),br(),br()
+                                #)
+                       ),
+                       # tabPanel(title = PanelNames[6],
+                       #          
+                       #          br(),br(),
+                       #          sidebarPanel(
+                       #            helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                       #                   content='BilateralModel',size='l'),
+                       #            tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (I)</b>).")),
+                       #            tags$hr(style="border-color: black;"),
+                       #            
+                       #            helper(selectInput("I2refcountry", h4("Reference group of countries"),
+                       #                               choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
+                       #                                              "Nordic countries + CH + BE + AT + NL" = 3,
+                       #                                              'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
+                       #                                              "All countries" = 5),selected = RefCntrSel),
+                       #                   colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                       #                   content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                       #            tags$hr(style="border-color: black;"),
+                       #            helper(h4('Threshold year'),
+                       #                   colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
+                       #                   content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the threshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
+                       #                             <b>Threshold year</b> is identical for both immigration end emigration data.')),
+                       #            sliderInput(inputId = "I2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
+                       #            actionButton("I2yearreset", "Reset"),
+                       #            tags$hr(style="border-color: black;"),
+                       #            helper(h4("Duration of stay correction"),
+                       #                   colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
+                       #                   content = c('DurationCorrection')),
+                       #            selectInput("I2raymer", label = NULL,
+                       #                        choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4),
+                       #                        selected = 1),
+                       #            tags$hr(style="border-color: black;"),
+                       #            uiOutput(outputId = "dynamicTI2"),
+                       #            sliderInput(inputId = "I2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=Step), #thr4
+                       #            sliderInput(inputId = "I2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=Step), #thr3
+                       #            sliderInput(inputId = "I2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=Step), #thr2
+                       #            sliderInput(inputId = "I2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=Step), #thr1
+                       #            
+                       #            helper(tags$span(' '),
+                       #                   colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                       #                   content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Model classify (E)</b> page.'),
+                       #            
+                       #            
+                       #            actionButton("I2treset", "Reset"),
+                       #            actionButton("I2tclone", "Clone from (E)"),
+                       #            
+                       #            tags$hr(style="border-color: black;"),
+                       #            h4('Graphical options'),
+                       #            checkboxInput("I2hide", "Hide countries with unknown bilateral flows", value = TRUE), #corrected
+                       #            checkboxInput("I2logscale", "Plot in log-scale", value = TRUE),
+                       #            checkboxInput("I2plotCI", "Plot confidence intervals", value = TRUE), #plotci
+                       #            div(
+                       #              column(7,h5('Confidence intervals color')),
+                       #              column(5,colourInput('I2colorCI',NULL,palette='limited'))
+                       #            ), br(), br(),
+                       #            
+                       #            
+                       #          ),
+                       #          br(),br(),
+                       #          mainPanel(
+                       #            plotOutput(outputId = "I2miPlot", height="600px"),
+                       #            br(),
+                       #            uiOutput(outputId = "I2dynamicfigcaption"),
+                       #            div(style="display:inline-block;vertical-align:top;",
+                       #                
+                       #                h5('Choose a format and save the plot'),
+                       #                column(6,selectInput("I2format", NULL,
+                       #                                     choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                       #                column(6,downloadButton("I2saveplot", "Save plot"))),
+                       #            br(),
+                       #            tags$hr(style="border-color: black;"),
+                       #            uiOutput(outputId = "I2dynamictabcaption"),
+                       #            downloadButton("I2download", "Download table"),
+                       #            br(),
+                       #            DTOutput('I2table'),
+                       #            br(),br()
+                       #          )
+                       # ),
+                       # tabPanel(title = PanelNames[7],
+                       #          br(),br(),
+                       #          sidebarPanel(
+                       #            helper(h4("Overview"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
+                       #                   content='BilateralModel',size='l'),
+                       #            tags$p(HTML("This page can be used to set the model parameters. Any changes made here will affect the final classification of the undercounting score (<b>Combined scores (E)</b>).")),
+                       #            tags$hr(style="border-color: black;"),
+                       #            helper(selectInput("E2refcountry", h4("Reference group of countries"),
+                       #                               choices = list("Nordic countries" = 1, "Nordic countries + CH + BE" = 2,
+                       #                                              "Nordic countries + CH + BE + AT + NL" = 3,
+                       #                                              'Nordic countries + CH + BE + AT + NL + DE + FR' = 4,
+                       #                                              "All countries" = 5),selected = RefCntrSel),
+                       #                   colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
+                       #                   content=c('Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                       #            tags$hr(style="border-color: black;"),
+                       #            helper(h4('Threshold year'),
+                       #                   colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
+                       #                   content=c('<b>Threshold year</b> groups bilateral flows ratios into two periods: before the threshold year (<b>B</b>) and from the threshold year on (<b>A</b>).
+                       #                             <b>Threshold year</b> is identical for both immigration end emigration data.')),
+                       #            sliderInput(inputId = "E2year", label = NULL, min = 2000, max = 2016, value = 2008, step=1, sep=''),
+                       #            actionButton("E2yearreset", "Reset"),
+                       #            tags$hr(style="border-color: black;"),
+                       #            helper(h4("Duration of stay correction"),
+                       #                   colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
+                       #                   content = c('DurationCorrection')),
+                       #            selectInput("E2raymer", label = NULL,
+                       #                        choices = list("No correction" = 0, "IMEM model" = 1, "Experts judgement" = 2, "Poisson model" = 3, 'Mixture model' = 4),
+                       #                        selected = 1),
+                       #            tags$hr(style="border-color: black;"),
+                       #            uiOutput(outputId = "dynamicTE2"),
+                       #            sliderInput(inputId = "E2t4", label = "Very high | High", min = 0, max = 1, value = round(BB[5],3), step=Step), #thr4
+                       #            sliderInput(inputId = "E2t3", label = "High | Medium", min = 0, max = 1, value = round(BB[4],3), step=Step), #thr3
+                       #            sliderInput(inputId = "E2t2", label = "Medium | Low", min = 0, max = 1, value = round(BB[3],3), step=Step), #thr2
+                       #            sliderInput(inputId = "E2t1", label = "Low | Very low", min = 0, max = 1, value = round(BB[2],3), step=Step), #thr1
+                       #            helper(tags$span(' '),
+                       #                   colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                       #                   content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Model classify (I)</b> page.'),
+                       #            
+                       #            actionButton("E2treset", "Reset"),
+                       #            actionButton("E2tclone", "Clone from (I)"),
+                       #            tags$hr(style="border-color: black;"),
+                       #            h4('Graphical options'),
+                       #            checkboxInput("E2hide", "Hide countries with unknown bilateral flows", value = TRUE), #corrected
+                       #            checkboxInput("E2logscale", "Plot in log-scale", value = TRUE),
+                       #            checkboxInput("E2plotCI", "Plot confidence intervals", value = TRUE), #plotci
+                       #            div(
+                       #              column(7,h5('Confidence intervals color')),
+                       #              column(5,colourInput('E2colorCI',NULL,palette='limited'))
+                       #            ), br(), br(),
+                       #          ),
+                       #          br(),br(),
+                       #          mainPanel(
+                       #            plotOutput(outputId = "E2miPlot", height="600px"),
+                       #            br(),
+                       #            uiOutput(outputId = "E2dynamicfigcaption"),
+                       #            div(style="display:inline-block;vertical-align:top;",
+                       #                h5('Choose a format and save the plot'),
+                       #                column(6,selectInput("E2format", NULL,
+                       #                                     choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                       #                column(6,downloadButton("E2saveplot", "Save plot"))),
+                       #            br(),
+                       #            tags$hr(style="border-color: black;"),
+                       #            uiOutput(outputId = "E2dynamictabcaption"),
+                       #            downloadButton("E2download", "Download table"),
+                       #            br(),
+                       #            DTOutput('E2table'),
+                       #            br(),br()
+                       #          )
+                       #          
+                       # ),
+                       tabPanel(title = PanelNames[8],
+                                br(), br(),
+                                sidebarPanel(
+                                  h3('Mixing options'),
+                                  tags$hr(style="border-color: black;"),
+                                  h4('IMEM & metadata mixing threshold'),
+                                  sliderInput(inputId = "IYear", label = 'Threshold year', min = 2003, max = 2018, value = 2008, step=1, sep=''),
+                                  
+                                  tags$hr(style="border-color: black;"),
+                                  helper(h4('Mixing weights'),
+                                         colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                         content='Weights used to calculate weighted mean of <b>score</b>s <b>num</b> obtained in previous pages'),
+                                  uiOutput('I2yearshow'),
+                                  
+                                  helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
+                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                         content=IMEMc('B')),
+                                  
+                                  helper(sliderInput(inputId = "I3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=Step),
+                                         colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
+                                         content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (I)</b> page used to calculate <b>combined score num (B)</b>'),
+                                  
+                                  helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
+                                         colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
+                                         content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
+                                  
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
+                                  actionButton("I3weightsresetb", "Reset"),
+                                  actionButton("I3cloneb", "Clone from (E)"),
+                                  actionButton("I3recalcb", HTML("&#8721 weights = 1")),
+                                  
+                                  tags$hr(style="border-color: black; border-top: dashed 1px"),
+                                  
+                                  helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
+                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                         content=IMEMc('A')),
+                                  
+                                  helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
+                                         colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
+                                         content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
+                                  
+                                  helper(sliderInput(inputId = "I3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=Step),
+                                         colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
+                                         content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (I)</b> page used to calculate <b>combined score num (A)</b>'),
+                                  
+                                  helper(tags$span(' '),
+                                         colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                  
+                                  actionButton("I3weightsreseta", "Reset"),
+                                  actionButton("I3clonea", "Clone from (E)"),
+                                  actionButton("I3recalca", HTML("&#8721 weights = 1")),                                  
+                                  br(),
+                                  br(),
+                                  #tags$hr(style="border-color: black;"),
+                                  #checkboxInput("I3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Extrapolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
+                                  #tags$hr(style="border-color: black;"),
+                                  # uiOutput(outputId = "dynamicTI3"),
+                                  # sliderInput(inputId = "I3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
+                                  # sliderInput(inputId = "I3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=Step),
+                                  # helper(tags$span(' '),
+                                  #        colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                  #        content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page.'),
+                                  # 
+                                  # actionButton("I3threshreset", "Reset"),
+                                  # actionButton("I3thclone", "Clone from (E)")
+                                ),
+                                sidebarPanel(width=8,
+                                             h3('Classification options'),
+                                             tags$hr(style="border-color: black;"),
+                                             sliderInput(inputId = "IFinalGroups", label = 'Number of undercounting classes', min = 2, max = 7, value = 5, step=1, sep='')
+                                ),
+                                sidebarPanel(width=8,
+                                             style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
+                                             radioGroupButtons(
+                                               inputId = "Ipanels2",
+                                               label = NULL,#"Select the result panel", 
+                                               justified= TRUE,
+                                               width='100%',
+                                               individual=FALSE,
+                                               #checkIcon = list(  yes = icon("check-square")),
+                                               choiceNames = c("Show normalized mixing weights", "Classification of undercounting"),
+                                               choiceValues = 1:2,
+                                               status = "danger"
+                                             )),
+                                tags$head(tags$style("#Ipanels2 .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
+                                tags$head(tags$style("#Ipanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
+                                
+                                sidebarPanel(width=8,
+                                             conditionalPanel(condition ="input.Ipanels2 == 1",
+                                                              h4('Normalized mixing weights'),
+                                                              plotOutput('I3WBPlot', height='200', width='100%'), 
+                                                              br()
+                                             ),
+                                             
+                                             conditionalPanel(condition ="input.Ipanels2 == 2",
+                                                              #tags$hr(style="border-color: black;"),
+                                                              
+                                                              #uiOutput(outputId = "I3dynamictabcaption"),
+                                                              #downloadButton("I3download", "Download table"),
+                                                              #br(),
+                                                              #DTOutput('I3table'),
+                                                              #br(),br()
+                                                              #h4('Graphical options'),
+                                                              
+                                                              # checkboxInput("INoData2", "Mark no data", value = TRUE),
+                                                              #tags$hr(style="border-color: black;"),
+                                                              #mainPanel(
+                                                              h4(HTML('<b>Finall classification of the undercounting.</b>')),
+                                                              plotOutput(outputId = "ImiPlot2", height="680px", width='100%'),
+                                                              #br(),
+                                                              # div(style="display:inline-block;vertical-align:top;",
+                                                              #   column(11,checkboxInput("INoData2", "Mark no data", value = TRUE))
+                                                              # ),
+                                                              div(style="display:inline-block;vertical-align:bottom;",
+                                                                  column(3,
+                                                                         #br(),
+                                                                         h4(HTML('&#160;')),
+                                                                         
+                                                                         # <div class="form-group shiny-input-container">
+                                                                         #   <div class="checkbox">
+                                                                         #   <label>
+                                                                         #   <input id="INoData2" type="checkbox" checked="checked" class="shiny-bound-input">
+                                                                         #   <span>Mark no data</span>
+                                                                         #   </label>
+                                                                         #   </div>
+                                                                         #   </div>
+                                                                         checkboxInput("INoData2", "Mark no data", value = TRUE)),
+                                                                  
+                                                                  column(3,h5(HTML('Image format')),selectInput("Iformat2", NULL,
+                                                                                                                choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
+                                                                  
+                                                                  column(3,h5(HTML('&#160;')),downloadButton("Isaveplot2", "Save image")),
+                                                                  column(3,h5(HTML('&#160;')),downloadButton("Isavedata2", "Save results as xlsx"))
+                                                              ),
+                                                              #br(),#br(),#br(),br()
+                                             ),
+                                # div(style="display:inline-block;vertical-align:top;",
+                                #     
+                                 ),
+                                
+                                mainPanel(br(),br(),br(),br(),br()),
+                       ),
+                       tabPanel(title = PanelNames[9],
+                                br(), br(),
+                                # sidebarPanel(
+                                #   helper(h4('Mixing weights'),
+                                #          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
+                                #          content='Weights used to calculate weighted mean of <b>score</b>s <b>num</b> obtained in previous pages'),
+                                #   uiOutput('E2yearshow'),
+                                #   helper(sliderInput(inputId = "E3wimemb", label = "IMEM score num (B)", min = 0, max = 1, value = wimemb, step=Step),
+                                #          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                #          content=IMEMc('B')),
+                                #   
+                                #   helper(sliderInput(inputId = "E3wmetab", label = "Metadata score num (B)", min = 0, max = 1, value = wmetab, step=Step),
+                                #          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
+                                #          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (E)</b> page used to calculate <b>combined score num (B)</b>'),
+                                #   
+                                #   helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (B)", min = 0, max = 1, value = wmodelb, step=Step),
+                                #          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
+                                #          content='Weight of the model <b>score num (B)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
+                                #   
+                                #   helper(tags$span(' '),
+                                #          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                #          content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (I)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                #   
+                                #   actionButton("E3weightsresetb", "Reset"),
+                                #   actionButton("E3cloneb", "Clone from (I)"),
+                                #   actionButton("E3recalcb", HTML("&#8721 weights = 1")),
+                                #   
+                                #   tags$hr(style="border-color: black; border-top: dashed 1px"),
+                                #   
+                                #   
+                                #   helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (A)", min = 0, max = 1, value = wimema, step=Step),
+                                #          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                #          content=IMEMc('A')),
+                                #   
+                                #   helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (A)", min = 0, max = 1, value = wmetaa, step=Step),
+                                #          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
+                                #          content='Weight of the metadata <b>score num</b> obtained in <b>Metadata classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
+                                #   
+                                #   helper(sliderInput(inputId = "E3wmodela", label = "Model score num (A)", min = 0, max = 1, value = wmodela, step=Step),
+                                #          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
+                                #          content='Weight of the model <b>score num (A)</b> obtained in <b>Model classify (E)</b> page used to calculate <b>combined score num (A)</b>'),
+                                #   
+                                #   helper(tags$span(' '),
+                                #          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                #          content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (I)</b>, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                #   
+                                #   actionButton("E3weightsreseta", "Reset"),
+                                #   actionButton("E3clonea", "Clone from (I)"),
+                                #   actionButton("E3recalca", HTML("&#8721 weights = 1")),
+                                #   
+                                #   
+                                #   tags$hr(style="border-color: black;"),
+                                #   h4('Options'),
+                                #   checkboxInput("E3mirror", HTML('Mirror extrapolation (fill missing values of model score num (B) using model score num (A) and vice versa). Extrapolated values are shown in <span style="color:magenta;">magenta</span>.'), value = TRUE),
+                                #   tags$hr(style="border-color: black;"),
+                                #   uiOutput(outputId = "dynamicTE3"),
+                                #   sliderInput(inputId = "E3t1", label = "Low | Medium", min = 0, max = 1, value = thr1, step=Step),
+                                #   sliderInput(inputId = "E3t2", label = "Medium | High", min = 0, max = 1, value = thr2, step=Step),
+                                #   helper(tags$span(' '),
+                                #          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
+                                #          content='<b>Reset</b> - restores default values, <b>Clone from (I)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (I)</b>.'),
+                                #   
+                                #   actionButton("E3threshreset", "Reset"),
+                                #   actionButton("E3thclone", "Clone from (I)")
+                                # ),
+                                # mainPanel(
+                                #   h4('Normalized mixing weights'),
+                                #   plotOutput('E3WBPlot', height='200', width='80%'),
+                                #   tags$hr(style="border-color: black;"),
+                                #   uiOutput(outputId = "E3dynamictabcaption"),
+                                #   downloadButton("E3download", "Download table"),
+                                #   br(),
+                                #   DTOutput('E3table'),
+                                #   br(),br()
+                                # )
+                       )#,
+                       # tabPanel(title = PanelNames[10],
+                       #          br(), br(),
+                       #          uiOutput(outputId = "I4dynamictabcaption"),
+                       #          downloadButton("I4download", "Download table"),
+                       #          br(),
+                       #          column(8, align="center", DTOutput('I4table')),
+                       #          br(),br()
+                       # ),
+                       # tabPanel(title = PanelNames[11],
+                       #          br(), br(),
+                       #          uiOutput(outputId = "E4dynamictabcaption"),
+                       #          downloadButton("E4download", "Download table"),
+                       #          br(),
+                       #          column(8, align="center", DTOutput('E4table')),
+                       #          br(),br()
+                       # )
+           )
+    )
+  )
+)
+
+shinyApp(ui=shinyUI, server = shinyServer)
+
+#rsconnect::deployApp()
+
