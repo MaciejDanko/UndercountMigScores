@@ -1,14 +1,20 @@
 rm(list=ls())
 
 #################################################
-# To do
+# To do list:
+
 # what with LI
 # check help boxes names 
 # check/set init values
 # further clean code
 # check code functionality
 # describe ignore overcounting
-# check new vs old undercounting calcualtion (print screen)
+# ignore undercounting jako conditional do opcji "use quantiles"
+# dodac opcje uniform
+# check new vs old undercounting calculation (print screen)
+
+# X show duration of stay for different countries in the model subpanels - read separate rda files 60->P
+# X repair reset buttons
 ################################################
 
 #Sys.setlocale("LC_ALL","en_US.UTF-8")
@@ -32,40 +38,7 @@ source('./code/UNDERCOUNTING_PKG_APP.R')
 
 options(bitmapType="cairo")
 
-#loadaslist<-function(Name){G<-new.env(); load(Name,G); as.list(G)}
 toeurostat<-function(x) {x[x=='GR']<-'EL'; x[x=='GB']<-'UK'; x}
-
-#load('./data/MetaData.rda')
-
-# IMEM$Country[IMEM$Country=='EL']<-'GR'
-# IMEM<-IMEM[!is.na(IMEM$Country),]
-# IMEM<-IMEM[order(IMEM$Country),]
-# Meta_DeReg$iso2[Meta_DeReg$iso2=='EL']<-'GR'
-# Meta_DeReg<-Meta_DeReg[order(Meta_DeReg$iso2),]
-# Meta_Reg$iso2[Meta_Reg$iso2=='EL']<-'GR'
-# Meta_Reg<-Meta_Reg[order(Meta_Reg$iso2),]
-# 
-# 
-# DAT_IMEM<-loadaslist('./data/UndercountingIndex_IMEM.rda')
-# DAT_POIS<-loadaslist('./data/UndercountingIndex_Willekens_Poisson.rda')
-# DAT_EXPERT<-loadaslist('./data/UndercountingIndex_Willekens_Expert.rda')
-# DAT_MIXED<-loadaslist('./data/UndercountingIndex_Willekens_Mixture.rda')
-
-# sortisoyear<-function(z) {
-#   lapply(z, function(x) {
-#   x$iso2[x$iso2=='EL']<-'GR'
-#   x$ind<-paste(x$iso2,x$year)
-#   x<-x[order(x$ind),]
-#   x$ind<-NULL
-#   x
-#   })
-# }
-# 
-# DAT_IMEM<-sortisoyear(DAT_IMEM)
-# DAT_POIS<-sortisoyear(DAT_POIS)
-# DAT_EXPERT<-sortisoyear(DAT_EXPERT)
-# DAT_MIXED<-sortisoyear(DAT_MIXED)
-
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
 
@@ -75,26 +48,6 @@ colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-regi
                         "administrative corrections",'comment')
 
 Countries<-CountriesS<-unique(NORDIC4$iso2[!is.na(NORDIC4$ICn)|!is.na(NORDIC4$ECn)])
-
-BB <- c(1, 0.75, 0.5, 0.25, 0.125, 1e-5)
-
-DT2DF<-function(x) if (class(x)[1]=='datatables') {
-  z<-x$x$data
-  if (colnames(z)[1]%in%c('',' ','  ')) z<-z[,-1]
-  data.frame(z, stringsAsFactors = FALSE, check.names = FALSE, check.rows = FALSE)
-} else data.frame(x, stringsAsFactors = FALSE, check.names = FALSE, check.rows = FALSE)
-
-colMedians <- function(x) apply(x,2,median, na.rm=TRUE)
-colSd <- function(x) apply(x,2,sd, na.rm=TRUE)
-colQlo <- function(x) apply(x,2,quantile, probs=0.025, na.rm=TRUE)
-colQhi <- function(x) apply(x,2,quantile, probs=0.975, na.rm=TRUE)
-
-# firstCap<-function(x) {
-#   x<-paste(x)
-#   tmp<-paste(toupper(substr(x,1,1)),substr(x,2,nchar(x)),sep='')
-#   tmp[tmp=='NA']<-NA
-#   tmp
-# }
 
 Recalc_Meta_DeReg<-function(MetaDeReg,w1,w2,w3,w4,t1,t2, trustnordic){
   cat(w1,w2,w3,w4,t1,t2,trustnordic,'\n')
@@ -167,225 +120,6 @@ Recalc_Meta_Reg<-function(MetaReg, trustnordic=TRUE){
   MetaReg
 }
 
-
-# reformatIE2tab<-function(tab, chide=TRUE, COLO){
-#   tab<-DT2DF(tab)
-#   if (chide) tab<-tab[tab[,1]%in%Countries,]
-#   cat(COLO,'\n')
-#   #COLO<-adjustcolor(COLO,blue.f = 0.9,red.f = 0.9,#008000.f = 0.9)
-#   tab$B.score<-firstCap(tab$B.score)
-#   tab$A.score<-firstCap(tab$A.score)
-#   colnames(tab)<-c('iso2','country','median (B)','lo (B)','hi (B)','score (B)','score num (B)','median (A)','lo (A)','hi (A)','score (A)','score num (A)')
-#   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
-#   tab<-datatable(tab,options=list(pageLength=nrow(tab), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))),
-#                  rownames=FALSE)
-#   tab<-formatStyle(tab, columns = "score (B)", color=styleEqual(LEVELS, COLO))
-#   tab<-formatStyle(tab, c(2,7), "border-right" = "solid 1px", "border-right-color"='black')
-#   tab<-formatStyle(tab, columns = "score (A)", color=styleEqual(LEVELS, COLO))
-#   tab
-# }
-
-
-# 
-# 
-# CBA<-function(refcountry=1, threshyear = 2008, direction='E',corrected=1,
-#               thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5],
-#               NBoot=1e5, LEVELS=c('very low','low','medium','high','very high')){
-# 
-#   DAT0<-switch(corrected, '0' = DAT_IMEM, '1' = DAT_IMEM, '2' = DAT_EXPERT, '3' = DAT_POIS, '4' = DAT_MIXED)
-#   RES<-switch(refcountry, '1' = DAT0$NORDIC, '2' = DAT0$NORDIC_PLUS_BE_CH, '3' = DAT0$NORDIC_PLUS_AT_BE_CH_NL,
-#               '4' = DAT0$NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = DAT0$ALL_COUNTRIES)
-# 
-#   # RES<-switch(refcountry, '1' = NORDIC, '2' = NORDIC_PLUS_BE_CH,
-#   #             '3' = NORDIC_PLUS_AT_BE_CH_NL,
-#   #             '4' = NORDIC_PLUS_AT_DE_BE_CH_FR_NL, '5' = ALL_COUNTRIES)
-#   THRESH<-log10(1/c(1,thr1,thr2,thr3,thr4,1e-5))
-# 
-#   if (direction=='E' && corrected>0){
-#     RES$Y<-RES$ECraw
-#     RES$YE<-RES$EC
-#     RES$Ysd<-RES$EC_sd
-#     RES$W<-RES$POPEn
-#   } else if (direction=='E' && corrected==0){
-#     RES$Y<-RES$EUCraw
-#     RES$YE<-RES$EUC
-#     RES$Ysd<-RES$EUC_sd
-#     RES$W<-RES$POPEn
-#   } else if (direction=='I' && corrected>0){
-#     RES$Y<-RES$ICraw
-#     RES$YE<-RES$IC
-#     RES$Ysd<-RES$IC_sd
-#     RES$W<-RES$POPIn
-#   } else if (direction=='I' && corrected==0){
-#     RES$Y<-RES$IUCraw
-#     RES$YE<-RES$IUC
-#     RES$Ysd<-RES$IUC_sd
-#     RES$W<-RES$POPIn
-#   }
-# 
-#   cols<-c('iso2','Y','YE','Ysd','W','year')
-#   RESLO<-RES[RES$year<threshyear,cols]
-#   RESHI<-RES[RES$year>=threshyear,cols]
-# 
-#   UG<-unique(RES$iso2)
-# 
-#   RESHIStat<-lapply(UG, function(k) {
-#     cat(k,'\n')
-#     tmp<-RESHI[RESHI$iso2==k,]
-#     Qua<-c(NA,NA,NA)
-#     Qme<-NA
-#     if (!all(is.na(tmp$Y))) {
-#       org<-tmp<-tmp[!is.na(tmp$Y),]
-#       tmp<-tmp[!is.na(tmp$Ysd),]
-#       H<-tmp$W/sum(tmp$W)
-#       if (length(H)>0){
-#         ToBoot<-NBoot
-#         YY<-NULL
-#         for (j in 1:5) {
-#           BOOTini<-sample(seq_along(H), ToBoot, prob=H, replace = TRUE)
-#           YYy<-as.vector(rnorm(ToBoot,tmp$Y[BOOTini],tmp$Ysd[BOOTini]))
-#           YYy<-YYy[YYy>0]
-#           YY<-c(YY,YYy)
-#           ToBoot<-ToBoot-length(YY)
-#           if ((ToBoot/NBoot)<0.01) break
-#         }
-#         Qua<-quantile(YY,probs=c(0.025,0.5,0.975))
-#         Qme<-mean(YY)
-#       } else {
-#         Qua<-c(NA,median(org$Y),NA)
-#         Qme<-mean(org$Y)
-#       }
-#     }
-#     list(iso2=k, median=Qua[2], q_lo=Qua[1], q_hi=Qua[3], mean=Qme)#, sd=Qsd)
-#   })
-#   RESHIStat<-data.frame(data.table::rbindlist(RESHIStat),stringsAsFactors = FALSE)
-# 
-#   RESLOStat<-lapply(UG, function(k) {
-#     cat(k,'\n')
-#     tmp<-RESLO[RESLO$iso2==k,]
-#     Qua<-c(NA,NA,NA)
-#     Qme<-NA
-#     if (!all(is.na(tmp$Y))) {
-#       tmp<-tmp[!is.na(tmp$Y),]
-#       tmp<-tmp[!is.na(tmp$Ysd),]
-#       H<-tmp$W/sum(tmp$W)
-#       if (length(H)>0){
-#         ToBoot<-NBoot
-#         YY<-NULL
-#         for (j in 1:5) {
-#           BOOTini<-sample(seq_along(H), ToBoot, prob=H, replace = TRUE)
-#           YYy<-as.vector(rnorm(ToBoot,tmp$Y[BOOTini],tmp$Ysd[BOOTini]))
-#           YYy<-YYy[YYy>0]
-#           YY<-c(YY,YYy)
-#           ToBoot<-ToBoot-length(YY)
-#           if ((ToBoot/NBoot)<0.01) break
-#         }
-# 
-#         Qua<-quantile(YY, probs=c(0.025,0.5,0.975))
-#         Qme<-mean(YY)
-#       }
-#     }
-#     list(iso2=k, median=Qua[2], q_lo=Qua[1], q_hi=Qua[3], mean=Qme)#, sd=Qsd)
-#   })
-#   RESLOStat<-data.frame(data.table::rbindlist(RESLOStat),stringsAsFactors = FALSE)
-# 
-#   negi<-function(x) {x[x>=0]<- 1e-9; abs(x)}
-#   B <- RESLOStat$median
-#   A <- RESHIStat$median
-#   RESLOStat<-data.frame(Est = RESLOStat$median, lo.CI = RESLOStat$q_lo, hi.CI = RESLOStat$q_hi)
-#   RESHIStat<-data.frame(Est = RESHIStat$median, lo.CI = RESHIStat$q_lo, hi.CI = RESHIStat$q_hi)
-# 
-#   cat(' >> ',THRESH,'\n')
-#   resB <- cut(x=negi(log10(B)), breaks=THRESH,include.lowest=TRUE,labels=LEVELS)
-#   resA <- cut(x=negi(log10(A)), breaks=THRESH,include.lowest=TRUE,labels=LEVELS)
-# 
-#   resBnum <- round((as.numeric(resB)-1)/(length(THRESH)-2),4)
-#   resAnum <- round((as.numeric(resA)-1)/(length(THRESH)-2),4)
-# 
-#   stand<-function(x,r) (x-r[1])/diff(r)
-#   
-#   resBnum2 <- round(stand(negi(log10(B)),range(negi(log10(B)),negi(log10(A)),na.rm = TRUE)),4)
-#   resAnum2 <- round(stand(negi(log10(A)),range(negi(log10(B)),negi(log10(A)),na.rm = TRUE)),4)
-#   
-#   #stop('UK is missing!')
-#   
-#   res<-data.frame(iso2=UG,
-#                   country=countrycode::countrycode(toeurostat(UG),'eurostat','country.name'),
-#                   B=round(RESLOStat,4),
-#                   B.score=resB,
-#                   #B.score.num=resBnum,
-#                   B.score.num=resBnum2,
-#                   A=round(RESHIStat,4),
-#                   A.score=resA,
-#                   #A.score.num=resAnum,
-#                   A.score.num=resAnum2,
-#                   stringsAsFactors = FALSE,
-#                   check.names = FALSE)
-#   res
-# }
-# 
-# plot.BA<-function(RES,thr1=BB[2],thr2=BB[3],thr3=BB[4],thr4=BB[5], threshyear=2008, plotci=TRUE, logscale=TRUE, colCI='#FFFFFF',hidec=FALSE,
-#                   #COLO=c("#2da70b","#306005","#fff00f","#c05508","#ff9f9f")
-#                   COLO){
-#   if (hidec) RES<-RES[RES$iso2 %in% Countries,]
-#   if (logscale) flog10<-log10 else flog10<-function(x) identity(x)
-#   THRESH<-flog10(1/c(1+(!logscale)*99,thr1,thr2,thr3,thr4,1e-5))
-#   if (!logscale) THRESH = 1/THRESH
-#   #COL=c(rgb(0.8,0.4,0.1),rgb(0.3,0.4,0.9))
-#   COL<-c('#D5D505','#000080')
-#   COLd<-c('#A0A005','#000080')
-#   #COLl<-c('#D5D505','#000090')
-#   if (logscale) neg2NA<-function(x) {x[x<=0]<-NA;x} else neg2NA<-function(x) {x[x<=0]<-0;x}
-#   X<-rbind(flog10(RES$B.Est),flog10(RES$A.Est))
-#   par(oma=c(0,0,2,0),mar=c(2.65,4,2.5,0))
-#   YLIM<-flog10(c(min(neg2NA(RES$B.lo.CI),neg2NA(RES$A.lo.CI),neg2NA(RES$B.Est),neg2NA(RES$A.Est),na.rm=TRUE),
-#                  max(RES$B.hi.CI,RES$A.hi.CI,RES$A.Est,RES$B.Est,na.rm = TRUE)))
-#   if(!logscale) YLIM<-1.1*c(0,max(min(2,YLIM[2]),RES$A.Est,RES$B.Est,na.rm = TRUE))
-#   z<-barplot(X,axes=F,beside=TRUE,col=COL, ylim=YLIM)
-#   axis(1, at=colMeans(z),labels = RES$iso2,las=3,cex.axis=1.3, font=1);
-#   mtext('Bilateral flows ratio',2,2.5,cex=1.5)
-#   box();box();
-#   # col.pal=c(adjustcolor('green',alpha.f = 0.5),
-#   #           adjustcolor('green4',alpha.f = 0.5),
-#   #           adjustcolor('yellow2',alpha.f = 0.5),
-#   #           adjustcolor('orange',alpha.f = 0.5),
-#   #           adjustcolor('red2',alpha.f = 0.25))
-#   col.pal<-COLO
-#   if(logscale){
-#     rect(-10,-THRESH[6],max(z)*2,THRESH[6],col=col.pal[5],border=NA)
-#     rect(-10,-THRESH[5],max(z)*2,THRESH[6],col=col.pal[4],border=NA)
-#     rect(-10,-THRESH[4],max(z)*2,THRESH[6],col=col.pal[3],border=NA)
-#     rect(-10,-THRESH[3],max(z)*2,THRESH[6],col=col.pal[2],border=NA)
-#     rect(-10,-THRESH[2],max(z)*2,THRESH[6],col=col.pal[1],border=NA)
-#     abline(h=-THRESH,lwd=2)
-#   } else {
-#     rect(-10,20,max(z)*2,-1,col=col.pal[5],border=NA)
-#     rect(-10,THRESH[5],max(z)*2,20,col=col.pal[4],border=NA)
-#     rect(-10,THRESH[4],max(z)*2,20,col=col.pal[3],border=NA)
-#     rect(-10,THRESH[3],max(z)*2,20,col=col.pal[2],border=NA)
-#     rect(-10,THRESH[2],max(z)*2,20,col=col.pal[1],border=NA)
-#     abline(h=THRESH[-length(THRESH)],lwd=2)
-#   }
-#   abline(v=colMeans(z),lty=3,col=rgb(0.6,0.6,0.6))
-# 
-#   axis(3, at=z[1,]-0.15,labels =toupper(RES$B.score),las=3,cex.axis=0.75,col.axis=COLd[1],padj=0.5)
-#   axis(3, at=z[2,]+0.15,labels =toupper(RES$A.score),las=3,cex.axis=0.75,col.axis=COLd[2],padj=0.5)
-#   z<-barplot(X,axes=F,beside=TRUE,col=COL,add=TRUE);box();box()
-#   if (logscale) magicaxis::magaxis(2,unlog=T,cex.axis=1.5) else axis(2,cex.axis=1.5)
-#   if (plotci) {
-#     LOCI<-rbind(flog10(RES$B.lo.CI),flog10(RES$A.lo.CI))
-#     HICI<-rbind(flog10(RES$B.hi.CI),flog10(RES$A.hi.CI))
-#     for (j in 1:2) for(k in 1:ncol(z)){
-#       lines(c(z[j,k],z[j,k]),c(LOCI[j,k],HICI[j,k]),lwd=2,col=colCI)
-#     }
-#   }
-#   if(logscale) lpos<-'bottomright' else lpos<-'topright'
-#   legend(lpos,bty='o',c(paste('Before',threshyear), paste('After',threshyear-1)),text.col = COL,fill=COL,cex=1.5,
-#          bg=adjustcolor('white',0.3),box.col=adjustcolor('white',0.3))
-# 
-# }
-# 
-
 direction='I';
 #metadata
 w1=0.5; w2=0.1; w3=0.1; w4=0.3; t1=0.3; t2=0.6; ItrustNordic = TRUE; EtrustNordic = TRUE;
@@ -399,20 +133,6 @@ threshyear = 2008; FinalGroups = 5; w_imemA = 0.1; w_imemB = 0.25; w_metaA = 0.1
 
 
 CalcModel<-function(#META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
-  #wimemb=0.5, wmetaa=0.2, wmetab=0.2, wmodela=1, wmodelb=1,
-  #mirror=TRUE, direction='I',
-  
-  # direction='I',
-  # #metadata
-  # w1=0.5, w2=0.1, w3=0.1, w4=0.3, t1=0.3, t2=0.6, ItrustNordic = TRUE, EtrustNordic = TRUE,
-  # #model
-  # ncp=1, separated=FALSE, additive=TRUE, refcountries=9, durationCorrection = 13,
-  # IgnoreOverCounting = TRUE,
-  # TranslateGroups = 5,
-  # #mixing
-  # useimputation=TRUE,
-  # threshyear = 2008, FinalGroups = 5, w_imemA = 0.1, w_imemB = 0.25, w_metaA = 0.1, w_metaB = 0.15, w_modelA = 0.8,w_modelB = 0.6){
-  # 
   direction,
   #metadata
   w1, w2, w3, w4, t1, t2, ItrustNordic, EtrustNordic,
@@ -474,6 +194,20 @@ plotModel<-function(RES, shownodat=TRUE) {
   }
 }
 
+getDuration<-function(direction, country){
+  print(country)
+  if (direction=='I'){
+    res<-rbind(duration_immi_array[CountriesS,country,paste(sort(unique(NORDIC$year)))])
+    res[res==60]<-'P'
+    res<-data.frame(res,check.names = FALSE,stringsAsFactors = FALSE)
+  } else if (direction=='E'){
+    res<-rbind(duration_emi_array[country,CountriesS,paste(sort(unique(NORDIC$year)))])
+    res[res==60]<-'P'
+    res<-data.frame(res,check.names = FALSE,stringsAsFactors = FALSE)
+  }
+  res[rownames(res)!=country,]
+}
+
 getModel<-function(RES) { #to be xported as xlsx or rdata
   
   list(
@@ -522,118 +256,8 @@ saveCombined<-function(filename, RES){
   # xlsx::write.xlsx(RES$raw, file = filename, sheetName = 'raw', append = TRUE, row.names = TRUE, col.names = TRUE)
   # xlsx::write.xlsx(RES$rawthresholds, file = filename, sheetName = 'thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
 }
-#   
-#   RES$R.Score.Num
-#   
-#   cat(thr1, thr2, wimema, wimemb, wmetaa, wmetab, wmodela, wmodelb, mirror, '\n')
-#   META<-DT2DF(META)
-#   Msc<-META$`score num`
-# 
-#   LIMEM<-c('Low','High')
-#   IMEMi<-IMEM[1:nrow(META),]
-#   if(!all(IMEMi$Country==META$iso2)) {
-#     print(cbind(IMEMi$Country,META$iso2))
-#     stop('wrong country names')
-#   }
-#   if(direction=='I') posI<-2 else if(direction=='E') posI<-3
-#   IMEMc<-factor(firstCap(unlist(IMEMi[,posI])),levels=LIMEM)
-#   IMEMi<-as.numeric(IMEMc)-1
-# 
-#   MODEL<-DT2DF(MODEL)
-#   Bsc<-MODEL$B.score.num
-#   Asc<-MODEL$A.score.num
-# 
-#   L3<-c('Low' ,'Medium', 'High')
-# 
-#   namod<-function(x,y){
-#     z<-rep(y,length(x))
-#     z[is.na(x)]<-0
-#     z
-#   }
-# 
-#   na2zero<-function(x) {x[is.na(x)]<-0; x}
-# 
-#   IAsc<-is.na(Asc)
-#   IBsc<-is.na(Bsc)
-# 
-#   IAsc2<-IAsc&!IBsc
-#   IBsc2<-IBsc&!IAsc
-# 
-#   IAsc<-IAsc2
-#   IBsc<-IBsc2
-# 
-#   if (mirror){
-#     Asc[is.na(Asc)]<-Bsc[is.na(Asc)]
-#     Bsc[is.na(Bsc)]<-Asc[is.na(Bsc)]
-#   }
-# 
-#   BM<-na2zero(Bsc*wmodelb)
-#   BI<-na2zero(IMEMi*wimemb)
-#   BE<-na2zero(Msc*wmetab)
-#   AM<-na2zero(Asc*wmodela)
-#   AI<-na2zero(IMEMi*wimema)
-#   AE<-na2zero(Msc*wmetaa)
-#   Bres<-(BM+BI+BE)/(namod(Bsc,wmodelb)+namod(IMEMi,wimemb)+namod(Msc,wmetab))
-#   Ares<-(AM+AI+AE)/(namod(Asc,wmodela)+namod(IMEMi,wimema)+namod(Msc,wmetaa))
-# 
-#   Bscore<-cut(Bres,c(0,thr1,thr2,1),L3,include.lowest = TRUE)
-#   Ascore<-cut(Ares,c(0,thr1,thr2,1),L3,include.lowest = TRUE)
-#   if (!mirror) {
-#     RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'metadata score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc,
-#                    'combined score num (B)' = round(Bres,3), 'combined score num (A)' = round(Ares,3), 'combined score (B)' = Bscore, 'combined score (A)' = Ascore,
-#                    check.names = FALSE, stringsAsFactors = FALSE)
-#     RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
-#   } else {
-# 
-#     RR<-data.frame(iso2=META[,1],country=META[,2], 'IMEM score num' = IMEMi, 'metadata score num' = Msc, 'model score num (B)' = Bsc, 'model score num (A)' = Asc,
-#                    'combined score num (B)' = round(Bres,3), 'combined score num (A)' = round(Ares,3), 'combined score (B)' = Bscore, 'combined score (A)' = Ascore,
-#                    Indb = IBsc, Inda = IAsc,
-#                    check.names = FALSE, stringsAsFactors = FALSE)
-#     RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft',
-#                                                    columnDefs = list(list(className = 'dt-center', targets = '_all'),
-#                                                                      list(visible=FALSE, targets=c(11,10)))
-#     ))
-#     RR<-formatStyle(RR, columns = c("model score num (A)","model score num (B)"), valueColumns = c('Inda','Indb'), color=styleEqual(1,"magenta"))
-#   }
-#   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-#   RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-#   RR<-formatStyle(RR, c(9,10), backgroundColor = "#fff0ee")
-#   RR<-formatStyle(RR, c(2,6,8), "border-right" = "solid 1px", "border-right-color"='black')
-#   RR
-# }
 
-# summaryTable<-function(META, MODEL, COMBI, direction='I', COLO){
-#   META<-DT2DF(META)
-#   COMBI<-DT2DF(COMBI)
-#   MODEL<-DT2DF(MODEL)
-#   LIMEM<-c('Low','High')
-#   IMEMi<-IMEM[1:nrow(META),]
-#   if(!all(IMEMi$Country==META$iso2)) stop()
-#   if(direction=='I') posI<-2 else if(direction=='E') posI<-3
-#   IMEMc<-factor(firstCap(unlist(IMEMi[,posI])),levels=LIMEM)
-# 
-#   RED<-"#FF0000"#'#AA0000'
-#   GREEN<-"#008000"#'#00AA00'
-#   ORANGE<-"#FFA500"#'#FF7F00'
-#   # LIGHTRED<-'#FF5555'
-#   # LIGHTGREEN<-'#7FEE7F'
-#   # COLO<-c(LIGHTGREEN,GREEN,ORANGE,RED,LIGHTRED)
-#   LEVELS<-firstCap(c('very low','low', 'medium','high','very high'))
-#   RR<-data.frame(iso2=META$iso2, country=META$country,'IMEM score' = IMEMc, 'metadata score' = META$score,
-#                  "model score (B)" = firstCap(MODEL$B.score), "model score (A)" = firstCap(MODEL$A.score),
-#                  "combined score (B)" = COMBI$`combined score (B)`,"combined score (A)" = COMBI$`combined score (A)`,
-#                  stringsAsFactors = FALSE, check.names = FALSE)
-#   RR<-datatable(RR, rownames=FALSE, options=list(pageLength=nrow(RR), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
-#   RR<-formatStyle(RR, columns = "IMEM score", color=styleEqual(c('Low','High'), c(GREEN,RED)))
-#   RR<-formatStyle(RR, columns = "metadata score", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED)))
-#   RR<-formatStyle(RR, columns = "model score (B)", color=styleEqual(LEVELS, COLO))
-#   RR<-formatStyle(RR, columns = "model score (A)", color=styleEqual(LEVELS, COLO))
-#   RR<-formatStyle(RR, columns = "combined score (A)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED)))
-#   RR<-formatStyle(RR, columns = "combined score (B)", color=styleEqual(c('Low', 'Medium','High'), c(GREEN, ORANGE,RED)))
-#   RR<-formatStyle(RR, c(7,8), backgroundColor = "#fff0ee")
-#   RR<-formatStyle(RR, c(2,6), "border-right" = "solid 1px", "border-right-color"='black')
-#   RR
-# }
+
 
 pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FALSE, 
                 init.angle = if (clockwise) 90 else 0, density = NULL, angle = 45, 
@@ -742,54 +366,55 @@ mypie2(0.1,0.2,0.52,0.2,0.85)
 thr1 <- 0.25
 thr2 <- 0.5
 
-wimema <- 0.25
-wimemb <- 0.3
-wmetaa <- 0.15
-wmetab <- 0.15
-wmodela <- 1
-wmodelb <- 1
+# wimema <- 0.25
+# wimemb <- 0.3
+# wmetaa <- 0.15
+# wmetab <- 0.15
+# wmodela <- 1
+# wmodelb <- 1
+# 
+# 100*wimema/(wimema+wmetaa+wmodela) # 15%
+# 100*wmetaa/(wimema+wmetaa+wmodela) # 10%
+# 100*wmodela/(wimema+wmetaa+wmodela) # 75%
+# 
+# 100*wimemb/(wimemb+wmetab+wmodelb) # 20%
+# 100*wmetab/(wimema+wmetab+wmodelb) # 10%
+# 100*wmodelb/(wimema+wmetab+wmodelb) # 70%
 
-100*wimema/(wimema+wmetaa+wmodela) # 15%
-100*wmetaa/(wimema+wmetaa+wmodela) # 10%
-100*wmodela/(wimema+wmetaa+wmodela) # 75%
-
-100*wimemb/(wimemb+wmetab+wmodelb) # 20%
-100*wmetab/(wimema+wmetab+wmodelb) # 10%
-100*wmodelb/(wimema+wmetab+wmodelb) # 70%
-
-wimema <- 0.20
-wimemb <- 0.25
+wimema <- 0.10
+wimemb <- 0.20
 wmetaa <- 0.10
 wmetab <- 0.10
 wmodela <- 1 - wimema - wmetaa
 wmodelb <- 1 - wimemb - wmetab
 
 
-mirror <- TRUE
+#mirror <- TRUE
 
-RefCntrSel <- 3
+RefCntrSel <- 9
 
 Step <-0.005
 
-MWt1 <- 1
-MWt2 <- 0.5
-MWt3 <- 0.5
-MWt4 <- 0.5
+MWt1 <- 0.5
+MWt2 <- 0.1
+MWt3 <- 0.1
+MWt4 <- 0.3
 
-MWt1/(MWt1+MWt2+MWt3+MWt4)
-MWt2/(MWt1+MWt2+MWt3+MWt4)
-MWt3/(MWt1+MWt2+MWt3+MWt4)
-MWt4/(MWt1+MWt2+MWt3+MWt4)
+# MWt1/(MWt1+MWt2+MWt3+MWt4)
+# MWt2/(MWt1+MWt2+MWt3+MWt4)
+# MWt3/(MWt1+MWt2+MWt3+MWt4)
+# MWt4/(MWt1+MWt2+MWt3+MWt4)
+# 
+# MWt1 <- 0.4
+# MWt2 <- 0.2
+# MWt3 <- 0.2
+# MWt4 <- 0.2
 
-MWt1 <- 0.4
-MWt2 <- 0.2
-MWt3 <- 0.2
-MWt4 <- 0.2
 
-
-MThr1 <- 0.3
-MThr2 <- 0.6
+MThr1 <- 0.25
+MThr2 <- 0.75
 TrustNordic<-TRUE
+
 Meta_DeReg<-Recalc_Meta_DeReg(Meta_DeReg,MWt1,MWt2,MWt3,MWt4,MThr1,MThr2,TrustNordic)
 Meta_Reg<-Recalc_Meta_Reg(Meta_Reg, TrustNordic)
 
@@ -813,6 +438,7 @@ MODELwtxt<-'Weight for the model <b>score num</b> obtained in <b>Model classify?
 version<-'0.7.1'
 DOI<-'10.5281/zenodo.5594133'
 BADGE<-'<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>'
+
 shinyServer <-  function(input, output, session) {
   
   observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
@@ -915,16 +541,6 @@ shinyServer <-  function(input, output, session) {
   
   #####################
   
-  observeEvent(input$Eall,{
-    updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = CountriesS )
-  })
-  
-  observeEvent(input$Enone,{
-    updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = '' )
-  })
-  
-  #####################
-  
   observeEvent(input$Iall,{
     updateCheckboxGroupInput(session = session, inputId = "Icountry", selected = CountriesS )
   })
@@ -933,9 +549,55 @@ shinyServer <-  function(input, output, session) {
     updateCheckboxGroupInput(session = session, inputId = "Icountry", selected = '' )
   })
   
+  observeEvent(input$Eall,{
+    updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = CountriesS )
+  })
+  
+  observeEvent(input$Enone,{
+    updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = '' )
+  })
   
   ######################
   
+  observeEvent(input$I3weightsresetb, {
+    updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
+    updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
+    updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
+  })
+  
+  observeEvent(input$I3weightsreseta, {
+    updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
+    updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
+    updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
+  })
+  
+  
+  observeEvent(input$I3threshreset, {
+    updateSliderInput(session = session, inputId = "I3t1", value = thr1)
+    updateSliderInput(session = session, inputId = "I3t2", value = thr2)
+  })
+  
+  
+  observeEvent(input$E3weightsreseta, {
+    updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
+    updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
+    updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
+  })
+  
+  observeEvent(input$E3weightsresetb, {
+    updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
+    updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
+    updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
+  })
+  
+  observeEvent(input$E3threshreset, {
+    updateSliderInput(session = session, inputId = "E3t1", value = thr1)
+    updateSliderInput(session = session, inputId = "E3t2", value = thr2)
+  })
+  
+    
+  
+  ######################
   ImmiMetaScores<-reactive({
     Recalc_Meta_Reg(Meta_Reg, input$nordicimmi)
   })
@@ -1174,6 +836,32 @@ shinyServer <-  function(input, output, session) {
   
   output$IlogratiosThresholds <- renderTable({
     getModel(RESI())$logindexthresholds}, 
+    bordered = TRUE,  
+    rownames = TRUE,
+    spacing = 'xs',  
+    width = '100%', 
+    align = 'c'
+  )
+  
+  DURI<-reactive({getDuration('I',input$IdurationCountries)})
+    
+  output$Iduration <- renderTable({
+    DURI()}, 
+    digits=0,
+    #hover=TRUE,
+    bordered = TRUE,  
+    rownames = TRUE,
+    spacing = 'xs',  
+    width = '100%', 
+    align = 'c'
+  )
+  
+  DURE<-reactive({getDuration('E',input$EdurationCountries)})
+  
+  output$Eduration <- renderTable({
+    DURE()}, 
+    digits=0,
+    #hover=TRUE,
     bordered = TRUE,  
     rownames = TRUE,
     spacing = 'xs',  
@@ -1447,7 +1135,7 @@ shinyUI <- fluidPage(
                                        
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
-                                       h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2021)<br>
+                                       h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2022)<br>
                                                Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat.
                                                <br>DOI: ',DOI,'. URL:https://github.com/MaciejDanko/UndercountMigScore'))),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
@@ -1645,8 +1333,8 @@ shinyUI <- fluidPage(
                                                width='100%',
                                                individual=FALSE,
                                                #checkIcon = list(  yes = icon("check-square")),
-                                               choiceNames = c("Inspect bilateral flows ratios",HTML("log<sub>10</sub> flows ratios"), "Classification of model undercounting"),
-                                               choiceValues = 1:3,
+                                               choiceNames = c("Inspect bilateral flows ratios","Duration of stay",HTML("log<sub>10</sub> flows ratios"), "Classification"),
+                                               choiceValues = 1:4,
                                                status = "danger"
                                              )),
                                 tags$head(tags$style("#Ipanels .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
@@ -1676,10 +1364,24 @@ shinyUI <- fluidPage(
                                 conditionalPanel(condition = "input.Ipanels == 2",
                                                  sidebarPanel(width=8,
                                                               
+                                                              h3(HTML('Duration of stay by country of origin')),
+                                                              selectInput("IdurationCountries", label = 'Select country of destination',
+                                                                          choices = Countries),
+                                                              tableOutput('Iduration'),
+                                                              tags$head(tags$style("#Iduration {border-width:1px;border-color:black;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iduration table {padding-right:0px;padding-left:0px;font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iduration table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              
+                                                 )),
+                                conditionalPanel(condition = "input.Ipanels == 3",
+                                                 sidebarPanel(width=8,
+                                                              
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Ilogratios'),
-                                                              tags$head(tags$style("#Ilogratios {border-width:4px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Ilogratios table {font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Ilogratios {border-width:1px;border-color:black;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Ilogratios table {padding-right:0px;padding-left:0px;font-size: 8px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Ilogratios table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Ilogratios table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
@@ -1688,7 +1390,7 @@ shinyUI <- fluidPage(
                                                               tags$head(tags$style("#IlogratiosThresholds table th {background-color: #CCBBFF; width:1px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#IlogratiosThresholds table {font-size: 13px; width:1px; align: center}", media="screen", type="text/css")),
                                                  )),
-                                conditionalPanel(condition = "input.Ipanels == 3",
+                                conditionalPanel(condition = "input.Ipanels == 4",
                                                  sidebarPanel(width=8,
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "ImiPlotB", height="600px", width='100%'),
@@ -1800,8 +1502,8 @@ shinyUI <- fluidPage(
                                                width='100%',
                                                individual=FALSE,
                                                #checkIcon = list(  yes = icon("check-square")),
-                                               choiceNames = c("Inspect bilateral flows ratios",HTML("log<sub>10</sub> flows ratios"), "Classification of model undercounting"),
-                                               choiceValues = 1:3,
+                                               choiceNames = c("Inspect bilateral flows ratios","Duration of stay",HTML("log<sub>10</sub> flows ratios"), "Classification"),
+                                               choiceValues = 1:4,
                                                status = "danger"
                                              )),
                                 tags$head(tags$style("#Epanels .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
@@ -1831,6 +1533,20 @@ shinyUI <- fluidPage(
                                 conditionalPanel(condition = "input.Epanels == 2",
                                                  sidebarPanel(width=8,
                                                               
+                                                              h3(HTML('Duration of stay by country of destination')),
+                                                              selectInput("EdurationCountries", label = 'Select country of origin',
+                                                                          choices = Countries),
+                                                              tableOutput('Eduration'),
+                                                              tags$head(tags$style("#Eduration {border-width:1px;border-color:black;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Eduration table {padding-right:0px;padding-left:0px;font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Eduration table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              
+                                                 )),
+                                conditionalPanel(condition = "input.Epanels == 3",
+                                                 sidebarPanel(width=8,
+                                                              
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Elogratios'),
                                                               tags$head(tags$style("#Elogratios {border-width:4px;border-color:black;}", media="screen", type="text/css")),
@@ -1843,7 +1559,7 @@ shinyUI <- fluidPage(
                                                               tags$head(tags$style("#ElogratiosThresholds table th {background-color: #CCBBFF; width:1px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#ElogratiosThresholds table {font-size: 13px; width:1px; align: center}", media="screen", type="text/css")),
                                                  )),
-                                conditionalPanel(condition = "input.Epanels == 3",
+                                conditionalPanel(condition = "input.Epanels == 4",
                                                  sidebarPanel(width=8,
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "EmiPlotB", height="600px", width='100%'),

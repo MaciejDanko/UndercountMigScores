@@ -228,6 +228,7 @@ NORDIC4<-DAT_IMEM$NORDIC4
 
 load('./data/OPT_CORRECTION_ADDITIVE.RDA')
 load('./data/OPT_CORRECTION_MULTIPLICATIVE.RDA')
+load('./data/DURATION.RDA')
 
 #source('./rawdata/TOOLS.R')
 
@@ -304,6 +305,11 @@ get_correction<-function(direction, corrected, additive, separated){
 # Meta_DeReg$iso2<-correct_eurostat_iso2(Meta_DeReg$iso2)
 # IMEM<-IMEM[!is.na(IMEM$Country),]
 # IMEM$Country<-correct_eurostat_iso2(IMEM$Country)
+DT2DF<-function(x) if (class(x)[1]=='datatables') {
+  z<-x$x$data
+  if (colnames(z)[1]%in%c('',' ','  ')) z<-z[,-1]
+  data.frame(z, stringsAsFactors = FALSE, check.names = FALSE, check.rows = FALSE)
+} else data.frame(x, stringsAsFactors = FALSE, check.names = FALSE, check.rows = FALSE)
 
 colMedians <- function(x) apply(x,2,median, na.rm=TRUE)
 colSd <- function(x) apply(x,2,sd, na.rm=TRUE)
@@ -861,6 +867,7 @@ get_undercounting<-function(direction='E',
                                                  durationCorrection = 1),
                             model_classification_options = list(
                               UserThresholds=NA,
+                              UseQuantiles=TRUE,
                               IgnoreOverCounting = TRUE,
                               TranslateGroups = 7
                             ),
@@ -944,12 +951,31 @@ get_undercounting<-function(direction='E',
   ####
 
   if (is.na( model_classification_options$UserThresholds[1]) || length( model_classification_options$UserThresholds)!=model_classification_options$TranslateGroups-1) {
-    if ( model_classification_options$IgnoreOverCounting) {
-      model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups+1), na.rm=TRUE))[-2]
-      UserThresholds<- model_classification_options$UserThresholds
+    if (model_classification_options$UseQuantiles){
+      if ( model_classification_options$IgnoreOverCounting) {
+        #overcounting is combined with the second highest group
+        model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups+1), na.rm=TRUE))[-2]
+        UserThresholds<- model_classification_options$UserThresholds
+      } else {
+        #overcounting is a separate group
+        model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups), na.rm=TRUE))
+        UserThresholds<- model_classification_options$UserThresholds
+      }
     } else {
-      model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups), na.rm=TRUE))
-      UserThresholds<- model_classification_options$UserThresholds
+      if ( model_classification_options$IgnoreOverCounting) {
+        #overcounting is combined with the second highest group
+        model_classification_options$UserThresholds<-c(
+          max(ModelScore, na.rm = TRUE), 
+          seq(max(VecDat, na.rm = TRUE),min(VecDat, na.rm = TRUE),length.out=model_classification_options$TranslateGroups+1))[-2]
+        UserThresholds<- model_classification_options$UserThresholds
+      } else {
+        #overcounting is a separate group
+        model_classification_options$UserThresholds<-c(
+          max(ModelScore, na.rm = TRUE),
+          seq(max(VecDat, na.rm = TRUE),min(VecDat, na.rm = TRUE),length.out=model_classification_options$TranslateGroups))
+        UserThresholds<- model_classification_options$UserThresholds
+      }
+      
     }
   } else {
     UserThresholds<- model_classification_options$UserThresholds
