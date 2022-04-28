@@ -3,7 +3,8 @@ rm(list=ls())
 #################################################
 # To do list:
 
-# what with LI
+# what with LI ???
+
 # check help boxes names 
 # check/set init values
 # further clean code
@@ -825,6 +826,7 @@ shinyServer <-  function(input, output, session) {
     getModel(RESI())$logindex}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped=TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -834,6 +836,7 @@ shinyServer <-  function(input, output, session) {
     getModel(RESE())$logindex}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped= TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -844,6 +847,7 @@ shinyServer <-  function(input, output, session) {
     getModel(RESI())$logindexthresholds}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped = TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -855,6 +859,7 @@ shinyServer <-  function(input, output, session) {
     DURI()}, 
     digits=0,
     #hover=TRUE,
+    striped=TRUE,
     bordered = TRUE,  
     rownames = TRUE,
     spacing = 'xs',  
@@ -868,6 +873,7 @@ shinyServer <-  function(input, output, session) {
     DURE()}, 
     digits=0,
     #hover=TRUE,
+    striped=TRUE,
     bordered = TRUE,  
     rownames = TRUE,
     spacing = 'xs',  
@@ -879,6 +885,7 @@ shinyServer <-  function(input, output, session) {
     getModel(RESE())$logindexthresholds}, 
     bordered = TRUE,  
     rownames = TRUE,
+    Striped= TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -888,6 +895,7 @@ shinyServer <-  function(input, output, session) {
     getCombined(RESI())$rawthresholds}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped=TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -897,6 +905,7 @@ shinyServer <-  function(input, output, session) {
     getCombined(RESE())$rawthresholds}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped=TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -906,6 +915,7 @@ shinyServer <-  function(input, output, session) {
     getCombined(RESI())$raw}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped=TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -915,6 +925,7 @@ shinyServer <-  function(input, output, session) {
     getCombined(RESE())$raw}, 
     bordered = TRUE,  
     rownames = TRUE,
+    striped=TRUE,
     spacing = 'xs',  
     width = '100%', 
     align = 'c'
@@ -1162,7 +1173,7 @@ shinyUI <- fluidPage(
                                                     colour='#FF0000',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
                                                     content=c('No obligation of registration = <span style="color:#FF0000">High</span> undercounting, obligation of registration = <span style="color:#008000">Low</span> undercounting,
                                                                                                            but if <b>No limit</b> or <b>No sanctions</b> occur the score is changed to <span style="color:#FFA500">Medium</span>.',
-                                                              '','The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.','',
+                                                              '','The <b>Trust Nordic countries</b> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.','',
                                                               'Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
                                 ),
                                 sidebarPanel(width=8,
@@ -1200,7 +1211,7 @@ shinyUI <- fluidPage(
                                              sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=Step),
                                              helper(tags$span(' '),
                                                     colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                                    content='<b>Reset</b> - restores default values, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                                    content='<b>Reset</b> - restores default values, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
                                              
                                              actionButton("EMweightsreset", "Reset"),
                                              actionButton("EMrecalc", HTML("&#8721 weights = 1")),                                  
@@ -1209,7 +1220,7 @@ shinyUI <- fluidPage(
                                              h3("Missing metadata options"),
                                              div(id='ZZ2',helper(checkboxInput("nordicemi", 'Trust Nordic countries', value = TrustNordic),
                                                                  colour='#FF0000',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
-                                                                 content=c('The <span style="font-style:italic">Trust Nordic countries</span> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.',
+                                                                 content=c('The <b>Trust Nordic countries</b> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.',
                                                                            '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).'))),
                                              tags$head(tags$style("#ZZ2 .checkbox {margin-bottom: 15px;}", media="screen", type="text/css")),
                                              
@@ -1304,7 +1315,7 @@ shinyUI <- fluidPage(
                                                                                      'Nordic countries+AT+BE+CH+DE+FR+IE+NL'=13,'Nordic countries+AT+BE+CH+DE+FR+IE+NL+UK'=14,'All countries'=15),
                                                                       selected = RefCntrSel),
                                                           colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
-                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter.','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                                    
                                   ),
                                   tags$hr(style="border-color: black;"),
@@ -1362,6 +1373,7 @@ shinyUI <- fluidPage(
                                                                                  choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
                                                               actionButton("Iall", "All"),actionButton("Inone", "None"),
                                                               br(),
+                                                              br(),
                                                               plotOutput(outputId = "ImiPlot", height="600px", width='100%'),
                                                               br(),
                                                               div(style="display:inline-block;vertical-align:top;",
@@ -1382,14 +1394,14 @@ shinyUI <- fluidPage(
                                                                           choices = Countries),
                                                               tableOutput('Iduration'),
                                                               tags$head(tags$style("#Iduration {border-width:1px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iduration table {font-size: 8px;border-collapse: collapse;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iduration table {font-size: 10px;border-collapse: collapse;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Iduration table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iduration table td {padding-right:0px;padding-left:0px;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iduration table td.shrink {white-space: nowrap;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iduration table td {white-space: nowrap;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iduration table td {white-space: nowrap; padding-right:0px;padding-left:0px;}", media="screen", type="text/css")),
+                                                              #tags$head(tags$style("#Iduration table td.shrink {white-space: nowrap;}", media="screen", type="text/css")),
+                                                              #tags$head(tags$style("#Iduration table td {}", media="screen", type="text/css")),
                                                               #tags$head(tags$style("#Iduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iduration table td:not(:last-child) {white-space: nowrap;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iduration table td:last-child {width:100%;}", media="screen", type="text/css")),
+                                                              #tags$head(tags$style("#Iduration table td:not(:last-child) {white-space: nowrap;}", media="screen", type="text/css")),
+                                                              #tags$head(tags$style("#Iduration table td:last-child {width:100%;}", media="screen", type="text/css")),
 
                                                                         
                                                  )),
@@ -1399,9 +1411,9 @@ shinyUI <- fluidPage(
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Ilogratios'),
                                                               tags$head(tags$style("#Ilogratios {border-width:1px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Ilogratios table {padding-right:0px;padding-left:0px;font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Ilogratios table {padding-right:0px;padding-left:0px;font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Ilogratios table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Ilogratios table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Ilogratios table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
                                                               h3(HTML('Quantile-based thresholds used for classification.')),
                                                               tableOutput('IlogratiosThresholds'),
@@ -1485,7 +1497,8 @@ shinyUI <- fluidPage(
                                                                                      'Nordic countries+AT+BE+CH+DE+FR+IE+NL'=13,'Nordic countries+AT+BE+CH+DE+FR+IE+NL+UK'=14,'All countries'=15),
                                                                       selected = RefCntrSel),
                                                           colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
-                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter.',
+                                                                    '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
                                                    
                                   ),
                                   tags$hr(style="border-color: black;"),
@@ -1543,6 +1556,7 @@ shinyUI <- fluidPage(
                                                                                  choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
                                                               actionButton("Iall", "All"),actionButton("Inone", "None"),
                                                               br(),
+                                                              br(),
                                                               plotOutput(outputId = "EmiPlot", height="600px", width='100%'),
                                                               br(),
                                                               div(style="display:inline-block;vertical-align:top;",
@@ -1563,10 +1577,10 @@ shinyUI <- fluidPage(
                                                                           choices = Countries),
                                                               tableOutput('Eduration'),
                                                               tags$head(tags$style("#Eduration {border-width:1px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Eduration table {padding-right:0px;padding-left:0px;font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Eduration table {padding-right:0px;padding-left:0px;font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Eduration table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Eduration table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              #tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               
                                                  )),
                                 conditionalPanel(condition = "input.Epanels == 3",
@@ -1575,9 +1589,9 @@ shinyUI <- fluidPage(
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Elogratios'),
                                                               tags$head(tags$style("#Elogratios {border-width:4px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Elogratios table {font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Elogratios table {font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Elogratios table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Elogratios table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Elogratios table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
                                                               h3(HTML('Quantile-based thresholds used for classification.')),
                                                               tableOutput('ElogratiosThresholds'),
@@ -1640,7 +1654,7 @@ shinyUI <- fluidPage(
                                   
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
                                   
                                   actionButton("I3weightsresetb", "Reset"),
                                   actionButton("I3cloneb", "Clone from (E)"),
@@ -1666,7 +1680,7 @@ shinyUI <- fluidPage(
                                   
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
                                   
                                   actionButton("I3weightsreseta", "Reset"),
                                   actionButton("I3clonea", "Clone from (E)"),
@@ -1708,10 +1722,10 @@ shinyUI <- fluidPage(
                                                               h3(HTML('Mean weighted scores used to classify undercounting.')),
                                                               tableOutput('Iscores'),
                                                               tags$head(tags$style("#Iscores {border-width:4px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Iscores table {font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iscores table {font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Iscores table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
                                                               
-                                                              tags$head(tags$style("#Iscores table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Iscores table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
                                                               h3(HTML('Uniformly spaced thresholds used for classification.')),
                                                               tableOutput('IscoresThresholds'),
@@ -1722,7 +1736,7 @@ shinyUI <- fluidPage(
                                              ),
                                              conditionalPanel(condition ="input.Ipanels2 == 3",
                                                               h3(HTML('Finall classification of the undercounting.')),
-                                                              plotOutput(outputId = "ImiPlot2", height="680px", width='100%'),
+                                                              plotOutput(outputId = "ImiPlot2", height="768px", width='100%'),
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
@@ -1776,7 +1790,7 @@ shinyUI <- fluidPage(
                                   
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
                                   
                                   actionButton("E3weightsresetb", "Reset"),
                                   actionButton("E3cloneb", "Clone from (E)"),
@@ -1801,7 +1815,7 @@ shinyUI <- fluidPage(
                                   
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights to sum to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
                                   
                                   actionButton("E3weightsreseta", "Reset"),
                                   actionButton("E3clonea", "Clone from (I)"),
@@ -1843,10 +1857,10 @@ shinyUI <- fluidPage(
                                                               h3(HTML('Mean weighted scores used to classify undercounting.')),
                                                               tableOutput('Escores'),
                                                               tags$head(tags$style("#Escores {border-width:4px;border-color:black;}", media="screen", type="text/css")),
-                                                              tags$head(tags$style("#Escores table {font-size: 8px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Escores table {font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Escores table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
                                                               
-                                                              tags$head(tags$style("#Escores table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
+                                                              tags$head(tags$style("#Escores table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
                                                               h3(HTML('Uniformly spaced thresholds used for classification.')),
                                                               tableOutput('EscoresThresholds'),
@@ -1857,7 +1871,7 @@ shinyUI <- fluidPage(
                                              ),
                                              conditionalPanel(condition ="input.Epanels2 == 3",
                                                               h3(HTML('Finall classification of the undercounting.')),
-                                                              plotOutput(outputId = "EmiPlot2", height="680px", width='100%'),
+                                                              plotOutput(outputId = "EmiPlot2", height="768px", width='100%'),
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
