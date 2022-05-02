@@ -247,6 +247,9 @@ colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-regi
                         "monitoring third country nationals",
                         "administrative corrections",'comment')
 
+Meta_Reg<-Meta_Reg[Meta_Reg$iso2!='LI',]
+Meta_DeReg<-Meta_DeReg[Meta_DeReg$iso2!='LI',] # remove it when LI is added to the model
+IMEM<-IMEM[IMEM$Country!='LI',]
 
 get_correction<-function(direction, corrected, additive, separated){
   
@@ -605,15 +608,17 @@ plot_ui_result_<-function(DAT, country, stats=1, logscale=FALSE, extrapol=TRUE, 
     DAT$Ylo<-log10(DAT$Ylo)
     DAT$Yhi<-log10(DAT$Yhi)
     DAT$YE <- log10(DAT$YE)
-    minY<-log10(0.005)
+    minY<-log10(0.008)
+    minmaxY<-log10(2.1)
   } else {
-    minY<-0.005
+    minY<-0.00
+    minmaxY<-2.1
   }
   layout(matrix(c(rep(1,4),2),1,5))
   par(mar=c(4.6,2.5,0.5,0),oma=c(0,2.5,2,0))
   XR<-range(NORDIC$year)
   inf2NA<-function(x){ x[is.infinite(x)]<-NA; x}
-  YLIM<-c(minY,max(inf2NA(c(DAT$Ylo,DAT$Yhi,DAT$Y)),na.rm = TRUE))
+  YLIM<-c(minY,max(inf2NA(c(DAT$Ylo,DAT$Yhi,DAT$Y,minmaxY)),na.rm = TRUE))
   plot(DAT$year,DAT$Y,col=DAT$col,pch=19,type='p',xlim=XR,ylim=YLIM, xlab='',las=3, ylab='',axes=FALSE)
   mtext('Bilateral flows ratio',2,3,cex=1.5)
   mtext(toplab,3,0.5,cex=1.5)
@@ -675,10 +680,10 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
 
     PAL<-palette.colors(max(DAT$col),'polychrome 36')
     PAL <- c(
-      "dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black", "gold1", "skyblue2", "#FB9A99", "palegreen2",
-      "#CAB2D6", "#FDBF6F", "gray70", "khaki2", "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+      "dodgerblue2", "#E31A1C", "green4", "#6A3D9A", "#FF7F00", "black","deeppink1", "skyblue2", "#FB9A99", "palegreen2",
+      "gold1", "#FDBF6F", "#CAB2D6","gray70", "khaki2", "maroon", "orchid1",  "blue1", "steelblue4",
       "darkturquoise", "green1", "yellow4", "yellow3", "darkorange4", "brown","orange","green2")
-    PAL<-PAL[order(nchar(PAL))]
+    #PAL<-PAL[order(nchar(PAL))]
     DAT$col<-PAL[DAT$col]
     DATicol<-PAL
     DAT<-DAT[DAT$iso2%in%country,]
@@ -986,7 +991,7 @@ get_undercounting<-function(direction='E',
   R.YearUser<-t(apply(ModelScore,1,cut,breaks=UserThresholds,include.lowest=TRUE,labels=rev(mLEVELS)))
   colnames(R.YearUser)<-gsub('Y.','',colnames(ModelScore))
   R.YearUser.num<-level2num(R.YearUser,mLEVELS,bounds=c(1,0))
-
+  print(R.YearUser.num)
   # ModelScore['AT',]
   # R.YearUser['AT',]
   # R.YearUser.num['AT',]

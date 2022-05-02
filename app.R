@@ -5,10 +5,11 @@ rm(list=ls())
 
 # what with LI ???
 
-# check help boxes names 
-# check/set init values
+# > check help boxes names 
+# > check/set init values
 # further clean code
 # check code functionality
+
 # check new vs old undercounting calculation (print screen) -jak bardzo sie zmienily wyniki
 # add help for: Use additive optimization criteria (otherwise multiplicative)
 
@@ -48,6 +49,8 @@ colnames(Meta_Reg)<-c("iso2", "country", "registration obligation", "time limit"
 colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-registration obligation third country nationals",
                         "monitoring third country nationals",
                         "administrative corrections",'comment')
+
+
 
 Countries<-CountriesS<-unique(NORDIC4$iso2[!is.na(NORDIC4$ICn)|!is.na(NORDIC4$ECn)])
 
@@ -188,10 +191,11 @@ CalcModel<-function(#META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
 ################################################################################
 
 plotModel<-function(RES, shownodat=TRUE) {
-  par(mar=c(4,3,1.5,8.5),oma=c(0,0,0,0))
+  par(mar=c(4,3,1.5,8),oma=c(0,0,0,0))
   LEVELS<-1:RES$model.groups
-  LEVELS[1]<-paste(LEVELS[1],'(lowest)')
-  LEVELS[RES$model.groups]<-paste(LEVELS[RES$model.groups],'(highest)')
+  LEVELS<-format(round((LEVELS-1)/(RES$model.groups-1),2),digits=2, nsmall=2)
+  #LEVELS[1]<-paste(LEVELS[1],'(lowest)')
+  #LEVELS[RES$model.groups]<-paste(LEVELS[RES$model.groups],'(highest)')
   if (shownodat) {
     my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS, namat =  RES$NoData[rownames(RES$R.Score.Num),])
   } else {
@@ -216,7 +220,8 @@ getDuration<-function(direction, country){
 getModel<-function(RES) { #to be xported as xlsx or rdata
   
   list(
-    score = data.frame((1-RES$R.Score.Num)*(RES$model.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
+    #score = data.frame((1-RES$R.Score.Num)*(RES$model.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
+    score = data.frame((1-RES$R.Score.Num),check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
     nodata = data.frame(RES$NoData[rownames(RES$R.Score.Num),],check.names = FALSE, stringsAsFactors = FALSE),
     logindex = data.frame(RES$R.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
     logindexthresholds = data.frame('Threshold value'=unname(RES$R.UserThresholds), check.names = FALSE)
@@ -443,6 +448,9 @@ MODELwtxt<-'Weight for the model <b>score num</b> obtained in <b>Model classify?
 version<-'0.7.2'
 DOI<-'10.5281/zenodo.5594133'
 BADGE<-'<a href="https://zenodo.org/badge/latestdoi/414693180"><img src="https://zenodo.org/badge/414693180.svg" alt="DOI"></a>'
+
+#IniCntrSel<-c('ES','BG','FI','SK','IT')
+IniCntrSel<-c('AT','BG','FI','SK','IT','PL')
 
 shinyServer <-  function(input, output, session) {
   
@@ -1148,7 +1156,7 @@ shinyUI <- fluidPage(
                                        br(),
                                        h4('Max Planck Institute for Demographic Research'),
                                        h4('Rostock, Germany'),
-                                       h4('2021-2022'),
+                                       #h4('2021-2022'),
                                        
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
@@ -1272,7 +1280,7 @@ shinyUI <- fluidPage(
                                   
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
-                                         content = c('DurationCorrection')),
+                                         content = c('BilateralModel')),
                                   
                                   selectInput("Iraymer", label = NULL,
                                               choices = list(
@@ -1305,7 +1313,7 @@ shinyUI <- fluidPage(
                                   conditionalPanel(condition = "input.Iraymer > 4",
                                                    checkboxInput("Iseparated", "Use duration corrrection parameters calculated separately for immigration", value = FALSE),
                                                    checkboxInput("Iadditive", "Use additive optimization criteria (otherwise multiplicative)", value = TRUE),
-                                                   
+                                  ),                 
                                                    tags$hr(style="border-color: black;"),
                                                    helper(selectInput("Irefcountry", h4("Reference group of countries"),
                                                                       choices = list('Nordic countries (without IS)'=1,'Nordic countries'=2,'Nordic countries+BE'=3,'Nordic countries+CH'=4,'Nordic countries+NL'=5,
@@ -1315,9 +1323,9 @@ shinyUI <- fluidPage(
                                                                                      'Nordic countries+AT+BE+CH+DE+FR+IE+NL'=13,'Nordic countries+AT+BE+CH+DE+FR+IE+NL+UK'=14,'All countries'=15),
                                                                       selected = RefCntrSel),
                                                           colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
-                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter.','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                                                          content=c('Please set the "Duration of stay correction" first before setting this parameter.','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "General model options" for more information about the bilateral flows ratio model.')),
                                                    
-                                  ),
+                                  
                                   tags$hr(style="border-color: black;"),
                                   h4('Imputations of missing values'),
                                   helper(checkboxInput("Iimputations", "Use PCA imputations", value = TRUE),
@@ -1343,7 +1351,7 @@ shinyUI <- fluidPage(
                                              
                                              column(width=7,
                                                     div(id='Izupa',
-                                                        sliderInput(inputId = "ITranslateGroups", label = 'Model sensitivity (number of classes)', min = 2, max = 10, value = 5, step=1, sep=''))
+                                                        sliderInput(inputId = "ITranslateGroups", label = 'Model sensitivity (number of classes)', min = 2, max = 11, value = 5, step=1, sep=''))
                                              ),
                                              span(HTML('&#160;'),style="font-size:1px; align: top;"),
                                              tags$head(tags$style("#Izupa .form-group.shiny-input-container {margin-bottom: 0px;}", media="screen", type="text/css")),
@@ -1370,11 +1378,11 @@ shinyUI <- fluidPage(
                                                                      content='BilateralModel',size='l'),
                                                               tags$hr(style="border-color: black;"),
                                                               checkboxGroupInput("Icountry", h4("Countries selection"),
-                                                                                 choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
+                                                                                 choices = Countries, selected = IniCntrSel, inline = TRUE),
                                                               actionButton("Iall", "All"),actionButton("Inone", "None"),
                                                               br(),
                                                               br(),
-                                                              plotOutput(outputId = "ImiPlot", height="600px", width='100%'),
+                                                              plotOutput(outputId = "ImiPlot", height="700px", width='100%'),
                                                               br(),
                                                               div(style="display:inline-block;vertical-align:top;",
                                                                   column(6,checkboxInput("Ilogscale", "Use log-scale", value = TRUE)),
@@ -1423,7 +1431,7 @@ shinyUI <- fluidPage(
                                 conditionalPanel(condition = "input.Ipanels == 4",
                                                  sidebarPanel(width=8,
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
-                                                              plotOutput(outputId = "ImiPlotB", height="600px", width='100%'),
+                                                              plotOutput(outputId = "ImiPlotB", height="700px", width='100%'),
                                                               
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
@@ -1431,7 +1439,7 @@ shinyUI <- fluidPage(
                                                                          
                                                                          helper(checkboxInput("INoData", "Mark no data", value = TRUE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
-                                                                                content=c('Tick the cases where the calculation of bilateral flows was impossible due to missing flows in the considered country or reference countries.')
+                                                                                content=c('Tick the cases where the calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.')
                                                                          )
                                                                   ),
                                                                   column(3,h5(HTML('Image format')),selectInput("IformatB", NULL,
@@ -1454,7 +1462,7 @@ shinyUI <- fluidPage(
                                   
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
-                                         content = c('DurationCorrection')),
+                                         content = c('BilateralModel')),
                                   
                                   selectInput("Eraymer", label = NULL,
                                               choices = list(
@@ -1487,7 +1495,7 @@ shinyUI <- fluidPage(
                                   conditionalPanel(condition = "input.Eraymer > 4",
                                                    checkboxInput("Eseparated", "Use duration corrrection parameters calculated separately for immigration", value = FALSE),
                                                    checkboxInput("Eadditive", "Use additive optimization criteria (otherwise multiplicative)", value = TRUE),
-                                                   
+                                  ),
                                                    tags$hr(style="border-color: black;"),
                                                    helper(selectInput("Erefcountry", h4("Reference group of countries"),
                                                                       choices = list('Nordic countries (without IS)'=1,'Nordic countries'=2,'Nordic countries+BE'=3,'Nordic countries+CH'=4,'Nordic countries+NL'=5,
@@ -1498,9 +1506,9 @@ shinyUI <- fluidPage(
                                                                       selected = RefCntrSel),
                                                           colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                                           content=c('Please set the "Duration of stay correction" first before setting this parameter.',
-                                                                    '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "Overview" for more information about the bilateral flows ratio model.')),
+                                                                    '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "General model options" for more information about the bilateral flows ratio model.')),
                                                    
-                                  ),
+                                  
                                   tags$hr(style="border-color: black;"),
                                   h4('Imputations of missing values'),
                                   helper(checkboxInput("Eimputations", "Use PCA imputations", value = TRUE),
@@ -1526,7 +1534,7 @@ shinyUI <- fluidPage(
                                              ),
                                              column(width=7,
                                                     div(id='Ezupa',
-                                                        sliderInput(inputId = "ETranslateGroups", label = 'Model sensitivity (number of classes)', min = 2, max = 10, value = 5, step=1, sep=''))
+                                                        sliderInput(inputId = "ETranslateGroups", label = 'Model sensitivity (number of classes)', min = 2, max = 11, value = 5, step=1, sep=''))
                                              ),
                                              span(HTML('&#160;'),style="font-size:1px; align: top;"),
                                              tags$head(tags$style("#Ezupa .form-group.shiny-input-container {margin-bottom: 0px;}", media="screen", type="text/css")),
@@ -1553,11 +1561,11 @@ shinyUI <- fluidPage(
                                                                      content='BilateralModel',size='l'),
                                                               tags$hr(style="border-color: black;"),
                                                               checkboxGroupInput("Ecountry", h4("Countries selection"),
-                                                                                 choices = Countries, selected = c('ES','BG','FI','SK','IT'), inline = TRUE),
-                                                              actionButton("Iall", "All"),actionButton("Inone", "None"),
+                                                                                 choices = Countries, selected = IniCntrSel, inline = TRUE),
+                                                              actionButton("Eall", "All"),actionButton("Enone", "None"),
                                                               br(),
                                                               br(),
-                                                              plotOutput(outputId = "EmiPlot", height="600px", width='100%'),
+                                                              plotOutput(outputId = "EmiPlot", height="700px", width='100%'),
                                                               br(),
                                                               div(style="display:inline-block;vertical-align:top;",
                                                                   column(6,checkboxInput("Elogscale", "Use log-scale", value = TRUE)),
@@ -1601,7 +1609,7 @@ shinyUI <- fluidPage(
                                 conditionalPanel(condition = "input.Epanels == 4",
                                                  sidebarPanel(width=8,
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
-                                                              plotOutput(outputId = "EmiPlotB", height="600px", width='100%'),
+                                                              plotOutput(outputId = "EmiPlotB", height="700px", width='100%'),
                                                               
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
@@ -1609,7 +1617,7 @@ shinyUI <- fluidPage(
                                                                          
                                                                          helper(checkboxInput("ENoData", "Mark no data", value = TRUE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
-                                                                                content=c('Tick the cases where the calculation of bilateral flows was impossible due to missing flows in the considered country or reference countries.')
+                                                                                content=c('Tick the cases where the calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.')
                                                                          )
                                                                   ),
                                                                   column(3,h5(HTML('Image format')),selectInput("EformatB", NULL,
@@ -1736,15 +1744,15 @@ shinyUI <- fluidPage(
                                              ),
                                              conditionalPanel(condition ="input.Ipanels2 == 3",
                                                               h3(HTML('Finall classification of the undercounting.')),
-                                                              plotOutput(outputId = "ImiPlot2", height="768px", width='100%'),
+                                                              plotOutput(outputId = "ImiPlot2", height="800px", width='100%'),
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
                                                                          
-                                                                         helper(checkboxInput("INoData2", "Mark no data", value = TRUE),
+                                                                         helper(checkboxInput("INoData2", "Mark no data", value = FALSE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
                                                                                 content=c('This option refers to the modeled undercounting',
-                                                                                          'If selected it ticks the cases where calculation of bilateral flows was impossible due to missing flows in the considered country or reference countries.'
+                                                                                          'If selected it ticks the cases where calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.'
                                                                                 )),
                                                                   ),
                                                                   
@@ -1871,15 +1879,15 @@ shinyUI <- fluidPage(
                                              ),
                                              conditionalPanel(condition ="input.Epanels2 == 3",
                                                               h3(HTML('Finall classification of the undercounting.')),
-                                                              plotOutput(outputId = "EmiPlot2", height="768px", width='100%'),
+                                                              plotOutput(outputId = "EmiPlot2", height="800px", width='100%'),
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
                                                                          
-                                                                         helper(checkboxInput("ENoData2", "Mark no data", value = TRUE),
+                                                                         helper(checkboxInput("ENoData2", "Mark no data", value = FALSE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
                                                                                 content=c('This option refers to the modeled undercounting',
-                                                                                          'If selected it ticks the cases where calculation of bilateral flows was impossible due to missing flows in the considered country or reference countries.'
+                                                                                          'If selected it ticks the cases where calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.'
                                                                                 )),
                                                                   ),
                                                                   

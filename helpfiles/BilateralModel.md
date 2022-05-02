@@ -2,67 +2,16 @@
 
 ### **General model assumptions**
 
-The undercount scores can be calculated using the bilateral migration data, by comparing the same type of flow reported by different countries. Precisely, it is realized by taking flows from a country X to a group of good data quality countries (the reference countries) reported by country X and divide it by the same flow reported by the the reference countries. Because the duration of stay may differ among countries the flows reported by each country should be somehow corrected. Here, as the default correction we use IMEM (Raymer et al. 2013) model coefficients for the duration of stay. These and other correction coefficients are listed in the Table 1 below.
+<p>The bilateral migration flows ratios are constructed by taking flows from country <span class="math inline">\(X\)</span> to a group of high data-quality countries reported by country <span class="math inline">\(X\)</span> and dividing it by the same flow reported by the the reference countries. As a default set of the reference countries we selected the Nordic countries (Denmark, Finland, Sweden, Norway, and Iceland), Belgium, the Netherlands, and Switzerland. These countries had the lowest undercounting according to IMEM and metadata as well as consistently low undercounting for the various options tested in our model. Because the minimal duration of stay required for the definition of an international migration may differ from country to country, flows reported by each country need to be adjusted accordingly.</p>
 
-<style>
+<p>Formally, the undercounting ratio <span class="math inline">\(U^E_{X,Y,t}\)</span> for emigration data between country <span class="math inline">\(X\)</span> and set of countries <span class="math inline">\(Y\)</span> in year <span class="math inline">\(t\)</span>, can be defined as follows: <span class="math display">\[\begin{equation}
+   U^E_{X,Y,t} = \frac{\sum_c M\left(X_t\rightarrow Y_{c,t}, X_t\right) R_{X_t}}{\sum_{c} M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right) R_{Y_{c,t}}}, 
+\end{equation}\]</span> where <span class="math inline">\(M\left(X_t\rightarrow Y_{c,t}, X_t\right)\)</span> is the emigration flow from country <span class="math inline">\(X\)</span> to country <span class="math inline">\(Y_c\)</span> reported by country <span class="math inline">\(X\)</span> in year <span class="math inline">\(t\)</span>, <span class="math inline">\(M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right)\)</span> is the immigration flow from country <span class="math inline">\(X\)</span> to country <span class="math inline">\(Y_c\)</span> reported by country <span class="math inline">\(Y_c\)</span> in year <span class="math inline">\(t\)</span>, <span class="math inline">\(R_{X_t}\)</span> is the correction for duration of stay of country <span class="math inline">\(X\)</span> in year <span class="math inline">\(t\)</span>, and <span class="math inline">\(R_{Y_{c,t}}\)</span> is the correction for duration of stay of country <span class="math inline">\(Y_c\)</span> reported in year <span class="math inline">\(t\)</span>. The immigration bilateral flows ratios are calculated analogically.</p>
 
-th {
-  border: 1px solid black;
-  border-collapse: collapse;
-  background-color: #CCBBFF;
-  text-align: center;
-}
-
-td {
-  border: 1px solid black;
-  border-collapse: collapse;
-}
-
-tr:hover {background-color: #E0DDFF;}
-
-table {
-  border-collapse: collapse;
-  width:95%;
-}
-
-</style>
-
-<center>
-
-<caption>Table 1. Duration of stay correction coefficients. (\*) \- Willekens 2019.</caption>
-
-|Duration of stay <br>in months | IMEM <br>model | Expert <br>judgement (\*) | Poisson <br>model (\*) | Mixture <br>model (\*) 
-|:---:|:---:|:---:|:---:|:---:|
-| <b>0</b> |  0.53   | 0.51  | 0.79  | 0.51  |
-| <b>3</b> |  0.63   | 0.61  | 0.84  | 0.64  |
-| <b>6</b> |  0.73   | 0.81  | 0.89  | 0.71  |
-| <b>12</b> |  1.00   | 1.00  | 1.00  | 1.00 |
-| <b>Permanent <br>(or 5 years)</b>  |  2.26   | 1.61 | 2.61  | 1.80  | 
-
-</center>
-
-Formally, estimation of the undercounting ratio $U^E{X,Y,y}$ of emigration data between country $X$ and set of countries $Y$ in year $y$, can be calculated as follows:
-
-$$
-U^E_{X,Y,y} = \frac{\sum_c M\left(X_y\rightarrow Y_{c,y}, X_y\right) R_{X_y}}{\sum_{c} M\left(X_y\rightarrow Y_{c,y}, Y_{c,y}\right) R_{Y_{c,y}}},
-$$
-
-where $M\left(X_y\rightarrow Y_{c,y}, X_y\right)$ is the emigration flow from country $X$ to country $Y_c$ reported by country $X$ in year $y$, $M\left(X_y\rightarrow Y_{c,y}, Y_{c,y}\right)$ is the immigration flow from country $X$ to country $Y_c$ reported by country $Y_c$ in year $y$, $R_{X_y}$ is the IMEM correction for duration of stay of country $X$ in year $y$, and $R_{Y_{c,y}}$ is the IMEM correction for duration of stay of country $Y_c$ reported in year $y$). 
-
-The undercounting ratio $U^I_{X,Y,y}$ of immigration data is calculated analogically:
-
-$$
-U^I_{X,Y,y} = \frac{\sum_c M\left(X_y\leftarrow Y_{c,y}, X_y\right) R_{X_y}}{\sum_{c} M\left(X_y\leftarrow Y_{c,y}, Y_{c,y}\right) R_{Y_{c,y}}},
-$$
-
-where $M\left(X_y\rightarrow Y_{c,y}, X_y\right)$ is the immigration flow to country $X$ from country $Y_c$ reported by country $X$ in year $y$, $M\left(X_y\rightarrow Y_{c,y}, Y_{c,y}\right)$ is the emigration flow to country $X$ from country $Y_c$ reported by country $Y_c$ in year $y$,
-
-There are two main disadvantages of the constructed undercounting measure:
-
-- It cannot exclude the effect of under-coverage, i.e., the index measures a combined effect of undercounting and coverage problems.
-
-- It may not completely exclude the effect of the duration of stay that is different than 12 months, i.e., IMEM estimates are taken from the model that does not include the most recent data.
-
+### **Duration of stay correction coefficients**
+<div label ="duration">
+<p>The correction coefficients are a set of parameters that monotonically increase with the duration of stay. They were found by minimizing under-counting in the entire set of EU countries in the years 2002-2019. We consider two optional minimization criteria: multiplicative <span class="math inline">\(\sum_{X,Y,t}|log M\left(X_t\rightarrow Y_{c,t}, X_t\right) / M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right)|\)</span> and additive (default in the app) <span class="math inline">\(\sum_{X,Y,t} (M\left(X_t\rightarrow Y_{c,t}, X_t\right) - M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right))^2\)</span>. The latter option seems to be the most useful as it is more sensitive to the magnitude of the flow differences. The coefficients can be estimated both jointly or separately for each of the two types of migration. Alternatively, correction coefficients can be taken directly from the previous models such as IMEM model (Raymer et al. 2013) or other models summarized in the Willekens (2019) paper.</p>
+</div>
 ### **Bilateral flows ratios and their confidence intervals for year-specific model**
 
 The probability $P^E_{X,Y,y}$ of emigration form country $X$ to a group of countries $Y$ in year $y$ can be defined as
@@ -71,15 +20,17 @@ where $M\left(X/-y\rightarrow \Omega\right)$ is the total emigration counts of c
 
 We can simulate the migration process by drawing the number of migration events $m\left(X_y\rightarrow Y_y\right)$ in year $y$ from the binomial distribution $B(n, p)$, where $n = M\left(X_y\rightarrow \Omega\right)$ is a number of trials and $p = P_{X,Y,y}$ is a probability of success on each trial, hence $\mathbb{E}(m) = M\left(X_y\rightarrow Y_y\right)$
 
-As defined in previous section $U^E_{X,Y,y}$ and $U^I_{X,Y,y}$ are ratios of two independent migration processes therefore each of these migration processes can be simulated independently as described above. 100,000 of simulations defines a bootstrap sample that is used to calculate bootstrapped 95% confidence intervals (percentile method, e.g., Efron and Tibshirani 1993) and standard deviations of the ratio. The confidence intervals are used on **model plots** pages, while the standard deviations is used in the second stage of confidence intervals bootstrapping on the **model classify** pages (described in the next section).
+As defined in previous section $U^E_{X,Y,y}$ and $U^I_{X,Y,y}$ are ratios of two independent migration processes therefore each of these migration processes can be simulated independently as described above. 100,000 of simulations defines a bootstrap sample that is used to calculate bootstrapped 95% confidence intervals (percentile method, e.g., Efron and Tibshirani 1993) and standard deviations of the ratio. 
 
-### **Median bilateral flows ratios and their confidence intervals for the year-threshold model**
+### **Obtaining normalized undercounting scores**
 
-On the **model plots** pages, the ratios and their confidence intervals are calculated for each year. On **model classify** pages, the undercounting scores are calculated for two year ranges: before the threshold year (<b>B</b>) and from the threshold year on (<b>A</b>). Because a country may have different number of migration events in each year this variability must be addressed in the bootstrap procedure for both year ranges. For each year range we perform a weighted sampling of 10,000 years with replacement. The weights were set to the total migration events (either immigration $M\left(X_y\leftarrow \Omega_y\right)$ or emigration $M\left(X_y\rightarrow \Omega_y\right)$). For each element of the sample we draw a ratio from the normal distribution with mean equals the estimated ratio in the sampled year and standard deviation equals bootstrapped standard deviation (described in previous section) in the sampled year. Finally median ratios and their percentile confidence intervals (95%) were calculated for both year ranges.
+<p>Since bilateral flow ratios (quotients) are placed on the multiplicative scale, it is convenient to refer to their logarithms. The logarithm of bilateral flows ratios adjusted for duration of stay ranges from - <span class="math inline">\(\infty\)</span> to + <span class="math inline">\(\infty\)</span>. Values greater than 0 are considered overcounted, 0 means no undercounting or overcounting problems, and negative values represent undercounting. These values should be projected to a discrete 0-1 scale to be useful from a modeling perspective. For modeling flexibility, we use categorizations based on evenly spaced thresholds or quantiles (default). The projection is not trivial as potential overcounting problems often arise. The term “potential” requires some explanation. If the reference countries’ data are of perfect quality (i.e., there is no undercounting or overcounting) and the assumed duration-of-stay coefficients perfectly adjust flows to the 12-month criterion, overcounting will be clearly outlined. However, this scenario is unlikely, so the overcounting class can be a mix of overcounitng and undercounting. We propose two options for solving this problem: (1) combining the overcounting class with the lowest undercounting class or (2) treating overcounting as a separate class. The obtained results can be used directly in migration models or after numerical representation combined with expertise and metadata scores.</p>
 
-Additional notes: 
+### **Combining multiple source of information on undercounting**
 
-- the confidence intervals are only informative and currently play no role in the classification procedure.
+<p>The procedure for linking undercounting from different sources requires a numerical representation of the obtained results / classifications in the range 0 to 1. The score for IMEM is simply 0 for low undercounting and 1 for high undercounting. The immigration metadata only contains information about the registration obligation and incomplete information about time limits and sanctions for non-registration. We assumed that countries without the obligation to register receive a score of 1 (high undercounting), otherwise 0, however in the absence of a time limit or when there are no sanctions, the score changes to 0.5 (average undercounting). The emigration metadata score is calculated as a weighted average with arbitrary (default) weights: 50% for the de-registration obligation, 30% for the presence of administrative corrections and 10% each for the obligation to register and monitor third-country nationals. We set small weights for the two later cases as third country nationals are not currently included in our models.</p>
+
+<p>The obtained scores from different sources can be combined using weighted average. As previously mentioned, after 2007 there was a significant breakthrough in migration data collection due to the harmonization of the definition of the duration of stay (Reg. (EC) 862/2007) and possibility of using censuses that took place in subsequent years to update migration estimates. For this reason, we decided to split the contribution of expert opinion, metadata, and model into two periods, namely, before 2008 and after 2007. This cut-off is defined by a threshold parameter (2008, by default). We used the same weights for immigration and emigration (by default) that for the first period (before 2008) were arbitrarily set to 20% for the IMEM score, 10% for the metadata score, and 70% for the model score, from 2008 onward, the weight of the metadata remained at 10%, the weight for the IMEM score decreased to 10%, and the model score increased to 70%. We chose rather low weights for the metadata because off its limited availability. In the future, as we plan to directly collect more precise metadata from the NSOs, these weights might increase. We also decreased the IMEM weights in the second period, because the IMEM classification focuses on the years prior to 2008 years and may not be relevant anymore for more recent years. Ultimately, the obtained numerical results can be divided (equally spaced thresholds) into a variable of 2, 3 or more (up to 7 in the app) levels. The Shiny app  offers huge flexibility in setting all mentioned parameters.</p>
 
 ### **References**
 
