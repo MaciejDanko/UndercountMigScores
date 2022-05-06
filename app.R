@@ -1,28 +1,5 @@
 rm(list=ls())
 
-#################################################
-# To do list:
-
-# what with LI ???
-
-# > check help boxes names 
-# > check/set init values
-# further clean code
-# check code functionality
-
-# check new vs old undercounting calculation (print screen) -jak bardzo sie zmienily wyniki
-# add help for: Use additive optimization criteria (otherwise multiplicative)
-
-# X describe ignore overcounting
-# X ignore undercounting jako conditional do opcji "use quantiles"
-# X dodac opcje uniform
-# X show duration of stay for different countries in the model subpanels - read separate rda files 60->P
-# X repair reset buttons
-################################################
-
-#Sys.setlocale("LC_ALL","en_US.UTF-8")
-#install.packages(c('Cairo','DT','shiny','colourpicker','shinyhelper','magicaxis','data.table','countrycodes'))
-
 library(Cairo)
 library(RColorBrewer)
 library(devtools)
