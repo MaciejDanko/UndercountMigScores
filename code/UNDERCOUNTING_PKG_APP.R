@@ -223,6 +223,8 @@ DAT_MUL_OPT_B_UW_ATDEBECHFRNLIE<-sortisoyear(loadaslist('./data/UndercountingInd
 DAT_MUL_OPT_IE_UW_ATDEBECHFRNLIE<-sortisoyear(loadaslist('./data/UndercountingIndex_OPT_MUL_SEPARATE_I_E_UNW_NordicATDEBECHFRNLIE.rda'))
 #DAT_MUL_OPT_IE_W_ATDEBECHFRNLIE<-sortisoyear(loadaslist('./data/UndercountingIndex_OPT_MUL_SEPARATE_I_E_W_NordicATDEBECHFRNLIE.rda'))
 
+colnames(DAT_IMEM$NORDIC)==colnames(DAT_MUL_OPT_B_UW_NORDIC$NORDIC)
+
 NORDIC<-DAT_IMEM$NORDIC
 NORDIC4<-DAT_IMEM$NORDIC4
 
@@ -247,26 +249,27 @@ colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-regi
                         "monitoring third country nationals",
                         "administrative corrections",'comment')
 
-Meta_Reg<-Meta_Reg[Meta_Reg$iso2!='LI',]
-Meta_DeReg<-Meta_DeReg[Meta_DeReg$iso2!='LI',] # remove it when LI is added to the model
-IMEM<-IMEM[IMEM$Country!='LI',]
+# REMOVE LI
+# Meta_Reg<-Meta_Reg[Meta_Reg$iso2!='LI',]
+# Meta_DeReg<-Meta_DeReg[Meta_DeReg$iso2!='LI',] # remove it when LI is added to the model
+# IMEM<-IMEM[IMEM$Country!='LI',]
 
 get_correction<-function(direction, corrected, additive, separated){
-  
+
   #cat(direction, corrected, additive, separated,'\n')
   if (additive) CORR<-CORRECTION_PAR_ADD else CORR<-CORRECTION_PAR_MULT
   print(length(CORR))
   #print(sapply(CORR, function(k) length(k$corr.b)))
   corrected<-as.numeric(corrected)
   cat(corrected,corrected-4)
-  
+
   if (corrected<5) {
     res<-switch(as.character(corrected),
          '0' = c(1,1,1,1),
          '1' = c(0.53,0.63,0.73,2.26),
          '2' = c(0.51,0.61,0.81,1.61),
          '3' = c(0.79,0.84,0.89,2.61),
-         '4' = c(0.51,0.64,0.71,1.80)) 
+         '4' = c(0.51,0.64,0.71,1.80))
   } else {
     if (direction=='I' && separated) {
       print('i')
@@ -428,29 +431,7 @@ getUCCont<-function(refcountry=9, direction='E', corrected=1,
                  '17' = DAT_MUL_OPT_B_UW_ATDEBECHFRNLIE,
                  '18' = DAT_MUL_OPT_B_UW_ATDEBECHFRNLIEUK,
                  '19' = DAT_MUL_OPT_B_UW_ALL)
-  # } else if(weighted && !separated) {
-  #   DAT0<-switch(corrected,
-  #                '0' = DAT_IMEM,
-  #                '1' = DAT_IMEM,
-  #                '2' = DAT_EXPERT,
-  #                '3' = DAT_POIS,
-  #                '4' = DAT_MIXED,
-  #                '5' = DAT_ADD_OPT_B_W_NORDIC4,
-  #                '6' = DAT_ADD_OPT_B_W_NORDIC,
-  #                '7' = DAT_ADD_OPT_B_W_BE,
-  #                '8' = DAT_ADD_OPT_B_W_CH,
-  #                '9' = DAT_ADD_OPT_B_W_NL,
-  #                '10' = DAT_ADD_OPT_B_W_BECH,
-  #                '11' = DAT_ADD_OPT_B_W_BENL,
-  #                '12' = DAT_ADD_OPT_B_W_CHNL,
-  #                '13' = DAT_ADD_OPT_B_W_CHNLBE,
-  #                '14' = DAT_ADD_OPT_B_W_CHNLBEAT,
-  #                '15' = DAT_ADD_OPT_B_W_CHNLBEATDE,
-  #                '16' = DAT_ADD_OPT_B_W_ATDEBECHFRNL,
-  #                '17' = DAT_ADD_OPT_B_W_ATDEBECHFRNLIE,
-  #                '18' = DAT_ADD_OPT_B_W_ATDEBECHFRNLIEUK,
-  #                '19' = DAT_ADD_OPT_B_W_ALL)
-  # } else if(!weighted && separated) {
+
   } else if (separated && additive) {
     DAT0<-switch(corrected,
                  '0' = DAT_IMEM,
@@ -473,28 +454,7 @@ getUCCont<-function(refcountry=9, direction='E', corrected=1,
                  '17' = DAT_ADD_OPT_IE_UW_ATDEBECHFRNLIE,
                  '18' = DAT_ADD_OPT_IE_UW_ATDEBECHFRNLIEUK,
                  '19' = DAT_ADD_OPT_IE_UW_ALL)
-  # } else if(weighted && separated) {
-  #   DAT0<-switch(corrected,
-  #                '0' = DAT_IMEM,
-  #                '1' = DAT_IMEM,
-  #                '2' = DAT_EXPERT,
-  #                '3' = DAT_POIS,
-  #                '4' = DAT_MIXED,
-  #                '5' = DAT_ADD_OPT_IE_W_NORDIC4,
-  #                '6' = DAT_ADD_OPT_IE_W_NORDIC,
-  #                '7' = DAT_ADD_OPT_IE_W_BE,
-  #                '8' = DAT_ADD_OPT_IE_W_CH,
-  #                '9' = DAT_ADD_OPT_IE_W_NL,
-  #                '10' = DAT_ADD_OPT_IE_W_BECH,
-  #                '11' = DAT_ADD_OPT_IE_W_BENL,
-  #                '12' = DAT_ADD_OPT_IE_W_CHNL,
-  #                '13' = DAT_ADD_OPT_IE_W_CHNLBE,
-  #                '14' = DAT_ADD_OPT_IE_W_CHNLBEAT,
-  #                '15' = DAT_ADD_OPT_IE_W_CHNLBEATDE,
-  #                '16' = DAT_ADD_OPT_IE_W_ATDEBECHFRNL,
-  #                '17' = DAT_ADD_OPT_IE_W_ATDEBECHFRNLIE,
-  #                '18' = DAT_ADD_OPT_IE_W_ATDEBECHFRNLIEUK,
-  #                '19' = DAT_ADD_OPT_IE_W_ALL)
+
   } else if (separated && !additive) {
     DAT0<-switch(corrected,
                  '0' = DAT_IMEM,
@@ -572,6 +532,10 @@ getUCCont<-function(refcountry=9, direction='E', corrected=1,
   rownames(D)<-D$iso2
   D<-D[,-1]
   D<-D[!apply(D, 1, function(k) all(is.na(k))),]
+  D<-D[,!apply(D, 2, function(k) all(is.na(k))),]
+  Y<-gsub('[[:alpha:]]','',colnames(D))
+  Y<-gsub('.','',fixed=TRUE,Y)
+  print(Y)
   Ye<-as.numeric(substr(colnames(D),3,9))
   if (any(is.na(D))) {
     if (length(ncp)==0) ncp <- missMDA::estim_ncpPCA(log(D), method.cv = "kfold", ncp.max=imputmax, ncp.min=1)$ncp
@@ -581,7 +545,7 @@ getUCCont<-function(refcountry=9, direction='E', corrected=1,
     imputed_data <- D
     warning('Something wrong')
   }
-  list(original=D, imputed=imputed_data, raw=RES[,c('iso2','year','Y','Ysd','Yq.lo','Yq.med','Yq.hi','W')])
+  list(original=D, imputed=imputed_data, raw=RES[RES$year%in%Y,c('iso2','year','Y','Ysd','Yq.lo','Yq.med','Yq.hi','W')])
 }
 
 #getUCCont(additive = TRUE)$raw$Y
@@ -616,7 +580,7 @@ plot_ui_result_<-function(DAT, country, stats=1, logscale=FALSE, extrapol=TRUE, 
   }
   layout(matrix(c(rep(1,4),2),1,5))
   par(mar=c(4.6,2.5,0.5,0),oma=c(0,2.5,2,0))
-  XR<-range(NORDIC$year)
+  XR<-range(NORDIC$year[!is.na(NORDIC$IUC)| !is.na(NORDIC$EUC)])
   inf2NA<-function(x){ x[is.infinite(x)]<-NA; x}
   YLIM<-c(minY,max(inf2NA(c(DAT$Ylo,DAT$Yhi,DAT$Y,minmaxY)),na.rm = TRUE))
   plot(DAT$year,DAT$Y,col=DAT$col,pch=19,type='p',xlim=XR,ylim=YLIM, xlab='',las=3, ylab='',axes=FALSE)
@@ -689,6 +653,7 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
     DAT<-DAT[DAT$iso2%in%country,]
     DATi<-DATi[rownames(DATi)%in%country,]
     DAT$YE<-as.vector(t(as.matrix(DATi)))
+    print(country)
     if (direction=='I'){
       plot_ui_result_(DAT, country,
                       stats=stats, logscale=logscale, extrapol=extrapol, plotCI=plotCI,'Immigration')
@@ -817,7 +782,7 @@ level2num<-function(x, LEVELS, bounds=NULL){
   mat
 }
 
-my2dplot<-function(mat, LEVELS, namat=NULL, cexx=1, cexy=1, lox=1, loy=1, 
+my2dplot<-function(mat, LEVELS, namat=NULL, cexx=1, cexy=1, lox=1, loy=1,
                    groups=length(LEVELS),colors=rev(brewer.pal(n = groups, name = "Spectral"))[1:groups],
                    nodata='no data', naalpha=0.2){
   if (length(LEVELS)!=groups) stop('Nb of levels and groups differ.')
@@ -895,7 +860,7 @@ get_undercounting<-function(direction='E',
 
   ##############################################################################
   # Metadata and expert opinion
-  
+
   if (direction=='E') {
     resMODEL.E<-getUCCont(refcountry=model_options$refcountries,
                           direction='E',
@@ -905,7 +870,7 @@ get_undercounting<-function(direction='E',
                           weighted=model_options$weighted,
                           separated=model_options$separated,
                           additive=model_options$additive)
-    
+
     resMODEL<-resMODEL.E
     MetaScores<-Recalc_Meta_DeReg_Raw(Meta_DeReg,
                                   immi_meta_options$w1,
@@ -926,7 +891,7 @@ get_undercounting<-function(direction='E',
                           weighted=model_options$weighted,
                           separated=model_options$separated,
                           additive=model_options$additive)
-    
+
     resMODEL<-resMODEL.I
     MetaScores<-Recalc_Meta_Reg_Raw(Meta_Reg, emi_meta_options$trustNordic)
     MetaScore<-data.frame(iso2=MetaScores$iso2, MetaScore=1-MetaScores$`score num`, stringsAsFactors = FALSE, check.names = FALSE) ###
@@ -970,7 +935,7 @@ get_undercounting<-function(direction='E',
       if ( model_classification_options$IgnoreOverCounting) {
         #overcounting is combined with the second highest group
         model_classification_options$UserThresholds<-c(
-          max(ModelScore, na.rm = TRUE), 
+          max(ModelScore, na.rm = TRUE),
           seq(max(VecDat, na.rm = TRUE),min(VecDat, na.rm = TRUE),length.out=model_classification_options$TranslateGroups+1))[-2]
         UserThresholds<- model_classification_options$UserThresholds
       } else {
@@ -980,7 +945,7 @@ get_undercounting<-function(direction='E',
           seq(max(VecDat, na.rm = TRUE),min(VecDat, na.rm = TRUE),length.out=model_classification_options$TranslateGroups))
         UserThresholds<- model_classification_options$UserThresholds
       }
-      
+
     }
   } else {
     UserThresholds<- model_classification_options$UserThresholds
@@ -1007,7 +972,7 @@ get_undercounting<-function(direction='E',
   NoData<-NoData[,-1]
   NoData[is.na(NoData)]<-TRUE
   colnames(NoData)<- cnnd
-    
+
   rownames(tmp)<-tmp$iso2
   C.YearUser<-tmp[,-(1:3)]
 
@@ -1087,14 +1052,14 @@ get_undercounting_old<-function(direction='E',
                               w_metaB = 0.15,
                               w_modelA = 0.8,
                               w_modelB = 0.6)
-                            
+
 ) {
-  
-  
+
+
   mixing_options$FinalGroups[mixing_options$FinalGroups>7]<-7
   mixing_options$FinalGroups[mixing_options$FinalGroups<2]<-2
   LEVELS<-switch(paste(mixing_options$FinalGroups), '2'=LEVELS2, '3'=LEVELS3, '4'=LEVELS4, '5'=LEVELS5, '6'=LEVELS6, '7'=LEVELS7)
-  
+
   ##############################################################################
   # Metadata and expert opinion
   resMODEL.I<-getUCCont(refcountry=model_options$refcountries,
@@ -1105,7 +1070,7 @@ get_undercounting_old<-function(direction='E',
                         weighted=model_options$weighted,
                         separated=model_options$separated,
                         additive=model_options$additive)
-  
+
   # resMODEL.I.t1<-getUCCont(refcountry=model_options$refcountries,
   #                       direction='I',
   #                       corrected=model_options$durationCorrection,
@@ -1124,7 +1089,7 @@ get_undercounting_old<-function(direction='E',
   #                          additive=model_options$additive)
   # resMODEL.I.t1$imputed-resMODEL.I.t2$imputed
   #
-  
+
   resMODEL.E<-getUCCont(refcountry=model_options$refcountries,
                         direction='E',
                         corrected=model_options$durationCorrection,
@@ -1133,7 +1098,7 @@ get_undercounting_old<-function(direction='E',
                         weighted=model_options$weighted,
                         separated=model_options$separated,
                         additive=model_options$additive)
-  
+
   if (direction=='E') {
     resMODEL<-resMODEL.E
     MetaScores<-Recalc_Meta_DeReg_Raw(Meta_DeReg,
@@ -1152,14 +1117,14 @@ get_undercounting_old<-function(direction='E',
     MetaScore<-data.frame(iso2=MetaScores$iso2, MetaScore=1-MetaScores$`score num`, stringsAsFactors = FALSE, check.names = FALSE) ###
     ImemScore<-data.frame(iso2=IMEM$Country,ImemScore=1*(tolower(IMEM$Undercount.imm.IMEM)=='low'), stringsAsFactors = FALSE, check.names = FALSE)###
   }
-  
+
   MetaImemScore<-fast.merge.df(MetaScore,ImemScore,'iso2')
-  
+
   ##############################################################################
   # Classification of the model
-  
+
   NoData<-is.na(resMODEL$original)
-  
+
   if (model_options$useimputation) {
     ModelScore<-log10(resMODEL$imputed)
     VecDat<-c(log10(unlist(resMODEL.I$imputed)) ,log10(unlist(resMODEL.E$imputed)))
@@ -1170,9 +1135,9 @@ get_undercounting_old<-function(direction='E',
     VecDat<-VecDat[VecDat<=0]
   }
   colnames(ModelScore)<-gsub('Y.','',colnames(ModelScore))
-  
+
   ####
-  
+
   if (is.na( model_classification_options$UserThresholds[1]) || length( model_classification_options$UserThresholds)!=model_classification_options$TranslateGroups-1) {
     if ( model_classification_options$IgnoreOverCounting) {
       model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups+1), na.rm=TRUE))[-2]
@@ -1185,19 +1150,19 @@ get_undercounting_old<-function(direction='E',
     UserThresholds<- model_classification_options$UserThresholds
     UserThresholds<-(c(max(ModelScore, na.rm = TRUE), rev(UserThresholds), min(ModelScore, na.rm = TRUE)))
   }
-  
+
   mLEVELS<-paste(1:model_classification_options$TranslateGroups)
   R.YearUser<-t(apply(ModelScore,1,cut,breaks=UserThresholds,include.lowest=TRUE,labels=rev(mLEVELS)))
   colnames(R.YearUser)<-gsub('Y.','',colnames(ModelScore))
   R.YearUser.num<-level2num(R.YearUser,mLEVELS,bounds=c(1,0))
-  
+
   # ModelScore['AT',]
   # R.YearUser['AT',]
   # R.YearUser.num['AT',]
   # plot(10^ModelScore['AT',],ylim=c(0,1))
   # lines(R.YearUser.num['AT',],type='p',pch=19,col=2)
   # abline(h=10^UserThresholds,lty=3)
-  
+
   tmp<-fast.merge.df(MetaImemScore, data.frame(iso2=rownames(R.YearUser.num),R.YearUser.num,stringsAsFactors = FALSE, check.names = FALSE),'iso2')
   NoData<-fast.merge.df(data.frame(iso2=MetaImemScore$iso2,stringsAsFactors = FALSE, check.names = FALSE),
                         data.frame(iso2=rownames(NoData),NoData,stringsAsFactors = FALSE, check.names = FALSE),'iso2')
@@ -1206,37 +1171,37 @@ get_undercounting_old<-function(direction='E',
   NoData<-NoData[,-1]
   NoData[is.na(NoData)]<-TRUE
   colnames(NoData)<- cnnd
-  
+
   rownames(tmp)<-tmp$iso2
   C.YearUser<-tmp[,-(1:3)]
-  
+
   YY<-as.numeric(gsub('Y.','',(colnames(C.YearUser))))
   C.YearUser.B<-C.YearUser[,YY< mixing_options$threshyear]
   C.YearUser.A<-C.YearUser[,YY>=mixing_options$threshyear]
-  
+
   ImemScore<-tmp[,3]
   MetaScore<-tmp[,2]
   names(MetaScore) <- names(ImemScore) <- rownames(C.YearUser)
-  
+
   CombinedScoreA<-weightedmean3(m1=C.YearUser.A, m2=ImemScore, m3=MetaScore,
                                 w1=mixing_options$w_modelA, w2=mixing_options$w_imemA, w3=mixing_options$w_metaA)
   CombinedScoreB<-weightedmean3(m1=C.YearUser.B, m2=ImemScore, m3=MetaScore,
                                 w1=mixing_options$w_modelB, w2=mixing_options$w_imemB, w3=mixing_options$w_metaB)
-  
+
   # CombinedScoreA<-na2zero(ModelScore.A * mixing_options$w_modelA) +
   #   na2zero(ImemScore * mixing_options$w_imemA) +
   #   na2zero(MetaScore * mixing_options$w_metaA)
   # CombinedScoreB<-na2zero(ModelScore.B * mixing_options$w_modelB) +
   #   na2zero(ImemScore * mixing_options$w_imemB) +
   #   na2zero(MetaScore * mixing_options$w_metaB)
-  
+
   CombinedScore<-cbind(CombinedScoreB,CombinedScoreA)
   C.UserThresholds<-seq(0, 1, length.out=mixing_options$FinalGroups+1)
   C.YearUser<-t(apply(CombinedScore,1,cut,breaks=C.UserThresholds,include.lowest=TRUE,labels=rev(LEVELS)))
   colnames(C.YearUser)<-gsub('Y.','',colnames(ModelScore))
-  
+
   C.YearUser.num<-level2num(C.YearUser,LEVELS,bounds=c(1,0))
-  
+
   list(
     R.Score=R.YearUser,
     R.Score.Num=R.YearUser.num,
@@ -1256,6 +1221,232 @@ get_undercounting_old<-function(direction='E',
     LEVELS=LEVELS)
 }
 
-# plot(2002:2019,CombinedScore[9,])
-# axis(3,at=2002:2019,R.YearSpec[9,],las=3)
-# axis(1,at=2002:2019,R.YearUser[9,],las=3)
+
+
+toeurostat<-function(x) {x[x=='GR']<-'EL'; x[x=='GB']<-'UK'; x}
+
+Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
+
+colnames(Meta_Reg)<-c("iso2", "country", "registration obligation", "time limit", "comment", "score" )
+colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-registration obligation third country nationals",
+                        "monitoring third country nationals",
+                        "administrative corrections",'comment')
+
+
+
+Countries<-CountriesS<-unique(NORDIC4$iso2[!is.na(NORDIC4$ICn)|!is.na(NORDIC4$ECn)])
+YearS<-sort(unique(NORDIC4$year[!is.na(NORDIC4$ICn)|!is.na(NORDIC4$ECn)]))
+
+Recalc_Meta_DeReg<-function(MetaDeReg,w1,w2,w3,w4,t1,t2, trustnordic){
+  cat(w1,w2,w3,w4,t1,t2,trustnordic,'\n')
+  MetaDeReg<-DT2DF(MetaDeReg)
+  MetaDeReg$`IMEM num`<-NULL
+  MetaDeReg$`IMEM score`<-NULL
+  L3col<-c('Low','Medium','High')
+  nominator<- w1*(tolower(paste(MetaDeReg[,3]))=='yes')+
+    w2*(tolower(paste(MetaDeReg[,4]))=='yes')+
+    w3*(tolower(paste(MetaDeReg[,5]))=='yes')+
+    w4*(tolower(paste(MetaDeReg[,6]))=='yes')
+  denominator<-w1*(tolower(paste(MetaDeReg[,3]))!='unknown')+
+    w2*(tolower(paste(MetaDeReg[,4]))!='unknown')+
+    w3*(tolower(paste(MetaDeReg[,5]))!='unknown')+
+    w4*(tolower(paste(MetaDeReg[,6]))!='unknown')
+  score_num<- 1 - nominator / denominator
+  score<-paste(cut(score_num,c(0,t1,t2,1),L3col,include.lowest = TRUE))
+  isNORDIC<-MetaDeReg$iso2 %in%c('IS','SE','NO','DK','FI')
+  if (trustnordic){
+    score[isNORDIC]<-L3col[1]
+    score_num[(is.nan(score_num)|is.na(score_num))&isNORDIC]<-0
+  }
+  MetaDeReg$`score num`<-round(score_num,3)
+  MetaDeReg$score<-score
+  MetaDeReg$score[is.na(score_num)]<-'Unknown'
+  IMEM_num<-2-as.numeric(as.factor(IMEM$Undercount.emi.IMEM))
+  IMEM_score<-firstCap(IMEM$Undercount.emi.IMEM)
+  MetaDeReg<-fast.merge.df(MetaDeReg,
+                           data.frame(iso2=unname(IMEM$Country),
+                                      'IMEM num'=unname(IMEM_num),
+                                      'IMEM score'=unname(IMEM_score),stringsAsFactors = FALSE,check.names = FALSE),
+                           "iso2")
+  MetaDeReg<-datatable(MetaDeReg, options=list(pageLength=nrow(MetaDeReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+  MetaDeReg<-formatStyle(MetaDeReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaDeReg<-formatStyle(MetaDeReg, columns = "IMEM score", color=styleEqual(c('Low','High'), c("#008000","#FF0000")))
+  MetaDeReg<-formatStyle(MetaDeReg, c(2,7,9), "border-right" = "solid 1px", "border-right-color"='black')
+  MetaDeReg
+}
+
+Recalc_Meta_Reg<-function(MetaReg, trustnordic=TRUE){
+  cat(trustnordic,class(MetaReg),'\n')
+  MetaReg<-DT2DF(MetaReg)
+  MetaReg$score<-NULL
+  MetaReg$`score num`<-NULL
+  MetaReg$`IMEM num`<-NULL
+  MetaReg$`IMEM score`<-NULL
+  L3col<-c('Low','Medium','High')
+  isNORDIC<-MetaReg$iso2 %in%c('IS','SE','NO','DK','FI')
+  MetaReg$`score num`<-(tolower(MetaReg[,3])=='no') + 0.5*(tolower(MetaReg$`time limit`)=='no limit')+ 0.5*(tolower(MetaReg$comment)=='no sanctions')
+  MetaReg$score<-L3col[MetaReg$`score num`*2+1]
+  unk<-tolower(MetaReg[,3])=='unknown'
+  MetaReg$score[unk]<-'Unknown'
+  MetaReg$`score num`[unk]<-NA
+  if (trustnordic){
+    MetaReg$score[isNORDIC] <- L3col[1]
+    MetaReg$`score num`[isNORDIC] <- 0
+  }
+  IMEM_num<-2-as.numeric(as.factor(IMEM$Undercount.imm.IMEM))
+  MetaReg<-fast.merge.df(MetaReg,
+                         data.frame(iso2=IMEM$Country,
+                                    'IMEM num'=IMEM_num,
+                                    'IMEM score'=firstCap(IMEM$Undercount.imm.IMEM),stringsAsFactors = FALSE,check.names = FALSE),
+                         "iso2")
+  MetaReg<-datatable(MetaReg, rownames=FALSE, options=list(pageLength=nrow(MetaReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
+  MetaReg<-formatStyle(MetaReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaReg<-formatStyle(MetaReg, columns = "IMEM score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaReg<-formatStyle(MetaReg, columns = "time limit", fontWeight = styleEqual('No limit', c("bold")))
+  MetaReg<-formatStyle(MetaReg, columns = "comment", fontWeight = styleEqual('No sanctions', c("bold")))
+  MetaReg<-formatStyle(MetaReg, c(2,5,7), "border-right" = "solid 1px", "border-right-color"='black')
+  MetaReg
+}
+
+# direction='I';
+# #metadata
+# w1=0.5; w2=0.1; w3=0.1; w4=0.3; t1=0.3; t2=0.6; ItrustNordic = TRUE; EtrustNordic = TRUE;
+# #model
+# ncp=1; separated=FALSE; additive=TRUE; refcountries=9; durationCorrection = 13;
+# IgnoreOverCounting = TRUE;
+# TranslateGroups = 5;
+# #mixing
+# useimputation=TRUE;
+# threshyear = 2008; FinalGroups = 5; w_imemA = 0.1; w_imemB = 0.25; w_metaA = 0.1; w_metaB = 0.15; w_modelA = 0.8;w_modelB = 0.6
+
+
+CalcModel<-function(#META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
+  direction,
+  #metadata
+  w1, w2, w3, w4, t1, t2, ItrustNordic, EtrustNordic,
+  #model
+  ncp, separated, additive, refcountries, durationCorrection,
+  IgnoreOverCounting,
+  UseQuantiles,
+  TranslateGroups,
+  #mixing
+  useimputation,
+  threshyear, FinalGroups, w_imemA, w_imemB , w_metaA , w_metaB , w_modelA ,w_modelB ){
+
+
+  RES<-get_undercounting(direction=direction,immi_meta_options=list(w1 = w1,
+                                                                    w2 = w2,
+                                                                    w3 = w3,
+                                                                    w4 = w4,
+                                                                    t1 = t1,
+                                                                    t2 = t2,
+                                                                    trustNordic = ItrustNordic),
+                         emi_meta_options=list(trustNordic = EtrustNordic),
+                         model_options = list(ncp=ncp,
+                                              useimputation=useimputation,
+                                              weighted=FALSE,
+                                              separated=separated,
+                                              additive=additive,
+                                              refcountries=refcountries,
+                                              durationCorrection = durationCorrection),
+                         model_classification_options = list(
+                           UserThresholds=NA,
+                           IgnoreOverCounting = IgnoreOverCounting,
+                           UseQuantiles = UseQuantiles,
+                           TranslateGroups = TranslateGroups
+
+                         ),
+                         mixing_options=list(
+                           threshyear = threshyear,
+                           FinalGroups = FinalGroups,
+                           w_imemA = w_imemA,
+                           w_imemB = w_imemB,
+                           w_metaA = w_metaA,
+                           w_metaB = w_metaB,
+                           w_modelA = w_modelA,
+                           w_modelB = w_modelB))
+  RES
+}
+
+################################################################################
+# if I add option to change the threshold they have to be reset on every change of reference country and other paprameters
+# RES$R.UserThresholds
+################################################################################
+
+plotModel<-function(RES, shownodat=TRUE) {
+  par(mar=c(4,3,1.5,8),oma=c(0,0,0,0))
+  LEVELS<-1:RES$model.groups
+  LEVELS<-format(round((LEVELS-1)/(RES$model.groups-1),2),digits=2, nsmall=2)
+  #LEVELS[1]<-paste(LEVELS[1],'(lowest)')
+  #LEVELS[RES$model.groups]<-paste(LEVELS[RES$model.groups],'(highest)')
+  if (shownodat) {
+    my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS, namat =  RES$NoData[rownames(RES$R.Score.Num),])
+  } else {
+    my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS)
+  }
+}
+
+getDuration<-function(direction, country){
+  print(country)
+  if (direction=='I'){
+    res<-rbind(duration_immi_array[CountriesS,country,paste(YearS)])
+    res[res==60]<-'P'
+    res<-data.frame(res,check.names = FALSE,stringsAsFactors = FALSE)
+  } else if (direction=='E'){
+    res<-rbind(duration_emi_array[country,CountriesS,paste(YearS)])
+    res[res==60]<-'P'
+    res<-data.frame(res,check.names = FALSE,stringsAsFactors = FALSE)
+  }
+  res[rownames(res)!=country,]
+}
+
+getModel<-function(RES) { #to be xported as xlsx or rdata
+
+  list(
+    #score = data.frame((1-RES$R.Score.Num)*(RES$model.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
+    score = data.frame((1-RES$R.Score.Num),check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
+    nodata = data.frame(RES$NoData[rownames(RES$R.Score.Num),],check.names = FALSE, stringsAsFactors = FALSE),
+    logindex = data.frame(RES$R.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
+    logindexthresholds = data.frame('Threshold value'=unname(RES$R.UserThresholds), check.names = FALSE)
+  )
+}
+
+saveModel<-function(filename, RES){
+  print(filename)
+  RES<-getModel(RES)
+  openxlsx::write.xlsx(RES, filename, FALSE, FALSE, colNames = TRUE, rowNames=TRUE)
+  # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$logindex, file = filename, sheetName = 'log ratio', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$logindexthresholds, file = filename, sheetName = 'log ratio thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
+}
+
+
+plotCombined<-function(RES, shownodat=TRUE) {
+  par(mar=c(4,3,1.5,9.2),oma=c(0,0,0,0))
+  if (shownodat) {
+    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS, namat =  RES$NoData[rownames(RES$C.Score.Num),])
+  } else {
+    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS)
+  }
+}
+
+getCombined<-function(RES) {
+  list(score=data.frame(RES$C.Score,check.names = FALSE, stringsAsFactors = FALSE),
+       scorenum=data.frame((1-RES$C.Score.Num)*(RES$final.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE),
+       nodata=data.frame(RES$NoData,check.names = FALSE, stringsAsFactors = FALSE),
+       raw=data.frame(1-RES$C.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
+       rawthresholds = data.frame('Threshold value'=unname(RES$C.UserThresholds), check.names = FALSE)
+  )
+}
+
+saveCombined<-function(filename, RES){
+  RES<-getCombined(RES)
+  openxlsx::write.xlsx(RES, filename, FALSE, FALSE, colNames = TRUE, rowNames=TRUE)
+  # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$scorenum, file = filename, sheetName = 'scorenum', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$raw, file = filename, sheetName = 'raw', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$rawthresholds, file = filename, sheetName = 'thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
+}
+

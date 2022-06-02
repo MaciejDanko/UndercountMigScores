@@ -13,246 +13,18 @@ library(magicaxis)
 library(data.table)
 library(countrycode)
 library(openxlsx)
+
+options(bitmapType="cairo")
 source('./code/UNDERCOUNTING_PKG_APP.R')
 
 
-options(bitmapType="cairo")
-
-toeurostat<-function(x) {x[x=='GR']<-'EL'; x[x=='GB']<-'UK'; x}
-
-Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
-
-colnames(Meta_Reg)<-c("iso2", "country", "registration obligation", "time limit", "comment", "score" )
-colnames(Meta_DeReg)<-c('iso2','country', "de-registration obligation", "de-registration obligation third country nationals",
-                        "monitoring third country nationals",
-                        "administrative corrections",'comment')
-
-
-
-Countries<-CountriesS<-unique(NORDIC4$iso2[!is.na(NORDIC4$ICn)|!is.na(NORDIC4$ECn)])
-
-Recalc_Meta_DeReg<-function(MetaDeReg,w1,w2,w3,w4,t1,t2, trustnordic){
-  cat(w1,w2,w3,w4,t1,t2,trustnordic,'\n')
-  MetaDeReg<-DT2DF(MetaDeReg)
-  MetaDeReg$`IMEM num`<-NULL
-  MetaDeReg$`IMEM score`<-NULL
-  L3col<-c('Low','Medium','High')
-  nominator<- w1*(tolower(paste(MetaDeReg[,3]))=='yes')+
-    w2*(tolower(paste(MetaDeReg[,4]))=='yes')+
-    w3*(tolower(paste(MetaDeReg[,5]))=='yes')+
-    w4*(tolower(paste(MetaDeReg[,6]))=='yes')
-  denominator<-w1*(tolower(paste(MetaDeReg[,3]))!='unknown')+
-    w2*(tolower(paste(MetaDeReg[,4]))!='unknown')+
-    w3*(tolower(paste(MetaDeReg[,5]))!='unknown')+
-    w4*(tolower(paste(MetaDeReg[,6]))!='unknown')
-  score_num<- 1 - nominator / denominator
-  score<-paste(cut(score_num,c(0,t1,t2,1),L3col,include.lowest = TRUE))
-  isNORDIC<-MetaDeReg$iso2 %in%c('IS','SE','NO','DK','FI')
-  if (trustnordic){
-    score[isNORDIC]<-L3col[1]
-    score_num[(is.nan(score_num)|is.na(score_num))&isNORDIC]<-0
-  }
-  MetaDeReg$`score num`<-round(score_num,3)
-  MetaDeReg$score<-score
-  MetaDeReg$score[is.na(score_num)]<-'Unknown'
-  IMEM_num<-2-as.numeric(as.factor(IMEM$Undercount.emi.IMEM))
-  IMEM_score<-firstCap(IMEM$Undercount.emi.IMEM)
-  MetaDeReg<-fast.merge.df(MetaDeReg, 
-                           data.frame(iso2=unname(IMEM$Country),
-                                      'IMEM num'=unname(IMEM_num), 
-                                      'IMEM score'=unname(IMEM_score),stringsAsFactors = FALSE,check.names = FALSE),
-                           "iso2")
-  MetaDeReg<-datatable(MetaDeReg, options=list(pageLength=nrow(MetaDeReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
-  MetaDeReg<-formatStyle(MetaDeReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-  MetaDeReg<-formatStyle(MetaDeReg, columns = "IMEM score", color=styleEqual(c('Low','High'), c("#008000","#FF0000")))
-  MetaDeReg<-formatStyle(MetaDeReg, c(2,7,9), "border-right" = "solid 1px", "border-right-color"='black')
-  MetaDeReg
-}
-
-Recalc_Meta_Reg<-function(MetaReg, trustnordic=TRUE){
-  cat(trustnordic,class(MetaReg),'\n')
-  MetaReg<-DT2DF(MetaReg)
-  MetaReg$score<-NULL
-  MetaReg$`score num`<-NULL
-  MetaReg$`IMEM num`<-NULL
-  MetaReg$`IMEM score`<-NULL
-  L3col<-c('Low','Medium','High')
-  isNORDIC<-MetaReg$iso2 %in%c('IS','SE','NO','DK','FI')
-  MetaReg$`score num`<-(tolower(MetaReg[,3])=='no') + 0.5*(tolower(MetaReg$`time limit`)=='no limit')+ 0.5*(tolower(MetaReg$comment)=='no sanctions')
-  MetaReg$score<-L3col[MetaReg$`score num`*2+1]
-  unk<-tolower(MetaReg[,3])=='unknown'
-  MetaReg$score[unk]<-'Unknown'
-  MetaReg$`score num`[unk]<-NA
-  if (trustnordic){
-    MetaReg$score[isNORDIC] <- L3col[1]
-    MetaReg$`score num`[isNORDIC] <- 0
-  }
-  IMEM_num<-2-as.numeric(as.factor(IMEM$Undercount.imm.IMEM))
-  MetaReg<-fast.merge.df(MetaReg, 
-                         data.frame(iso2=IMEM$Country,
-                                    'IMEM num'=IMEM_num, 
-                                    'IMEM score'=firstCap(IMEM$Undercount.imm.IMEM),stringsAsFactors = FALSE,check.names = FALSE),
-                         "iso2")
-  MetaReg<-datatable(MetaReg, rownames=FALSE, options=list(pageLength=nrow(MetaReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
-  MetaReg<-formatStyle(MetaReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-  MetaReg<-formatStyle(MetaReg, columns = "IMEM score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-  MetaReg<-formatStyle(MetaReg, columns = "time limit", fontWeight = styleEqual('No limit', c("bold")))
-  MetaReg<-formatStyle(MetaReg, columns = "comment", fontWeight = styleEqual('No sanctions', c("bold")))
-  MetaReg<-formatStyle(MetaReg, c(2,5,7), "border-right" = "solid 1px", "border-right-color"='black')
-  MetaReg
-}
-
-direction='I';
-#metadata
-w1=0.5; w2=0.1; w3=0.1; w4=0.3; t1=0.3; t2=0.6; ItrustNordic = TRUE; EtrustNordic = TRUE;
-#model
-ncp=1; separated=FALSE; additive=TRUE; refcountries=9; durationCorrection = 13;
-IgnoreOverCounting = TRUE;
-TranslateGroups = 5;
-#mixing
-useimputation=TRUE;
-threshyear = 2008; FinalGroups = 5; w_imemA = 0.1; w_imemB = 0.25; w_metaA = 0.1; w_metaB = 0.15; w_modelA = 0.8;w_modelB = 0.6
-
-
-CalcModel<-function(#META, MODEL, thr1=0.25, thr2=0.6, wimema=0.25,
-  direction,
-  #metadata
-  w1, w2, w3, w4, t1, t2, ItrustNordic, EtrustNordic,
-  #model
-  ncp, separated, additive, refcountries, durationCorrection,
-  IgnoreOverCounting,
-  UseQuantiles,
-  TranslateGroups,
-  #mixing
-  useimputation,
-  threshyear, FinalGroups, w_imemA, w_imemB , w_metaA , w_metaB , w_modelA ,w_modelB ){
-  
-  
-  RES<-get_undercounting(direction=direction,immi_meta_options=list(w1 = w1,
-                                                                    w2 = w2,
-                                                                    w3 = w3,
-                                                                    w4 = w4,
-                                                                    t1 = t1,
-                                                                    t2 = t2,
-                                                                    trustNordic = ItrustNordic),
-                         emi_meta_options=list(trustNordic = EtrustNordic),
-                         model_options = list(ncp=ncp,
-                                              useimputation=useimputation,
-                                              weighted=FALSE,
-                                              separated=separated,
-                                              additive=additive,
-                                              refcountries=refcountries,
-                                              durationCorrection = durationCorrection),
-                         model_classification_options = list(
-                           UserThresholds=NA,
-                           IgnoreOverCounting = IgnoreOverCounting,
-                           UseQuantiles = UseQuantiles,
-                           TranslateGroups = TranslateGroups
-                           
-                         ),
-                         mixing_options=list(
-                           threshyear = threshyear,
-                           FinalGroups = FinalGroups,
-                           w_imemA = w_imemA,
-                           w_imemB = w_imemB,
-                           w_metaA = w_metaA,
-                           w_metaB = w_metaB,
-                           w_modelA = w_modelA,
-                           w_modelB = w_modelB))
-  RES
-}
-
-################################################################################
-# if I add option to change the threshold they have to be reset on every change of reference country and other paprameters
-# RES$R.UserThresholds
-################################################################################
-
-plotModel<-function(RES, shownodat=TRUE) {
-  par(mar=c(4,3,1.5,8),oma=c(0,0,0,0))
-  LEVELS<-1:RES$model.groups
-  LEVELS<-format(round((LEVELS-1)/(RES$model.groups-1),2),digits=2, nsmall=2)
-  #LEVELS[1]<-paste(LEVELS[1],'(lowest)')
-  #LEVELS[RES$model.groups]<-paste(LEVELS[RES$model.groups],'(highest)')
-  if (shownodat) {
-    my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS, namat =  RES$NoData[rownames(RES$R.Score.Num),])
-  } else {
-    my2dplot(1-RES$R.Score.Num, LEVELS=LEVELS)
-  }
-}
-
-getDuration<-function(direction, country){
-  print(country)
-  if (direction=='I'){
-    res<-rbind(duration_immi_array[CountriesS,country,paste(sort(unique(NORDIC$year)))])
-    res[res==60]<-'P'
-    res<-data.frame(res,check.names = FALSE,stringsAsFactors = FALSE)
-  } else if (direction=='E'){
-    res<-rbind(duration_emi_array[country,CountriesS,paste(sort(unique(NORDIC$year)))])
-    res[res==60]<-'P'
-    res<-data.frame(res,check.names = FALSE,stringsAsFactors = FALSE)
-  }
-  res[rownames(res)!=country,]
-}
-
-getModel<-function(RES) { #to be xported as xlsx or rdata
-  
-  list(
-    #score = data.frame((1-RES$R.Score.Num)*(RES$model.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
-    score = data.frame((1-RES$R.Score.Num),check.names = FALSE, stringsAsFactors = FALSE), #RES$R.Score
-    nodata = data.frame(RES$NoData[rownames(RES$R.Score.Num),],check.names = FALSE, stringsAsFactors = FALSE),
-    logindex = data.frame(RES$R.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
-    logindexthresholds = data.frame('Threshold value'=unname(RES$R.UserThresholds), check.names = FALSE)
-  )
-}
-
-saveModel<-function(filename, RES){
-  print(filename)
-  RES<-getModel(RES)
-  openxlsx::write.xlsx(RES, filename, FALSE, FALSE, colNames = TRUE, rowNames=TRUE)
-  # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$logindex, file = filename, sheetName = 'log ratio', append = TRUE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$logindexthresholds, file = filename, sheetName = 'log ratio thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
-}
-
-
-plotCombined<-function(RES, shownodat=TRUE) {
-  par(mar=c(4,3,1.5,9.2),oma=c(0,0,0,0))
-  if (shownodat) {
-    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS, namat =  RES$NoData[rownames(RES$C.Score.Num),])
-  } else {
-    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS)
-  }
-}
-
-getCombined<-function(RES) {
-  list(score=data.frame(RES$C.Score,check.names = FALSE, stringsAsFactors = FALSE),
-       scorenum=data.frame((1-RES$C.Score.Num)*(RES$final.groups-1)+1,check.names = FALSE, stringsAsFactors = FALSE),
-       nodata=data.frame(RES$NoData,check.names = FALSE, stringsAsFactors = FALSE),
-       raw=data.frame(RES$C.RawScore,check.names = FALSE, stringsAsFactors = FALSE),
-       rawthresholds = data.frame('Threshold value'=unname(RES$C.UserThresholds), check.names = FALSE)
-  )
-}
-
-saveCombined<-function(filename, RES){
-  RES<-getCombined(RES)
-  openxlsx::write.xlsx(RES, filename, FALSE, FALSE, colNames = TRUE, rowNames=TRUE)
-  # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$scorenum, file = filename, sheetName = 'scorenum', append = TRUE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$raw, file = filename, sheetName = 'raw', append = TRUE, row.names = TRUE, col.names = TRUE)
-  # xlsx::write.xlsx(RES$rawthresholds, file = filename, sheetName = 'thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
-}
-
-
-
-pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FALSE, 
-                init.angle = if (clockwise) 90 else 0, density = NULL, angle = 45, 
-                col = NULL, border = NULL, lty = NULL, main = NULL, resize=1,...) 
+pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FALSE,
+                init.angle = if (clockwise) 90 else 0, density = NULL, angle = 45,
+                col = NULL, border = NULL, lty = NULL, main = NULL, resize=1,...)
 {
-  if (!is.numeric(x) || any(is.na(x) | x < 0)) 
+  if (!is.numeric(x) || any(is.na(x) | x < 0))
     stop("'x' values must be positive.")
-  if (is.null(labels)) 
+  if (is.null(labels))
     labels <- as.character(seq_along(x))
   else labels <- as.graphicsAnnot(labels)
   x <- c(0, cumsum(x)/sum(x))
@@ -261,7 +33,7 @@ pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FAL
   plot.new()
   pin <- par("pin")
   xlim <- ylim <- c(-1, 1)
-  if (pin[1L] > pin[2L]) 
+  if (pin[1L] > pin[2L])
     xlim <- (pin[1L]/pin[2L]) * xlim
   else ylim <- (pin[2L]/pin[1L]) * ylim
   xlim<-xlim*resize
@@ -269,21 +41,21 @@ pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FAL
   dev.hold()
   on.exit(dev.flush())
   plot.window(xlim, ylim, "", asp = 1)
-  if (is.null(col)) 
-    col <- if (is.null(density)) 
-      c("white", "lightblue", "mistyrose", "lightcyan", 
+  if (is.null(col))
+    col <- if (is.null(density))
+      c("white", "lightblue", "mistyrose", "lightcyan",
         "lavender", "cornsilk")
   else par("fg")
-  if (!is.null(col)) 
+  if (!is.null(col))
     col <- rep_len(col, nx)
-  if (!is.null(border)) 
+  if (!is.null(border))
     border <- rep_len(border, nx)
-  if (!is.null(lty)) 
+  if (!is.null(lty))
     lty <- rep_len(lty, nx)
   angle <- rep(angle, nx)
-  if (!is.null(density)) 
+  if (!is.null(density))
     density <- rep_len(density, nx)
-  twopi <- if (clockwise) 
+  twopi <- if (clockwise)
     -2 * pi
   else 2 * pi
   t2xy <- function(t) {
@@ -293,13 +65,13 @@ pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FAL
   for (i in 1L:nx) {
     n <- max(2, floor(edges * dx[i]))
     P <- t2xy(seq.int(x[i], x[i + 1], length.out = n))
-    polygon(c(P$x, 0), c(P$y, 0), density = density[i], angle = angle[i], 
+    polygon(c(P$x, 0), c(P$y, 0), density = density[i], angle = angle[i],
             border = border[i], col = col[i], lty = lty[i])
     P <- t2xy(mean(x[i + 0:1]))
     lab <- as.character(labels[i])
     if (!is.na(lab) && nzchar(lab)) {
       #lines(c(1, 1.05) * P$x, c(1, 1.05) * P$y)
-      text(1.1 * P$x, 1.1 * P$y, eval(substitute(expression(bold(d)),list(d=paste(labels[i])))), xpd = TRUE, 
+      text(1.1 * P$x, 1.1 * P$y, eval(substitute(expression(bold(d)),list(d=paste(labels[i])))), xpd = TRUE,
            adj = ifelse(P$x < 0, 1, 0), cex=1.8, ...)
     }
   }
@@ -307,7 +79,7 @@ pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FAL
   invisible(NULL)
 }
 
-mypie<-function(x1,y1,z1, 
+mypie<-function(x1,y1,z1,
                 x2,y2,z2,resize=1){
   options(bitmapType="cairo")
   Z1<-x1+y1+z1
@@ -323,7 +95,7 @@ mypie<-function(x1,y1,z1,
   pie2(c(x2,y2,z2),border=0,col=piecol,labels = labels2,edges=500,resize = resize)
   text(0,0,expression(bold(B)),cex=2.5)
   plot(1:2,1:2,type='n',axes=FALSE)
-  legend('left',legend=c('IMEM','Metadata','Model'),bty='o', 
+  legend('left',legend=c('IMEM','Metadata','Model'),bty='o',
          bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=2)
   #par(bg=bg)
 }
@@ -340,11 +112,11 @@ mypie2<-function(x1,y1,z1,w1,resize=1){
   pie2(c(x1,y1,z1,w1),border=0,col=piecol,labels = labels1,edges=500,resize = resize)
   plot(1:2,1:2,type='n',axes=FALSE)
   legend('left',legend=c('Obligation of registration','Obligation of registration third country nationals',
-                         'Monitoring third country nationals', 'Administrative corrections'),bty='o', 
+                         'Monitoring third country nationals', 'Administrative corrections'),bty='o',
          bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=1.8)
   #par(bg=bg)
 }
-mypie2(0.1,0.2,0.52,0.2,0.85)
+#mypie2(0.1,0.2,0.52,0.2,0.85)
 # d=1:3
 # mypie(0.1,0.2,0.52,0.2,0.2,0.52,0.85)
 # text(1.5,1,eval(substitute(expression(bold(d)),list(d='5'))),cex=2)
@@ -359,11 +131,11 @@ thr2 <- 0.5
 # wmetab <- 0.15
 # wmodela <- 1
 # wmodelb <- 1
-# 
+#
 # 100*wimema/(wimema+wmetaa+wmodela) # 15%
 # 100*wmetaa/(wimema+wmetaa+wmodela) # 10%
 # 100*wmodela/(wimema+wmetaa+wmodela) # 75%
-# 
+#
 # 100*wimemb/(wimemb+wmetab+wmodelb) # 20%
 # 100*wmetab/(wimema+wmetab+wmodelb) # 10%
 # 100*wmodelb/(wimema+wmetab+wmodelb) # 70%
@@ -391,7 +163,7 @@ MWt4 <- 0.3
 # MWt2/(MWt1+MWt2+MWt3+MWt4)
 # MWt3/(MWt1+MWt2+MWt3+MWt4)
 # MWt4/(MWt1+MWt2+MWt3+MWt4)
-# 
+#
 # MWt1 <- 0.4
 # MWt2 <- 0.2
 # MWt3 <- 0.2
@@ -430,18 +202,18 @@ BADGE<-'<a href="https://doi.org/10.5281/zenodo.6522783"><img src="https://zenod
 IniCntrSel<-c('AT','BG','FI','SK','IT','PL')
 
 shinyServer <-  function(input, output, session) {
-  
+
   observe_helpers(withMathJax = TRUE, help_dir = 'helpfiles')
-  
+
   ##################################################### E=1
-  
-  
+
+
   output$I3WBPlot <- renderPlot(mypie(input$I3wimemb,input$I3wmetab,input$I3wmodelb,input$I3wimema,input$I3wmetaa,input$I3wmodela))
-  
+
   output$E3WBPlot <- renderPlot(mypie(input$E3wimemb,input$E3wmetab,input$E3wmodelb,input$E3wimema,input$E3wmetaa,input$E3wmodela))
-  
+
   output$EMPlot <- renderPlot(mypie2(input$Emimetaw1,input$Emimetaw2,input$Emimetaw3,input$Emimetaw4))
-  
+
   observeEvent(input$EMrecalc, {
     SA <- input$Emimetaw1 + input$Emimetaw2 + input$Emimetaw3 + input$Emimetaw4
     updateSliderInput(session = session, inputId = "Emimetaw1", value = input$Emimetaw1/SA)
@@ -449,162 +221,162 @@ shinyServer <-  function(input, output, session) {
     updateSliderInput(session = session, inputId = "Emimetaw3", value = input$Emimetaw3/SA)
     updateSliderInput(session = session, inputId = "Emimetaw4", value = input$Emimetaw4/SA)
   })
-  
+
   observeEvent(input$I3recalca, {
     SA <- input$I3wimema + input$I3wmetaa + input$I3wmodela
     updateSliderInput(session = session, inputId = "I3wimema", value = input$I3wimema/SA)
     updateSliderInput(session = session, inputId = "I3wmetaa", value = input$I3wmetaa/SA)
     updateSliderInput(session = session, inputId = "I3wmodela", value = input$I3wmodela/SA)
   })
-  
+
   observeEvent(input$E3recalcb, {
     SB <- input$E3wimemb + input$E3wmetab + input$E3wmodelb
     updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
     updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
   })
-  
+
   observeEvent(input$I3recalcb, {
     SB <- input$I3wimemb + input$I3wmetab + input$I3wmodelb
     updateSliderInput(session = session, inputId = "I3wimemb", value = input$I3wimemb/SB)
     updateSliderInput(session = session, inputId = "I3wmetab", value = input$I3wmetab/SB)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = input$I3wmodelb/SB)
   })
-  
+
   observeEvent(input$E3recalca, {
     SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
     updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
     updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
   })
-  
-  
+
+
   ##################################################### Clonning
-  
+
   observeEvent(input$E3clonea,{
     updateSliderInput(session = session, inputId = "E3wimema", value = input$I3wimema)
     updateSliderInput(session = session, inputId = "E3wmetaa", value = input$I3wmetaa)
     updateSliderInput(session = session, inputId = "E3wmodela", value = input$I3wmodela)
   })
-  
+
   observeEvent(input$E3cloneb,{
     updateSliderInput(session = session, inputId = "E3wimemb", value = input$I3wimemb)
     updateSliderInput(session = session, inputId = "E3wmetab", value = input$I3wmetab)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = input$I3wmodelb)
   })
-  
+
   observeEvent(input$I3cloneb,{
     updateSliderInput(session = session, inputId = "I3wimemb", value = input$E3wimemb)
     updateSliderInput(session = session, inputId = "I3wmetab", value = input$E3wmetab)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = input$E3wmodelb)
   })
-  
+
   observeEvent(input$I3clonea,{
     updateSliderInput(session = session, inputId = "I3wimema", value = input$E3wimema)
     updateSliderInput(session = session, inputId = "I3wmetaa", value = input$E3wmetaa)
     updateSliderInput(session = session, inputId = "I3wmodela", value = input$E3wmodela)
   })
-  
-  
+
+
   ###############################
-  
-  
+
+
   observeEvent(input$Emimetat2,  {
     updateSliderInput(session = session, inputId = "Emimetat1", max = input$Emimetat2)
   })
-  
+
   observeEvent(input$Emimetat1,  {
     updateSliderInput(session = session, inputId = "Emimetat2", min = input$Emimetat1)
   })
-  
+
   observeEvent(input$EMweightsreset, {
     updateSliderInput(session = session, inputId = "Emimetaw1", value = MWt1)
     updateSliderInput(session = session, inputId = "Emimetaw2", value = MWt2)
     updateSliderInput(session = session, inputId = "Emimetaw3", value = MWt3)
     updateSliderInput(session = session, inputId = "Emimetaw4", value = MWt4)
   })
-  
+
   observeEvent(input$EMthreshreset, {
     updateSliderInput(session = session, inputId = "Emimetat1", value = MThr1)
     updateSliderInput(session = session, inputId = "Emimetat2", value = MThr2)
   })
-  
+
   #####################
-  
+
   observeEvent(input$Iall,{
     updateCheckboxGroupInput(session = session, inputId = "Icountry", selected = CountriesS )
   })
-  
+
   observeEvent(input$Inone,{
     updateCheckboxGroupInput(session = session, inputId = "Icountry", selected = '' )
   })
-  
+
   observeEvent(input$Eall,{
     updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = CountriesS )
   })
-  
+
   observeEvent(input$Enone,{
     updateCheckboxGroupInput(session = session, inputId = "Ecountry", selected = '' )
   })
-  
+
   ######################
-  
+
   observeEvent(input$I3weightsresetb, {
     updateSliderInput(session = session, inputId = "I3wimemb", value = wimemb)
     updateSliderInput(session = session, inputId = "I3wmetab", value = wmetab)
     updateSliderInput(session = session, inputId = "I3wmodelb", value = wmodelb)
   })
-  
+
   observeEvent(input$I3weightsreseta, {
     updateSliderInput(session = session, inputId = "I3wimema", value = wimema)
     updateSliderInput(session = session, inputId = "I3wmetaa", value = wmetaa)
     updateSliderInput(session = session, inputId = "I3wmodela", value = wmodela)
   })
-  
-  
+
+
   observeEvent(input$I3threshreset, {
     updateSliderInput(session = session, inputId = "I3t1", value = thr1)
     updateSliderInput(session = session, inputId = "I3t2", value = thr2)
   })
-  
-  
+
+
   observeEvent(input$E3weightsreseta, {
     updateSliderInput(session = session, inputId = "E3wimema", value = wimema)
     updateSliderInput(session = session, inputId = "E3wmetaa", value = wmetaa)
     updateSliderInput(session = session, inputId = "E3wmodela", value = wmodela)
   })
-  
+
   observeEvent(input$E3weightsresetb, {
     updateSliderInput(session = session, inputId = "E3wimemb", value = wimemb)
     updateSliderInput(session = session, inputId = "E3wmetab", value = wmetab)
     updateSliderInput(session = session, inputId = "E3wmodelb", value = wmodelb)
   })
-  
+
   observeEvent(input$E3threshreset, {
     updateSliderInput(session = session, inputId = "E3t1", value = thr1)
     updateSliderInput(session = session, inputId = "E3t2", value = thr2)
   })
-  
-    
-  
+
+
+
   ######################
   ImmiMetaScores<-reactive({
     Recalc_Meta_Reg(Meta_Reg, input$nordicimmi)
   })
-  
+
   EmiMetaScores<-reactive({
     Recalc_Meta_DeReg(Meta_DeReg, input$Emimetaw1, input$Emimetaw2, input$Emimetaw3, input$Emimetaw4,
                       input$Emimetat1, input$Emimetat2, input$nordicemi)
   })
-  
+
   output$table1<-renderDT({
     ImmiMetaScores()
   })
-  
+
   output$table2<-renderDT({
     EmiMetaScores()
   })
-  
+
   output$downloadIMData<- downloadHandler(
     filename = function() {
       paste('Immi_Meta_Scores', '.csv', sep='') },
@@ -612,7 +384,7 @@ shinyServer <-  function(input, output, session) {
       write.csv(DT2DF(ImmiMetaScores()), file,row.names = FALSE)
     }
   )
-  
+
   output$downloadEMData<- downloadHandler(
     filename = function() {
       paste('Emi_Meta_Scores', '.csv', sep='') },
@@ -620,25 +392,25 @@ shinyServer <-  function(input, output, session) {
       write.csv(DT2DF(EmiMetaScores()), file,row.names = FALSE)
     }
   )
-  
+
   ###################
-  
+
   observeEvent(input$Iraymer,{
     if(as.numeric(input$Iraymer)<5) {
-      updateSelectInput(session = session, inputId = "Irefcountry", selected = 9) 
+      updateSelectInput(session = session, inputId = "Irefcountry", selected = 9)
     } else {
-      updateSelectInput(session = session, inputId = "Irefcountry", selected = as.numeric(input$Iraymer)-4) 
+      updateSelectInput(session = session, inputId = "Irefcountry", selected = as.numeric(input$Iraymer)-4)
     }
   })
-  
+
   observeEvent(input$Eraymer,{
     if(as.numeric(input$Eraymer)<5) {
-      updateSelectInput(session = session, inputId = "Erefcountry", selected = 9) 
+      updateSelectInput(session = session, inputId = "Erefcountry", selected = 9)
     } else {
-      updateSelectInput(session = session, inputId = "Erefcountry", selected = as.numeric(input$Eraymer)-4) 
+      updateSelectInput(session = session, inputId = "Erefcountry", selected = as.numeric(input$Eraymer)-4)
     }
   })
-  
+
   output$Isaveplot<- downloadHandler(
     filename = function() {
       paste('Immi_Undercounting_Ratio.', input$Iformat, sep='') },
@@ -665,7 +437,7 @@ shinyServer <-  function(input, output, session) {
       dev.off()
     }
   )
-  
+
   output$Esaveplot<- downloadHandler(
     filename = function() {
       paste('Emi_Undercounting_Ratio.', input$Eformat, sep='') },
@@ -689,12 +461,12 @@ shinyServer <-  function(input, output, session) {
                      additive = input$Eadditive,
                      separated = input$Eseparated,
                      ncp=input$Encp)
-      
+
       dev.off()
     }
   )
-  
-  
+
+
   output$ImiPlot <- renderPlot({
     plot_ui_result('I',
                    country=input$Icountry,
@@ -709,7 +481,7 @@ shinyServer <-  function(input, output, session) {
                    ncp=input$Incp
     )
   })
-  
+
   output$EmiPlot <- renderPlot({
     plot_ui_result('E',
                    country=input$Ecountry,
@@ -724,32 +496,32 @@ shinyServer <-  function(input, output, session) {
                    ncp=input$Encp
     )
   })
-  
-  
+
+
   CORRITAB<-reactive({
     get_correction('I', input$Iraymer, input$Iadditive, input$Iseparated)
   })
-  
+
   CORRETAB<-reactive({
     get_correction('E', input$Eraymer, input$Eadditive, input$Eseparated)
   })
-  
+
   output$corrItab <- renderTable({
-    CORRITAB()}, 
-    bordered = TRUE,  
-    spacing = 'xs',  
-    width = '100%', 
+    CORRITAB()},
+    bordered = TRUE,
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
-  )  
-  
+  )
+
   output$corrEtab <- renderTable({
-    CORRETAB()}, 
-    bordered = TRUE,  
-    spacing = 'xs',  
-    width = '100%', 
+    CORRETAB()},
+    bordered = TRUE,
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
-  )  
-  
+  )
+
   RESI<-reactive({
     CalcModel(direction='I',
               w1=input$Imimetaw1, w2=input$Imimetaw2,
@@ -757,7 +529,7 @@ shinyServer <-  function(input, output, session) {
               t1=input$Imimetat1, t2=input$Imimetat2,
               ItrustNordic = input$nordicemi,
               EtrustNordic = input$nordicimmi,
-              
+
               additive = input$Iadditive,
               separated = input$Iseparated,
               ncp = input$Incp,
@@ -777,7 +549,7 @@ shinyServer <-  function(input, output, session) {
               w_modelA = input$I3wmodela,
               w_modelB = input$I3wmodelb)#, mirror=input$I3mirror,"I")
   })
-  
+
   RESE<-reactive({
     CalcModel(direction='E',
               w1=input$Emimetaw1, w2=input$Emimetaw2,
@@ -785,7 +557,7 @@ shinyServer <-  function(input, output, session) {
               t1=input$Emimetat1, t2=input$Emimetat2,
               ItrustNordic = input$nordicemi,
               EtrustNordic = input$nordicimmi,
-              
+
               additive = input$Eadditive,
               separated = input$Eseparated,
               ncp = input$Encp,
@@ -797,7 +569,7 @@ shinyServer <-  function(input, output, session) {
               threshyear = input$EYear,
               FinalGroups = input$EFinalGroups,
               useimputation = input$Eimputations,
-              
+
               w_imemA = input$E3wimema,
               w_imemB = input$E3wimemb,
               w_metaA = input$E3wmetaa,
@@ -805,125 +577,125 @@ shinyServer <-  function(input, output, session) {
               w_modelA = input$E3wmodela,
               w_modelB = input$E3wmodelb)
   })
-  
-  
+
+
   output$Ilogratios <- renderTable({
-    getModel(RESI())$logindex}, 
-    bordered = TRUE,  
+    getModel(RESI())$logindex},
+    bordered = TRUE,
     rownames = TRUE,
     striped=TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
-  )  
-  
+  )
+
   output$Elogratios <- renderTable({
-    getModel(RESE())$logindex}, 
-    bordered = TRUE,  
+    getModel(RESE())$logindex},
+    bordered = TRUE,
     rownames = TRUE,
     striped= TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
-  )  
-  
-  
+  )
+
+
   output$IlogratiosThresholds <- renderTable({
-    getModel(RESI())$logindexthresholds}, 
-    bordered = TRUE,  
+    getModel(RESI())$logindexthresholds},
+    bordered = TRUE,
     rownames = TRUE,
     striped = TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   DURI<-reactive({getDuration('I',input$IdurationCountries)})
-    
+
   output$Iduration <- renderTable({
-    DURI()}, 
+    DURI()},
     digits=0,
     #hover=TRUE,
     striped=TRUE,
-    bordered = TRUE,  
+    bordered = TRUE,
     rownames = TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   DURE<-reactive({getDuration('E',input$EdurationCountries)})
-  
+
   output$Eduration <- renderTable({
-    DURE()}, 
+    DURE()},
     digits=0,
     #hover=TRUE,
     striped=TRUE,
-    bordered = TRUE,  
+    bordered = TRUE,
     rownames = TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   output$ElogratiosThresholds <- renderTable({
-    getModel(RESE())$logindexthresholds}, 
-    bordered = TRUE,  
+    getModel(RESE())$logindexthresholds},
+    bordered = TRUE,
     rownames = TRUE,
     Striped= TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   output$IscoresThresholds <- renderTable({
-    getCombined(RESI())$rawthresholds}, 
-    bordered = TRUE,  
+    getCombined(RESI())$rawthresholds},
+    bordered = TRUE,
     rownames = TRUE,
     striped=TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   output$EscoresThresholds <- renderTable({
-    getCombined(RESE())$rawthresholds}, 
-    bordered = TRUE,  
+    getCombined(RESE())$rawthresholds},
+    bordered = TRUE,
     rownames = TRUE,
     striped=TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   output$Iscores <- renderTable({
-    getCombined(RESI())$raw}, 
-    bordered = TRUE,  
+    getCombined(RESI())$raw},
+    bordered = TRUE,
     rownames = TRUE,
     striped=TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   output$Escores <- renderTable({
-    getCombined(RESE())$raw}, 
-    bordered = TRUE,  
+    getCombined(RESE())$raw},
+    bordered = TRUE,
     rownames = TRUE,
     striped=TRUE,
-    spacing = 'xs',  
-    width = '100%', 
+    spacing = 'xs',
+    width = '100%',
     align = 'c'
   )
-  
+
   output$ImiPlotB <- renderPlot({
     plotModel(RESI(), shownodat=input$INoData)
-  })  
-  
+  })
+
   output$EmiPlotB <- renderPlot({
     plotModel(RESE(), shownodat=input$ENoData)
-  })  
-  
+  })
+
   output$IsaveplotB<- downloadHandler(
     filename = function() {
       paste('Immi_Model_Scores.', input$IformatB, sep='') },
@@ -940,7 +712,7 @@ shinyServer <-  function(input, output, session) {
       dev.off()
     }
   )
-  
+
   output$EsaveplotB<- downloadHandler(
     filename = function() {
       paste('Emi_Model_Scores.', input$EformatB, sep='') },
@@ -957,8 +729,8 @@ shinyServer <-  function(input, output, session) {
       dev.off()
     }
   )
-  
-  
+
+
   output$IsavedataB<- downloadHandler(
     filename = function() {
       paste('Immi_Model_Scores', '.xlsx', sep='') },
@@ -967,7 +739,7 @@ shinyServer <-  function(input, output, session) {
       saveModel(filenamer, RESI() )
     }
   )
-  
+
   output$EsavedataB<- downloadHandler(
     filename = function() {
       paste('Emi_Model_Scores', '.xlsx', sep='') },
@@ -976,18 +748,18 @@ shinyServer <-  function(input, output, session) {
       saveModel(filenamer, RESE() )
     }
   )
-  
-  
+
+
   #############################
-  
+
   output$ImiPlot2 <- renderPlot({
     plotCombined(RESI(), shownodat=input$INoData2)
-  })  
-  
+  })
+
   output$EmiPlot2 <- renderPlot({
     plotCombined(RESE(), shownodat=input$ENoData2)
-  })  
-  
+  })
+
   output$Isaveplot2<- downloadHandler(
     filename = function() {
       paste('Immi_Combined_Scores.', input$Iformat2, sep='') },
@@ -1004,7 +776,7 @@ shinyServer <-  function(input, output, session) {
       dev.off()
     }
   )
-  
+
   output$Esaveplot2<- downloadHandler(
     filename = function() {
       paste('Emi_Combined_Scores.', input$Eformat2, sep='') },
@@ -1021,7 +793,7 @@ shinyServer <-  function(input, output, session) {
       dev.off()
     }
   )
-  
+
   output$Isavedata2<- downloadHandler(
     filename = function() {
       paste('Immi_Combined_Scores', '.xlsx', sep='') },
@@ -1030,7 +802,7 @@ shinyServer <-  function(input, output, session) {
       saveCombined(filenamer, RESI() )
     }
   )
-  
+
   output$Esavedata2<- downloadHandler(
     filename = function() {
       paste('Emi_Combined_Scores', '.xlsx', sep='') },
@@ -1039,39 +811,39 @@ shinyServer <-  function(input, output, session) {
       saveCombined(filenamer, RESE() )
     }
   )
-  
-  
+
+
   output$I2yearshowA <- renderUI({
     yrange <- paste('Mixing weights before ',input$IYear,' (<b>A</b>)',sep='')
     h4(HTML(yrange))
   })
-  
+
   output$E2yearshowA <- renderUI({
     yrange <- paste('Mixing weights before ',input$EYear,' (<b>A</b>)',sep='')
     h4(HTML(yrange))
   })
-  
-  
+
+
   output$I2yearshowB <- renderUI({
     yrange <- paste('Mixing weights from ',input$IYear,' on (<b>B</b>)',sep='')
     h4(HTML(yrange))
   })
-  
+
   output$E2yearshowB <- renderUI({
     yrange <- paste('Mixing weights from ',input$EYear,' on (<b>B</b>)',sep='')
     h4(HTML(yrange))
   })
-  
+
   output$I2yearshowC <- renderUI({
     yrange <- paste('(<b>A</b>) - before ',input$IYear,', (<b>B</b>) - from ',input$IYear,' on',sep='')
     h4(HTML(yrange))
   })
-  
+
   output$E2yearshowC <- renderUI({
     yrange <- paste('(<b>A</b>) - before ',input$EYear,', (<b>B</b>) - from ',input$EYear,' on',sep='')
     h4(HTML(yrange))
   })
-  
+
   output$downloadBIB<- downloadHandler(
     filename = function() {
       paste('UndercountMigScores', '.bib', sep='') },
@@ -1084,7 +856,7 @@ shinyServer <-  function(input, output, session) {
       close(con2)
     }
   )
-  
+
 }
 
 colabout="#A9DFBF"
@@ -1101,7 +873,7 @@ shinyUI <- fluidPage(
            tags$head(tags$style("h4 {margin-top:0px;}", media="screen", type="text/css")),
            tags$head(tags$style("img {border:1px; border-color: #D5D5D5; border-style: solid;}", media="screen", type="text/css")),
            tags$head(tags$style(".well {border:2px; border-color: #D5D5D5; border-style: solid; padding-bottom: 5px; background-color: #F5F5F5;}", media="screen", type="text/css")),
-           
+
            tags$style(HTML(paste("
                           .tabbable > .nav > li > a {background-color: aqua;  color:black; border-width: medium}
                           .tabbable > .nav > li > a[data-value='",PanelNames[1],"'] {background-color: ",colabout,"; color:",coltxt,"}
@@ -1119,7 +891,7 @@ shinyUI <- fluidPage(
                                  ";border-color:#775544; text-shadow: 0.7px 0.7px ",colsel,"}",sep=''))),
            br(),
            tabsetPanel(type='tabs',
-                       tabPanel(title = PanelNames[1], 
+                       tabPanel(title = PanelNames[1],
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML(BADGE)),
@@ -1134,7 +906,7 @@ shinyUI <- fluidPage(
                                        h4('Max Planck Institute for Demographic Research'),
                                        h4('Rostock, Germany'),
                                        #h4('2021-2022'),
-                                       
+
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
                                        h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2022)<br>
@@ -1152,7 +924,7 @@ shinyUI <- fluidPage(
                        tabPanel(title = PanelNames[2],
                                 br(), br(),
                                 sidebarPanel(fluid=FALSE,
-                                             
+
                                              h3("Missing metadata options"),
                                              helper(checkboxInput("nordicimmi", "Trust Nordic countries", value = TrustNordic),
                                                     colour='#FF0000',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
@@ -1172,7 +944,7 @@ shinyUI <- fluidPage(
                                              br(),
                                              DTOutput('table1'),
                                              tags$head(tags$style("#table1 table th {background-color: #CCBBFF; border-width:1px;}", media="screen", type="text/css")),
-                                             
+
                                              br(), br()
                                 ),
                                 sidebarPanel(width=12,
@@ -1197,18 +969,18 @@ shinyUI <- fluidPage(
                                              helper(tags$span(' '),
                                                     colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
                                                     content='<b>Reset</b> - restores default values, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
-                                             
+
                                              actionButton("EMweightsreset", "Reset"),
-                                             actionButton("EMrecalc", HTML("&#8721 weights = 1")),                                  
+                                             actionButton("EMrecalc", HTML("&#8721 weights = 1")),
                                              tags$hr(style="border-color: black;"),
-                                             
+
                                              h3("Missing metadata options"),
                                              div(id='ZZ2',helper(checkboxInput("nordicemi", 'Trust Nordic countries', value = TrustNordic),
                                                                  colour='#FF0000',type='inline',title='Trust Nordic countries',buttonLabel = 'Close',
                                                                  content=c('The <b>Trust Nordic countries</b> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.',
                                                                            '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).'))),
                                              tags$head(tags$style("#ZZ2 .checkbox {margin-bottom: 15px;}", media="screen", type="text/css")),
-                                             
+
                                 ),
                                 sidebarPanel(width=6,
                                              h3('Normalized weights'),
@@ -1226,12 +998,12 @@ shinyUI <- fluidPage(
                                 ),
                                 sidebarPanel(width=12,
                                              h3(HTML('Emigration undercounting related metadata, expert opinions (IMEM), and their classification.')),
-                                             
+
                                              downloadButton("downloadEMData", "Download table"),
                                              br(),
                                              DTOutput('table2'),
                                              tags$head(tags$style("#table2 table th {background-color: #CCBBFF; border-width:1px;}", media="screen", type="text/css")),
-                                             
+
                                              br(), br()
                                 ),
                                 sidebarPanel(width=12,
@@ -1252,13 +1024,13 @@ shinyUI <- fluidPage(
                                 sidebarPanel(
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
                                          content='BilateralModel',size='l'),
-                                  
+
                                   tags$hr(style="border-color: black;"),
-                                  
+
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('BilateralModel')),
-                                  
+
                                   selectInput("Iraymer", label = NULL,
                                               choices = list(
                                                 'Uncorrected' = 0,
@@ -1282,15 +1054,15 @@ shinyUI <- fluidPage(
                                                 'Optimization: Nordic Coutries +AT+BE+CH+DE+FR+IE+NL+UK'=18,
                                                 'Optimization: All countries'=19),
                                               selected = 13),
-                                  
+
                                   tableOutput('corrItab'),
                                   tags$head(tags$style("#corrItab table {background-color: white; }", media="screen", type="text/css")),
                                   tags$head(tags$style("#corrItab table th {background-color: #CCBBFF; }", media="screen", type="text/css")),
-                                  
+
                                   conditionalPanel(condition = "input.Iraymer > 4",
                                                    checkboxInput("Iseparated", "Use duration corrrection parameters calculated separately for immigration", value = FALSE),
                                                    checkboxInput("Iadditive", "Use additive optimization criteria (otherwise multiplicative)", value = TRUE),
-                                  ),                 
+                                  ),
                                                    tags$hr(style="border-color: black;"),
                                                    helper(selectInput("Irefcountry", h4("Reference group of countries"),
                                                                       choices = list('Nordic countries (without IS)'=1,'Nordic countries'=2,'Nordic countries+BE'=3,'Nordic countries+CH'=4,'Nordic countries+NL'=5,
@@ -1301,8 +1073,8 @@ shinyUI <- fluidPage(
                                                                       selected = RefCntrSel),
                                                           colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                                           content=c('Please set the "Duration of stay correction" first before setting this parameter.','','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "General model options" for more information about the bilateral flows ratio model.')),
-                                                   
-                                  
+
+
                                   tags$hr(style="border-color: black;"),
                                   h4('Imputations of missing values'),
                                   helper(checkboxInput("Iimputations", "Use PCA imputations", value = TRUE),
@@ -1314,7 +1086,7 @@ shinyUI <- fluidPage(
                                                           content='From imputePCA {missMDA package}: "integer corresponding to the number of components used to to predict the missing entries".')),
                                 ),
                                 sidebarPanel(width=8,
-                                             
+
                                              h3(HTML('Classification options')),
                                              tags$hr(style="border-color: black;"),
                                              column(width=5,
@@ -1323,9 +1095,9 @@ shinyUI <- fluidPage(
                                                            content=HTML('When this option is set, log<sub>10</sub> bilateral flows ratios are classified using quantile based thresholds (default), otherwise evenly spaced thresholds are used.')),
                                                     helper(checkboxInput("IIgnoreOverCounting", "Ignore over-counting", value = TRUE),
                                                            colour='#FF0000',type='inline',title='Dealing with over-counting',buttonLabel = 'Close',
-                                                           content='When this option is set, the cases of over-counting (log <sub> 10 </sub> bilateral flow rates> 0) are combined with the class of the lowest under-counting, otherwise over-counting has its own class.')       
+                                                           content='When this option is set, the cases of over-counting (log <sub> 10 </sub> bilateral flow rates> 0) are combined with the class of the lowest under-counting, otherwise over-counting has its own class.')
                                              ),
-                                             
+
                                              column(width=7,
                                                     div(id='Izupa',
                                                         sliderInput(inputId = "ITranslateGroups", label = 'Model sensitivity (number of classes)', min = 2, max = 11, value = 5, step=1, sep=''))
@@ -1337,7 +1109,7 @@ shinyUI <- fluidPage(
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Ipanels",
-                                               label = NULL,#"Select the result panel", 
+                                               label = NULL,#"Select the result panel",
                                                justified= TRUE,
                                                width='100%',
                                                individual=FALSE,
@@ -1373,7 +1145,7 @@ shinyUI <- fluidPage(
                                                  )),
                                 conditionalPanel(condition = "input.Ipanels == 2",
                                                  sidebarPanel(width=8,
-                                                              
+
                                                               h3(HTML('Duration of stay by country of origin')),
                                                               selectInput("IdurationCountries", label = 'Select country of destination',
                                                                           choices = Countries),
@@ -1388,11 +1160,11 @@ shinyUI <- fluidPage(
                                                               #tags$head(tags$style("#Iduration table td:not(:last-child) {white-space: nowrap;}", media="screen", type="text/css")),
                                                               #tags$head(tags$style("#Iduration table td:last-child {width:100%;}", media="screen", type="text/css")),
 
-                                                                        
+
                                                  )),
                                 conditionalPanel(condition = "input.Ipanels == 3",
                                                  sidebarPanel(width=8,
-                                                              
+
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Ilogratios'),
                                                               tags$head(tags$style("#Ilogratios {border-width:1px;border-color:black;}", media="screen", type="text/css")),
@@ -1409,11 +1181,11 @@ shinyUI <- fluidPage(
                                                  sidebarPanel(width=8,
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "ImiPlotB", height="700px", width='100%'),
-                                                              
+
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
-                                                                         
+
                                                                          helper(checkboxInput("INoData", "Mark no data", value = TRUE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
                                                                                 content=c('Tick the cases where the calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.')
@@ -1421,7 +1193,7 @@ shinyUI <- fluidPage(
                                                                   ),
                                                                   column(3,h5(HTML('Image format')),selectInput("IformatB", NULL,
                                                                                                                 choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                                                  
+
                                                                   column(3,h5(HTML('&#160;')),downloadButton("IsaveplotB", "Save image")),
                                                                   column(3,h5(HTML('&#160;')),downloadButton("IsavedataB", "Save results as xlsx"))
                                                               ),
@@ -1434,13 +1206,13 @@ shinyUI <- fluidPage(
                                 sidebarPanel(
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
                                          content='BilateralModel',size='l'),
-                                  
+
                                   tags$hr(style="border-color: black;"),
-                                  
+
                                   helper(h4("Duration of stay correction"),
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('BilateralModel')),
-                                  
+
                                   selectInput("Eraymer", label = NULL,
                                               choices = list(
                                                 'Uncorrected' = 0,
@@ -1464,11 +1236,11 @@ shinyUI <- fluidPage(
                                                 'Optimization: Nordic Coutries +AT+BE+CH+DE+FR+IE+NL+UK'=18,
                                                 'Optimization: All countries'=19),
                                               selected = 13),
-                                  
+
                                   tableOutput('corrEtab'),
                                   tags$head(tags$style("#corrEtab table {background-color: white; }", media="screen", type="text/css")),
                                   tags$head(tags$style("#corrEtab table th {background-color: #CCBBFF; }", media="screen", type="text/css")),
-                                  
+
                                   conditionalPanel(condition = "input.Eraymer > 4",
                                                    checkboxInput("Eseparated", "Use duration corrrection parameters calculated separately for immigration", value = FALSE),
                                                    checkboxInput("Eadditive", "Use additive optimization criteria (otherwise multiplicative)", value = TRUE),
@@ -1484,8 +1256,8 @@ shinyUI <- fluidPage(
                                                           colour='#FF0000',type='inline',title='Reference group of countries',buttonLabel = 'Close',
                                                           content=c('Please set the "Duration of stay correction" first before setting this parameter.',
                                                                     '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).','',' See help (?) in "General model options" for more information about the bilateral flows ratio model.')),
-                                                   
-                                  
+
+
                                   tags$hr(style="border-color: black;"),
                                   h4('Imputations of missing values'),
                                   helper(checkboxInput("Eimputations", "Use PCA imputations", value = TRUE),
@@ -1497,17 +1269,17 @@ shinyUI <- fluidPage(
                                                           content='From imputePCA {missMDA package}: "integer corresponding to the number of components used to to predict the missing entries".')),
                                 ),
                                 sidebarPanel(width=8,
-                                             
+
                                              h3(HTML('Classification options')),
                                              tags$hr(style="border-color: black;"),
-                                             
+
                                              column(width=5,
                                                     helper(checkboxInput("EUseQuantiles", "Classification based on quantiles", value = TRUE),
                                                            colour='#FF0000',type='inline',title='Type of classification',buttonLabel = 'Close',
                                                            content=HTML('When this option is set, log<sub>10</sub> bilateral flows ratios are classified using quantile based thresholds (default), otherwise evenly spaced thresholds are used.')),
                                                     helper(checkboxInput("EIgnoreOverCounting", "Ignore over-counting", value = TRUE),
                                                            colour='#FF0000',type='inline',title='Dealing with over-counting',buttonLabel = 'Close',
-                                                           content='When this option is set, the cases of over-counting (log <sub> 10 </sub> bilateral flow rates> 0) are combined with the class of the lowest under-counting, otherwise over-counting has its own class.')       
+                                                           content='When this option is set, the cases of over-counting (log <sub> 10 </sub> bilateral flow rates> 0) are combined with the class of the lowest under-counting, otherwise over-counting has its own class.')
                                              ),
                                              column(width=7,
                                                     div(id='Ezupa',
@@ -1520,7 +1292,7 @@ shinyUI <- fluidPage(
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Epanels",
-                                               label = NULL,#"Select the result panel", 
+                                               label = NULL,#"Select the result panel",
                                                justified= TRUE,
                                                width='100%',
                                                individual=FALSE,
@@ -1556,7 +1328,7 @@ shinyUI <- fluidPage(
                                                  )),
                                 conditionalPanel(condition = "input.Epanels == 2",
                                                  sidebarPanel(width=8,
-                                                              
+
                                                               h3(HTML('Duration of stay by country of destination')),
                                                               selectInput("EdurationCountries", label = 'Select country of origin',
                                                                           choices = Countries),
@@ -1566,11 +1338,11 @@ shinyUI <- fluidPage(
                                                               tags$head(tags$style("#Eduration table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Eduration table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               #tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
-                                                              
+
                                                  )),
                                 conditionalPanel(condition = "input.Epanels == 3",
                                                  sidebarPanel(width=8,
-                                                              
+
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Elogratios'),
                                                               tags$head(tags$style("#Elogratios {border-width:4px;border-color:black;}", media="screen", type="text/css")),
@@ -1587,11 +1359,11 @@ shinyUI <- fluidPage(
                                                  sidebarPanel(width=8,
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "EmiPlotB", height="700px", width='100%'),
-                                                              
+
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
-                                                                         
+
                                                                          helper(checkboxInput("ENoData", "Mark no data", value = TRUE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
                                                                                 content=c('Tick the cases where the calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.')
@@ -1599,7 +1371,7 @@ shinyUI <- fluidPage(
                                                                   ),
                                                                   column(3,h5(HTML('Image format')),selectInput("EformatB", NULL,
                                                                                                                 choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                                                  
+
                                                                   column(3,h5(HTML('&#160;')),downloadButton("EsaveplotB", "Save image")),
                                                                   column(3,h5(HTML('&#160;')),downloadButton("EsavedataB", "Save results as xlsx"))
                                                               ),
@@ -1617,59 +1389,59 @@ shinyUI <- fluidPage(
                                     sliderInput(inputId = "IYear", label = 'Threshold year', min = 2003, max = 2018, value = 2008, step=1, sep=''),
                                     colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
                                     content='Expert opinion (IMEM) and metadata can be of greater importance to earlier years. <b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
-                                  
+
                                   tags$hr(style="border-color: black;"),
-                                  
+
                                   helper(uiOutput('I2yearshowA'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
                                   #tags$hr(style="border-color: black; border-top: dashed 1px"),
-                                  
+
                                   helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (A)", min = 0, max = 1, value = wimemb, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('A')),
-                                  
+
                                   helper(sliderInput(inputId = "I3wmetab", label = "Metadata score num (A)", min = 0, max = 1, value = wmetab, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content=METAwtxt),
-                                  
+
                                   helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (A)", min = 0, max = 1, value = wmodelb, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content=MODELwtxt),
-                                  
+
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
                                          content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
-                                  
+
                                   actionButton("I3weightsresetb", "Reset"),
                                   actionButton("I3cloneb", "Clone from (E)"),
                                   actionButton("I3recalcb", HTML("&#8721 weights = 1")),
-                                  
+
                                   tags$hr(style="border-color: black; border-top: dashed 1px"),
                                   helper(uiOutput('I2yearshowB'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
                                   #tags$hr(style="border-color: black; border-top: dashed 1px"),
-                                  
+
                                   helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (B)", min = 0, max = 1, value = wimema, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('B')),
-                                  
+
                                   helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (B)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content=METAwtxt),
-                                  
+
                                   helper(sliderInput(inputId = "I3wmodela", label = "Model score num (B)", min = 0, max = 1, value = wmodela, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content=MODELwtxt),
-                                  
+
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
                                          content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
-                                  
+
                                   actionButton("I3weightsreseta", "Reset"),
                                   actionButton("I3clonea", "Clone from (E)"),
-                                  actionButton("I3recalca", HTML("&#8721 weights = 1")),                                  
+                                  actionButton("I3recalca", HTML("&#8721 weights = 1")),
                                   br(),
                                   br(),
                                 ),
@@ -1685,7 +1457,7 @@ shinyUI <- fluidPage(
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Ipanels2",
-                                               label = NULL,#"Select the result panel", 
+                                               label = NULL,#"Select the result panel",
                                                justified= TRUE,
                                                width='100%',
                                                individual=FALSE,
@@ -1695,12 +1467,12 @@ shinyUI <- fluidPage(
                                              )),
                                 tags$head(tags$style("#Ipanels2 .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Ipanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
-                                
+
                                 sidebarPanel(width=8,
                                              conditionalPanel(condition ="input.Ipanels2 == 1",
                                                               h3('Normalized mixing weights'),
                                                               uiOutput('I2yearshowC'),
-                                                              plotOutput('I3WBPlot', height='200', width='100%'), 
+                                                              plotOutput('I3WBPlot', height='200', width='100%'),
                                                               br()
                                              ),
                                              conditionalPanel(condition ="input.Ipanels2 == 2",
@@ -1709,14 +1481,14 @@ shinyUI <- fluidPage(
                                                               tags$head(tags$style("#Iscores {border-width:4px;border-color:black;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Iscores table {font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Iscores table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
-                                                              
+
                                                               tags$head(tags$style("#Iscores table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
                                                               h3(HTML('Uniformly spaced thresholds used for classification.')),
                                                               tableOutput('IscoresThresholds'),
                                                               tags$head(tags$style("#IscoresThresholds table th {background-color: #CCBBFF; width:1px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#IscoresThresholds table {font-size: 13px; width:1px; align: center}", media="screen", type="text/css")),
-                                                              
+
                                                               br()
                                              ),
                                              conditionalPanel(condition ="input.Ipanels2 == 3",
@@ -1725,23 +1497,23 @@ shinyUI <- fluidPage(
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
-                                                                         
+
                                                                          helper(checkboxInput("INoData2", "Mark no data", value = FALSE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
                                                                                 content=c('This option refers to the modeled undercounting',
                                                                                           'If selected it ticks the cases where calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.'
                                                                                 )),
                                                                   ),
-                                                                  
+
                                                                   column(3,h5(HTML('Image format')),selectInput("Iformat2", NULL,
                                                                                                                 choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                                                  
+
                                                                   column(3,h5(HTML('&#160;')),downloadButton("Isaveplot2", "Save image")),
                                                                   column(3,h5(HTML('&#160;')),downloadButton("Isavedata2", "Save results as xlsx"))
                                                               ),
                                              ),
                                 ),
-                                
+
                                 mainPanel(br(),br(),br(),br(),br()),
                        ),
                        tabPanel(title = PanelNames[9],
@@ -1754,57 +1526,57 @@ shinyUI <- fluidPage(
                                     sliderInput(inputId = "EYear", label = 'Threshold year', min = 2003, max = 2018, value = 2008, step=1, sep=''),
                                     colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
                                     content='Expert opinion (IMEM) and metadata can be of greater importance to earlier years. <b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
-                                  
+
                                   tags$hr(style="border-color: black;"),
-                                  
+
                                   helper(uiOutput('E2yearshowA'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
-                                  
+
                                   helper(sliderInput(inputId = "E3wimemb", label = "IMEM score num (A)", min = 0, max = 1, value = wimemb, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('A')),
-                                  
+
                                   helper(sliderInput(inputId = "E3wmetab", label = "Metadata score num (A)", min = 0, max = 1, value = wmetab, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content=METAwtxt),
-                                  
+
                                   helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (A)", min = 0, max = 1, value = wmodelb, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
                                          content=MODELwtxt),
-                                  
+
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
                                          content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
-                                  
+
                                   actionButton("E3weightsresetb", "Reset"),
                                   actionButton("E3cloneb", "Clone from (E)"),
                                   actionButton("E3recalcb", HTML("&#8721 weights = 1")),
-                                  
+
                                   tags$hr(style="border-color: black; border-top: dashed 1px"),
                                   helper(uiOutput('E2yearshowB'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
-                                  
+
                                   helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (B)", min = 0, max = 1, value = wimema, step=Step),
                                          colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
                                          content=IMEMc('B')),
-                                  
+
                                   helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (B)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content=METAwtxt),
-                                  
+
                                   helper(sliderInput(inputId = "E3wmodela", label = "Model score num (B)", min = 0, max = 1, value = wmodela, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
                                          content=MODELwtxt),
-                                  
+
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
                                          content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
-                                  
+
                                   actionButton("E3weightsreseta", "Reset"),
                                   actionButton("E3clonea", "Clone from (I)"),
-                                  actionButton("E3recalca", HTML("&#8721 weights = 1")),                                  
+                                  actionButton("E3recalca", HTML("&#8721 weights = 1")),
                                   br(),
                                   br(),
                                 ),
@@ -1820,7 +1592,7 @@ shinyUI <- fluidPage(
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Epanels2",
-                                               label = NULL,#"Select the result panel", 
+                                               label = NULL,#"Select the result panel",
                                                justified= TRUE,
                                                width='100%',
                                                individual=FALSE,
@@ -1830,12 +1602,12 @@ shinyUI <- fluidPage(
                                              )),
                                 tags$head(tags$style("#Epanels2 .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Epanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
-                                
+
                                 sidebarPanel(width=8,
                                              conditionalPanel(condition ="input.Epanels2 == 1",
                                                               h3('Normalized mixing weights'),
                                                               uiOutput('E2yearshowC'),
-                                                              plotOutput('E3WBPlot', height='200', width='100%'), 
+                                                              plotOutput('E3WBPlot', height='200', width='100%'),
                                                               br()
                                              ),
                                              conditionalPanel(condition ="input.Epanels2 == 2",
@@ -1844,14 +1616,14 @@ shinyUI <- fluidPage(
                                                               tags$head(tags$style("#Escores {border-width:4px;border-color:black;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Escores table {font-size: 10px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#Escores table th {background-color: #CCBBFF;}", media="screen", type="text/css")),
-                                                              
+
                                                               tags$head(tags$style("#Escores table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               tags$hr(style="border-color: black;"),
                                                               h3(HTML('Uniformly spaced thresholds used for classification.')),
                                                               tableOutput('EscoresThresholds'),
                                                               tags$head(tags$style("#EscoresThresholds table th {background-color: #CCBBFF; width:1px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#EscoresThresholds table {font-size: 13px; width:1px; align: center}", media="screen", type="text/css")),
-                                                              
+
                                                               br()
                                              ),
                                              conditionalPanel(condition ="input.Epanels2 == 3",
@@ -1860,25 +1632,25 @@ shinyUI <- fluidPage(
                                                               div(style="display:inline-block;vertical-align:bottom;",
                                                                   column(3,
                                                                          h4(HTML('&#160;')),
-                                                                         
+
                                                                          helper(checkboxInput("ENoData2", "Mark no data", value = FALSE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
                                                                                 content=c('This option refers to the modeled undercounting',
                                                                                           'If selected it ticks the cases where calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.'
                                                                                 )),
                                                                   ),
-                                                                  
+
                                                                   column(3,h5(HTML('Image format')),selectInput("Eformat2", NULL,
                                                                                                                 choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                                                  
+
                                                                   column(3,h5(HTML('&#160;')),downloadButton("Esaveplot2", "Save image")),
                                                                   column(3,h5(HTML('&#160;')),downloadButton("Esavedata2", "Save results as xlsx"))
                                                               ),
                                              ),
                                 ),
-                                
+
                                 mainPanel(br(),br(),br(),br(),br()),
-                                
+
                        )
            )
     )
