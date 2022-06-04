@@ -196,7 +196,7 @@ IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.
 METAwtxt<-'Weight for the metadata <b>score num</b> obtained in <b>Immigration metadata</b> panel.'
 MODELwtxt<-'Weight for the model <b>score num</b> obtained in <b>Model classify???</b> page used to calculate <b>combined score num (A)</b>'
 
-version<-'0.7.4'
+version<-'0.7.5'
 DOI<-'10.5281/zenodo.6608939'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
 

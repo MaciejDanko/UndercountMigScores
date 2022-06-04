@@ -1,6 +1,6 @@
 <a href="https://doi.org/10.5281/zenodo.6608939"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6608939.svg" alt="DOI"></a>
 <div class="col-sm-12" align="center">
-  <h3>UndercountMigScores v0.7.4</h3>
+  <h3>UndercountMigScores v0.7.5</h3>
   <h4><a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/</a></h4>
   <br>
   <h4>Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat</h4>
@@ -11,11 +11,11 @@
   <h4>Max Planck Institute for Demographic Research</h4>
   <h4>Rostock, Germany</h4>
   <br>
-  <img src="https://github.com/MaciejDanko/UndercountMigScores/blob/master/www/qrcode.png?raw=true" alt='QRcode" width="100px">
+  <img src="https://github.com/MaciejDanko/UndercountMigScores/blob/master/www/qrcode.png?raw=true" alt='QRcode" width="100">
   <br>
   <h5>____________________________________________________________________________</h5>
   <h4>How to cite this software?</h4>
-  <h5>Maciej J. Dańko. UndercountMigScores v0.7.4. (2022)<br>
+  <h5>Maciej J. Dańko. UndercountMigScores v0.7.5. (2022)<br>
       Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat
       <br>10.5281/zenodo.6608939. url:https://github.com/MaciejDanko/UndercountMigScore'</h5>
   <h5>____________________________________________________________________________</h5>
