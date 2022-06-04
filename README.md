@@ -10,6 +10,9 @@
   <br>
   <h4>Max Planck Institute for Demographic Research</h4>
   <h4>Rostock, Germany</h4>
+  <br>
+  <img src="https://github.com/MaciejDanko/UndercountMigScores/blob/master/www/qrcode.png?raw=true" alt='QRcode" width="100px">
+  <br>
   <h5>____________________________________________________________________________</h5>
   <h4>How to cite this software?</h4>
   <h5>Maciej J. Dańko. UndercountMigScores v0.7.4. (2022)<br>

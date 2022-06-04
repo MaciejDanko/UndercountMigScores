@@ -856,9 +856,13 @@ shinyServer <-  function(input, output, session) {
       writeLines(z, con2)
       close(con)
       close(con2)
-    }
+    },
   )
 
+  output$img <- renderUI({
+    tags$img(src = "https://github.com/MaciejDanko/UndercountMigScores/blob/master/www/qrcode.png?raw=true",width='100px')
+  })
+  
 }
 
 colabout="#A9DFBF"
@@ -916,7 +920,8 @@ shinyUI <-  bootstrapPage(
                                        h4('Max Planck Institute for Demographic Research'),
                                        h4('Rostock, Germany'),
                                        #h4('2021-2022'),
-                                       img(src = "www/qrcode.png"),
+                                       #img(src = "https://github.com/MaciejDanko/UndercountMigScores/blob/master/www/qrcode.png"),
+                                      
                                        
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
@@ -929,7 +934,10 @@ shinyUI <-  bootstrapPage(
                                        h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "openxlsx", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyWidgets", "RColorBrewer", "shinyhelper"); remotes::install_github("rstudio/bslib")</span><br>')),
                                        h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computer<br>
                                        Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>')),
+                                       h5('____________________________________________________________________________'),
+                                       uiOutput('img'),
                                        br(),br(),br(),br()
+                                       
                                 )
                        ),
                        tabPanel(title = PanelNames[2],
@@ -1076,7 +1084,7 @@ shinyUI <-  bootstrapPage(
                        tabPanel(title = PanelNames[4],
                                 br(),
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:410px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:410px',
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
@@ -1274,7 +1282,7 @@ shinyUI <-  bootstrapPage(
                                 br(),#br(),
                                 #sidebarPanel(
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:200px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
@@ -1473,7 +1481,7 @@ shinyUI <-  bootstrapPage(
                                 #             
                                 #sidebarPanel(
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:200px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
                                         div(class='well', style="margin-bottom:15px;",
                                   h3('Mixing options'),
                                   tags$hr(style="border-color: black;"),
@@ -1619,8 +1627,11 @@ shinyUI <-  bootstrapPage(
                                 mainPanel(br(),br(),br(),br(),br()),
                        ),
                        tabPanel(title = PanelNames[9],
-                                br(), br(),
-                                sidebarPanel(
+                                br(), #br(),
+                                div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                        div(class='well', style="margin-bottom:15px;",
+                                            
                                   h3('Mixing options'),
                                   tags$hr(style="border-color: black;"),
                                   h4('Mixing threshold'),
@@ -1681,16 +1692,20 @@ shinyUI <-  bootstrapPage(
                                   actionButton("E3recalca", HTML("&#8721 weights = 1")),
                                   br(),
                                   br(),
-                                ),
-                                sidebarPanel(width=8,
+                                )),
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              h3('Classification options'),
                                              tags$hr(style="border-color: black;"),
                                              helper(sliderInput(inputId = "EFinalGroups", label = 'Number of undercounting classes', min = 2, max = 7, value = 5, step=1, sep=''),
                                                     colour='#FF0000',type='inline',title='Number of undercounting classes',buttonLabel = 'Close',
                                                     content='Undercounting is categorized according to uniformly spaced thresholds. See <b>Mean weighted scores</b> panel below.'
                                              ),
-                                ),
-                                sidebarPanel(width=8,
+                                )),
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Epanels2",
@@ -1701,11 +1716,13 @@ shinyUI <-  bootstrapPage(
                                                choiceNames = c("Normalized mixing weights", "Mean weighted scores","Classification of undercounting"),
                                                choiceValues = 1:3,
                                                status = "danger"
-                                             )),
+                                             ))),
                                 tags$head(tags$style("#Epanels2 .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Epanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
 
-                                sidebarPanel(width=8,
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              conditionalPanel(condition ="input.Epanels2 == 1",
                                                               h3('Normalized mixing weights'),
                                                               uiOutput('E2yearshowC'),
@@ -1749,7 +1766,7 @@ shinyUI <-  bootstrapPage(
                                                                   column(3,h5(HTML('&#160;')),downloadButton("Esavedata2", "Save results as xlsx"))
                                                               ),
                                              ),
-                                ),
+                                ))),
 
                                 mainPanel(br(),br(),br(),br(),br()),
 
