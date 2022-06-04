@@ -13,6 +13,8 @@ library(magicaxis)
 library(data.table)
 library(countrycode)
 library(openxlsx)
+#remotes::install_github("rstudio/bslib")
+library(bslib)
 
 options(bitmapType="cairo")
 source('./code/UNDERCOUNTING_PKG_APP.R')
@@ -865,14 +867,21 @@ colemi="#FAD7A0"
 coltxt='black'
 colsel='#873600'
 
-shinyUI <- fluidPage(
+#shinyUI <- fluidPage(
+shinyUI <-  bootstrapPage(
+  tags$head(tags$style("body {min-width:100%; max-width: 100%}", media="screen", type="text/css")),
+  theme = bs_theme(version = 3),
   titlePanel(HTML('<span style="color:#000070;font-family:Serif,Georgia,Serif"><b>UndercountMigScores</b></span>'),'UndercountMigScores'),
-  fluidRow(
-    column(width = 9,
+  fluidRow(style='max-width:1800px; min-width:1300px',
+    column(width = 12,
            tags$head(tags$style("h3 {margin-top:0px;}", media="screen", type="text/css")),
            tags$head(tags$style("h4 {margin-top:0px;}", media="screen", type="text/css")),
            tags$head(tags$style("img {border:1px; border-color: #D5D5D5; border-style: solid;}", media="screen", type="text/css")),
-           tags$head(tags$style(".well {border:2px; border-color: #D5D5D5; border-style: solid; padding-bottom: 5px; background-color: #F5F5F5;}", media="screen", type="text/css")),
+           #tags$head(tags$style("tabbable {max-width:1800px; min-width:1100px}", media="screen", type="text/css")),
+           #tags$head(tags$style("nav {max-width:1800px; min-width:1100px}", media="screen", type="text/css")),
+           
+           #tags$head(tags$style(".well {border:2px; border-color: #D5D5D5; border-style: solid; 
+          #                      padding: 3px; background-color: #F5F5F5; margin:5px}", media="screen", type="text/css")), #margin-left: 10px; margin-bottom: 10px
 
            tags$style(HTML(paste("
                           .tabbable > .nav > li > a {background-color: aqua;  color:black; border-width: medium}
@@ -891,7 +900,8 @@ shinyUI <- fluidPage(
                                  ";border-color:#775544; text-shadow: 0.7px 0.7px ",colsel,"}",sep=''))),
            br(),
            tabsetPanel(type='tabs',
-                       tabPanel(title = PanelNames[1],
+                       
+                       tabPanel(title = PanelNames[1], style='max-width:1800px',
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML(BADGE)),
@@ -906,7 +916,8 @@ shinyUI <- fluidPage(
                                        h4('Max Planck Institute for Demographic Research'),
                                        h4('Rostock, Germany'),
                                        #h4('2021-2022'),
-
+                                       img(src = "www/qrcode.png"),
+                                       
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
                                        h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2022)<br>
@@ -915,16 +926,21 @@ shinyUI <- fluidPage(
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
                                        h5('____________________________________________________________________________'),
                                        h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),
-                                       h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "openxlsx", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyWidgets", "RColorBrewer", "shinyhelper")</span><br>')),
+                                       h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "openxlsx", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyWidgets", "RColorBrewer", "shinyhelper"); remotes::install_github("rstudio/bslib")</span><br>')),
                                        h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computer<br>
                                        Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>')),
                                        br(),br(),br(),br()
                                 )
                        ),
                        tabPanel(title = PanelNames[2],
-                                br(), br(),
-                                sidebarPanel(fluid=FALSE,
-
+                                br(), #br(),
+                                #sidebarPanel(fluid=FALSE, width=4,
+                                div(class="row", style='margin-left:0px;',# max-width: 1600px',#style='margin:0px; padding:0px',
+                                    div(class="col-lg-6", style='padding-right:0px; max-width:800px; min-width:200px',
+                                        div(class='well', style="height:100px; margin-bottom:15px;",
+                                # div(class="row", style='margin-left:0px',  #style='margin:0px; padding:0px',
+                                #     div(class="col-lg-6", style='padding-right:0px; max-width:800px; min-width:200px',
+                                #         div(class='well', style='height:100px; margin-bottom:15px;',
                                              h3("Missing metadata options"),
                                              helper(checkboxInput("nordicimmi", "Trust Nordic countries", value = TrustNordic),
                                                     colour='#FF0000',type='inline',title='Score calculation procedure',buttonLabel = 'Close',
@@ -932,33 +948,59 @@ shinyUI <- fluidPage(
                                                                                                            but if <b>No limit</b> or <b>No sanctions</b> occur the score is changed to <span style="color:#FFA500">Medium</span>.',
                                                               '','The <b>Trust Nordic countries</b> option set <span style="color:#008000">Low</span> score for all Nordic countries ignoring the metadata.','',
                                                               'Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
-                                ),
-                                sidebarPanel(width=8,
-                                             div(id='ZZD',
+                                       
+                                        )),
+                                    div(class="col-lg-6",style='max-width:800px; min-width:200px; padding-right:0px', #style='padding-left:0px', 
+                                        div(class='well', style="height:100px; margin-bottom:15px;",
+                                    # div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px',
+                                    #     div(class='well', style='height:270px; margin-bottom:15px;',
+                                    #                 
+                                                    
+                                #sidebarPanel(width=8,
+                                             #div(id='ZZD',
                                                  h3(HTML('Immigration undercounting related metadata, expert opinions (IMEM), and their classification.'))
-                                             ),
-                                             tags$head(tags$style("#ZZD h3 {margin-bottom: 19px;}", media="screen", type="text/css")),
+                                             #),
+                                             #tags$head(tags$style("#ZZD h3 {margin-bottom: 19px;}", media="screen", type="text/css")),
+                                )),
+                                div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px'), #normalize above output
                                 ),
-                                sidebarPanel(width=12,
+                                
+                                #sidebarPanel(width=12,
+                                
+                                div(class="row", style='margin-left:0px',  
+                                    div(class="col-lg-12",style='padding-right:0px; margin-right:0px;',#style='max-width:800px', 
+                                        div(class='well', style='margin-bottom:15px;',
+      
                                              downloadButton("downloadIMData", "Download table"),
                                              br(),
-                                             DTOutput('table1'),
+                                             DTOutput('table1',width='100%'), 
+                                             
+                                             # DETECT ANDROID and THEN:
+                                            #div(class="col-lg-12",#style='max-width:800px', 
+                                            #DTOutput('table1',width='50%')
+                                             
                                              tags$head(tags$style("#table1 table th {background-color: #CCBBFF; border-width:1px;}", media="screen", type="text/css")),
 
                                              br(), br()
-                                ),
-                                sidebarPanel(width=12,
+                                ))),
+                                #sidebarPanel(width=12,
+                                div(class="row", style='margin-left:0px', 
+                                    div(class="col-lg-12",style='padding-right:0px', 
+                                        div(class='well', style='margin-bottom:15px;',
                                              h3("References"),
                                              tags$body('Tab4a (page 20) of'),
                                              tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=21", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. Deliverable 6.2"),
                                              br(),br(),
                                              tags$a(href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20","Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F., and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819."),
                                              br(),br()
-                                ),
+                                ))),
                        ),
                        tabPanel(title = PanelNames[3],
-                                br(), br(),
-                                sidebarPanel(fluid=FALSE,width=6,
+                                br(), #br(),
+                                #sidebarPanel(fluid=FALSE,width=6,
+                                div(class="row", style='margin-left:0px',  #style='margin:0px; padding:0px',
+                                    div(class="col-lg-6", style='padding-right:0px; max-width:800px; min-width:200px',
+                                        div(class='well', style='height:600px; margin-bottom:15px;',
                                              helper(h3('Metadata weights'),
                                                     colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                                     content=c('The <b>score num</b> is calculated as a weighted mean which excludes all variables with "Unknown" records.')),
@@ -981,13 +1023,19 @@ shinyUI <- fluidPage(
                                                                            '','Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).'))),
                                              tags$head(tags$style("#ZZ2 .checkbox {margin-bottom: 15px;}", media="screen", type="text/css")),
 
-                                ),
-                                sidebarPanel(width=6,
+                                )),
+                                #sidebarPanel(width=6,
+                                #div(class="row", #style='margin:0px; padding:0px',
+                                    div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px',
+                                        div(class='well', style='height:270px; margin-bottom:15px;',
                                              h3('Normalized weights'),
                                              plotOutput('EMPlot', height='200', width='100%'),
                                              br()
-                                ),
-                                sidebarPanel(width=6,
+                                )),
+                                #sidebarPanel(width=6,
+                                #div(class="row", #style='margin:0px; padding:0px',
+                                    div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px', 
+                                        div(class='well', style='height:315px; margin-bottom:15px;',
                                              h3('Metadata classification thresholds'),
                                              #tags$hr(style="border-color: black;"),
                                              uiOutput(outputId = "dynamicT1"),
@@ -995,8 +1043,11 @@ shinyUI <- fluidPage(
                                              sliderInput(inputId = "Emimetat2", label = "Medium | High", min = 0, max = 1, value = MThr2, step=Step),
                                              actionButton("EMthreshreset", "Reset"),
                                              tags$head(tags$style("#EMthreshreset {margin-bottom: 9px;}", media="screen", type="text/css")),
-                                ),
-                                sidebarPanel(width=12,
+                                ))),
+                                #sidebarPanel(width=12,
+                                div(class="row", style='margin-left:0px',
+                                    div(class="col-lg-12",style='padding-right:0px; margin-right:0px', #style='max-width:800px',
+                                        div(class='well', style='margin-bottom:15px;',
                                              h3(HTML('Emigration undercounting related metadata, expert opinions (IMEM), and their classification.')),
 
                                              downloadButton("downloadEMData", "Download table"),
@@ -1005,8 +1056,11 @@ shinyUI <- fluidPage(
                                              tags$head(tags$style("#table2 table th {background-color: #CCBBFF; border-width:1px;}", media="screen", type="text/css")),
 
                                              br(), br()
-                                ),
-                                sidebarPanel(width=12,
+                                ))),
+                                #sidebarPanel(width=12,
+                                div(class="row", style='margin-left:0px',
+                                    div(class="col-lg-12",style='padding-right:0px; margin-right:0px',#", #style='max-width:800px',
+                                        div(class='well', style='margin-bottom:15px;',
                                              h3("References"),
                                              tags$body('Table 4b of'),
                                              tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=22", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. Deliverable 6.2"),
@@ -1017,11 +1071,14 @@ shinyUI <- fluidPage(
                                              br(),br(),
                                              tags$a(href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20","Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F., and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819."),
                                              br(),br()
-                                )
+                                )))
                        ),
                        tabPanel(title = PanelNames[4],
-                                br(),br(),
-                                sidebarPanel(
+                                br(),
+                                div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:410px',
+                                        div(class='well', style="margin-bottom:15px;",
+                                            
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
                                          content='BilateralModel',size='l'),
 
@@ -1084,9 +1141,10 @@ shinyUI <- fluidPage(
                                                    helper(sliderInput(inputId = "Incp", label = 'ncp parameter', min = 1, max = 5, value = 1, step=1, sep=''),
                                                           colour='#FF0000',type='inline',title='ncp parameter',buttonLabel = 'Close',
                                                           content='From imputePCA {missMDA package}: "integer corresponding to the number of components used to to predict the missing entries".')),
-                                ),
-                                sidebarPanel(width=8,
-
+                                )), #)
+                                #sidebarPanel(width=8,
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
                                              h3(HTML('Classification options')),
                                              tags$hr(style="border-color: black;"),
                                              column(width=5,
@@ -1104,8 +1162,9 @@ shinyUI <- fluidPage(
                                              ),
                                              span(HTML('&#160;'),style="font-size:1px; align: top;"),
                                              tags$head(tags$style("#Izupa .form-group.shiny-input-container {margin-bottom: 0px;}", media="screen", type="text/css")),
-                                ),
-                                sidebarPanel(width=8,
+                                )),
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Ipanels",
@@ -1117,11 +1176,13 @@ shinyUI <- fluidPage(
                                                choiceNames = c("Inspect bilateral flows ratios","Duration of stay",HTML("log<sub>10</sub> flows ratios"), "Classification"),
                                                choiceValues = 1:4,
                                                status = "danger"
-                                             )),
+                                             ))),
                                 tags$head(tags$style("#Ipanels .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Ipanels .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
                                 conditionalPanel(condition = "input.Ipanels == 1",
-                                                 sidebarPanel(width=8,
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
                                                               helper(h3('Bilateral flows ratios for immigration data'),
                                                                      colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
                                                                      content='BilateralModel',size='l'),
@@ -1142,9 +1203,11 @@ shinyUI <- fluidPage(
                                                                   column(6,selectInput("Iformat", NULL,
                                                                                        choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
                                                                   column(6,downloadButton("Isaveplot", "Save plot")))
-                                                 )),
+                                                 ))),
                                 conditionalPanel(condition = "input.Ipanels == 2",
-                                                 sidebarPanel(width=8,
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
 
                                                               h3(HTML('Duration of stay by country of origin')),
                                                               selectInput("IdurationCountries", label = 'Select country of destination',
@@ -1161,9 +1224,11 @@ shinyUI <- fluidPage(
                                                               #tags$head(tags$style("#Iduration table td:last-child {width:100%;}", media="screen", type="text/css")),
 
 
-                                                 )),
+                                                 ))),
                                 conditionalPanel(condition = "input.Ipanels == 3",
-                                                 sidebarPanel(width=8,
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
 
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Ilogratios'),
@@ -1176,9 +1241,11 @@ shinyUI <- fluidPage(
                                                               tableOutput('IlogratiosThresholds'),
                                                               tags$head(tags$style("#IlogratiosThresholds table th {background-color: #CCBBFF; width:1px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#IlogratiosThresholds table {font-size: 13px; width:1px; align: center}", media="screen", type="text/css")),
-                                                 )),
+                                                 ))),
                                 conditionalPanel(condition = "input.Ipanels == 4",
-                                                 sidebarPanel(width=8,
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "ImiPlotB", height="700px", width='100%'),
 
@@ -1198,12 +1265,18 @@ shinyUI <- fluidPage(
                                                                   column(3,h5(HTML('&#160;')),downloadButton("IsavedataB", "Save results as xlsx"))
                                                               ),
                                                  ),
-                                ),
+                                ))),
                                 mainPanel(br(),br(),br(),br(),br())
                        ),
+                       
+                       
                        tabPanel(title = PanelNames[5],
-                                br(),br(),
-                                sidebarPanel(
+                                br(),#br(),
+                                #sidebarPanel(
+                                div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:200px',
+                                        div(class='well', style="margin-bottom:15px;",
+                                            
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
                                          content='BilateralModel',size='l'),
 
@@ -1267,9 +1340,10 @@ shinyUI <- fluidPage(
                                                    helper(sliderInput(inputId = "Encp", label = 'ncp parameter', min = 1, max = 5, value = 1, step=1, sep=''),
                                                           colour='#FF0000',type='inline',title='ncp parameter',buttonLabel = 'Close',
                                                           content='From imputePCA {missMDA package}: "integer corresponding to the number of components used to to predict the missing entries".')),
-                                ),
-                                sidebarPanel(width=8,
-
+                                )),
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              h3(HTML('Classification options')),
                                              tags$hr(style="border-color: black;"),
 
@@ -1287,8 +1361,10 @@ shinyUI <- fluidPage(
                                              ),
                                              span(HTML('&#160;'),style="font-size:1px; align: top;"),
                                              tags$head(tags$style("#Ezupa .form-group.shiny-input-container {margin-bottom: 0px;}", media="screen", type="text/css")),
-                                ),
-                                sidebarPanel(width=8,
+                                )),
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Epanels",
@@ -1300,11 +1376,13 @@ shinyUI <- fluidPage(
                                                choiceNames = c("Inspect bilateral flows ratios","Duration of stay",HTML("log<sub>10</sub> flows ratios"), "Classification"),
                                                choiceValues = 1:4,
                                                status = "danger"
-                                             )),
+                                             ))),
                                 tags$head(tags$style("#Epanels .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Epanels .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
                                 conditionalPanel(condition = "input.Epanels == 1",
-                                                 sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
+                                                         
                                                               helper(h3('Bilateral flows ratios for emigration data'),
                                                                      colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
                                                                      content='BilateralModel',size='l'),
@@ -1325,10 +1403,12 @@ shinyUI <- fluidPage(
                                                                   column(6,selectInput("Eformat", NULL,
                                                                                        choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
                                                                   column(6,downloadButton("Esaveplot", "Save plot")))
-                                                 )),
+                                                 ))),
                                 conditionalPanel(condition = "input.Epanels == 2",
-                                                 sidebarPanel(width=8,
-
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
+                                                         
                                                               h3(HTML('Duration of stay by country of destination')),
                                                               selectInput("EdurationCountries", label = 'Select country of origin',
                                                                           choices = Countries),
@@ -1339,9 +1419,12 @@ shinyUI <- fluidPage(
                                                               tags$head(tags$style("#Eduration table td {white-space: nowrap; padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
                                                               #tags$head(tags$style("#Eduration table td {padding-right:0px;padding-left:0px;width:1px;}", media="screen", type="text/css")),
 
-                                                 )),
+                                                 ))),
                                 conditionalPanel(condition = "input.Epanels == 3",
-                                                 sidebarPanel(width=8,
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
+                                                         
 
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
                                                               tableOutput('Elogratios'),
@@ -1354,9 +1437,12 @@ shinyUI <- fluidPage(
                                                               tableOutput('ElogratiosThresholds'),
                                                               tags$head(tags$style("#ElogratiosThresholds table th {background-color: #CCBBFF; width:1px;}", media="screen", type="text/css")),
                                                               tags$head(tags$style("#ElogratiosThresholds table {font-size: 13px; width:1px; align: center}", media="screen", type="text/css")),
-                                                 )),
+                                                 ))),
                                 conditionalPanel(condition = "input.Epanels == 4",
-                                                 sidebarPanel(width=8,
+                                                 #sidebarPanel(width=8,
+                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                     div(class='well', style="margin-bottom:15px;",
+                                                         
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "EmiPlotB", height="700px", width='100%'),
 
@@ -1375,13 +1461,20 @@ shinyUI <- fluidPage(
                                                                   column(3,h5(HTML('&#160;')),downloadButton("EsaveplotB", "Save image")),
                                                                   column(3,h5(HTML('&#160;')),downloadButton("EsavedataB", "Save results as xlsx"))
                                                               ),
-                                                 ),
-                                ),
+                                                     ),
+                                                 ))),
                                 mainPanel(br(),br(),br(),br(),br())
                        ),
                        tabPanel(title = PanelNames[8],
-                                br(), br(),
-                                sidebarPanel(
+                                br(), #br(),
+                                # div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
+                                #     div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:200px',
+                                #         div(class='well', style="margin-bottom:15px;",
+                                #             
+                                #sidebarPanel(
+                                div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
+                                    div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:200px',
+                                        div(class='well', style="margin-bottom:15px;",
                                   h3('Mixing options'),
                                   tags$hr(style="border-color: black;"),
                                   h4('Mixing threshold'),
@@ -1444,16 +1537,22 @@ shinyUI <- fluidPage(
                                   actionButton("I3recalca", HTML("&#8721 weights = 1")),
                                   br(),
                                   br(),
-                                ),
-                                sidebarPanel(width=8,
+                                )),
+                                #sidebarPanel(width=8,
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              h3('Classification options'),
                                              tags$hr(style="border-color: black;"),
                                              helper(sliderInput(inputId = "IFinalGroups", label = 'Number of undercounting classes', min = 2, max = 7, value = 5, step=1, sep=''),
                                                     colour='#FF0000',type='inline',title='Number of undercounting classes',buttonLabel = 'Close',
                                                     content='Undercounting is categorized according to uniformly spaced thresholds. See <b>Mean weighted scores</b> panel below.'
                                              ),
-                                ),
-                                sidebarPanel(width=8,
+                                )),
+                                #sidebarPanel(width=8,
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
                                                inputId = "Ipanels2",
@@ -1464,11 +1563,14 @@ shinyUI <- fluidPage(
                                                choiceNames = c("Normalized mixing weights", "Mean weighted scores","Classification of undercounting"),
                                                choiceValues = 1:3,
                                                status = "danger"
-                                             )),
+                                             ))),
                                 tags$head(tags$style("#Ipanels2 .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Ipanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
 
-                                sidebarPanel(width=8,
+                                #sidebarPanel(width=8,
+                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                    div(class='well', style="margin-bottom:15px;",
+                                        
                                              conditionalPanel(condition ="input.Ipanels2 == 1",
                                                               h3('Normalized mixing weights'),
                                                               uiOutput('I2yearshowC'),
@@ -1512,7 +1614,7 @@ shinyUI <- fluidPage(
                                                                   column(3,h5(HTML('&#160;')),downloadButton("Isavedata2", "Save results as xlsx"))
                                                               ),
                                              ),
-                                ),
+                                ))),
 
                                 mainPanel(br(),br(),br(),br(),br()),
                        ),
