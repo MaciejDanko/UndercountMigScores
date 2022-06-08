@@ -932,7 +932,7 @@ shinyUI <-  bootstrapPage(
                                        h5('____________________________________________________________________________'),
                                        h5(HTML('The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br>')),
                                        h5(HTML('You may need to update/install some dependencies:<br><span style="font-family: Courier New">install.packages("usethis", "shiny", "Cairo", "openxlsx", "countrycodes", "data.table", <br> "DT", "magicaxis", "shinyWidgets", "RColorBrewer", "shinyhelper"); remotes::install_github("rstudio/bslib")</span><br>')),
-                                       h5(HTML('If equations do not display correctly you may need to re-install mathjax on your computer<br>
+                                       h5(HTML('If equations do not display correctly you may need to (re-)install mathjax on your computer<br>
                                        Linux: <span style="font-family: Courier New">sudo apt-get install -y libjs-mathjax</span>,<br>Windows/Mac/Linux: <a href="https://sourceforge.net/projects/mathjax/"> https://sourceforge.net/projects/mathjax/</a>')),
                                        h5('____________________________________________________________________________'),
                                        uiOutput('img'),
@@ -944,7 +944,7 @@ shinyUI <-  bootstrapPage(
                                 br(), #br(),
                                 #sidebarPanel(fluid=FALSE, width=4,
                                 div(class="row", style='margin-left:0px;',# max-width: 1600px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-6", style='padding-right:0px; max-width:800px; min-width:200px',
+                                    div(class="col-lg-6", style='padding-right:0px; max-width:960px; min-width:200px',
                                         div(class='well', style="height:100px; margin-bottom:15px;",
                                 # div(class="row", style='margin-left:0px',  #style='margin:0px; padding:0px',
                                 #     div(class="col-lg-6", style='padding-right:0px; max-width:800px; min-width:200px',
@@ -958,7 +958,7 @@ shinyUI <-  bootstrapPage(
                                                               'Nordic countries include DK (Denmark), FI (Finland), IS (Island), NO (Norway), and SE (Sweeden).')),
                                        
                                         )),
-                                    div(class="col-lg-6",style='max-width:800px; min-width:200px; padding-right:0px', #style='padding-left:0px', 
+                                    div(class="col-lg-6",style='max-width:960px; min-width:200px; padding-right:0px', #style='padding-left:0px', 
                                         div(class='well', style="height:100px; margin-bottom:15px;",
                                     # div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px',
                                     #     div(class='well', style='height:270px; margin-bottom:15px;',
@@ -970,7 +970,7 @@ shinyUI <-  bootstrapPage(
                                              #),
                                              #tags$head(tags$style("#ZZD h3 {margin-bottom: 19px;}", media="screen", type="text/css")),
                                 )),
-                                div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px'), #normalize above output
+                                div(class="col-lg-6", style='max-width:960px; min-width:200px; padding-right:0px'), #normalize above output
                                 ),
                                 
                                 #sidebarPanel(width=12,
@@ -1007,16 +1007,16 @@ shinyUI <-  bootstrapPage(
                                 br(), #br(),
                                 #sidebarPanel(fluid=FALSE,width=6,
                                 div(class="row", style='margin-left:0px',  #style='margin:0px; padding:0px',
-                                    div(class="col-lg-6", style='padding-right:0px; max-width:800px; min-width:200px',
+                                    div(class="col-lg-6", style='padding-right:0px; max-width:960px; min-width:200px',
                                         div(class='well', style='height:600px; margin-bottom:15px;',
-                                             helper(h3('Metadata weights'),
+                                             helper(h3('Metadata weights'),sise='s',
                                                     colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                                     content=c('The <b>score num</b> is calculated as a weighted mean which excludes all variables with "Unknown" records.')),
                                              sliderInput(inputId = "Emimetaw1", label = WeightsNam[1], min = 0, max = 1, value = MWt1, step=Step),
                                              sliderInput(inputId = "Emimetaw2", label = WeightsNam[2], min = 0, max = 1, value = MWt2, step=Step),
                                              sliderInput(inputId = "Emimetaw3", label = WeightsNam[3], min = 0, max = 1, value = MWt3, step=Step),
                                              sliderInput(inputId = "Emimetaw4", label = WeightsNam[4], min = 0, max = 1, value = MWt4, step=Step),
-                                             helper(tags$span(' '),
+                                             helper(tags$span(' '),sise='s',
                                                     colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
                                                     content='<b>Reset</b> - restores default values, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
 
@@ -1034,7 +1034,7 @@ shinyUI <-  bootstrapPage(
                                 )),
                                 #sidebarPanel(width=6,
                                 #div(class="row", #style='margin:0px; padding:0px',
-                                    div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px',
+                                    div(class="col-lg-6", style='max-width:960px; min-width:200px; padding-right:0px',
                                         div(class='well', style='height:270px; margin-bottom:15px;',
                                              h3('Normalized weights'),
                                              plotOutput('EMPlot', height='200', width='100%'),
@@ -1042,7 +1042,7 @@ shinyUI <-  bootstrapPage(
                                 )),
                                 #sidebarPanel(width=6,
                                 #div(class="row", #style='margin:0px; padding:0px',
-                                    div(class="col-lg-6", style='max-width:800px; min-width:200px; padding-right:0px', 
+                                    div(class="col-lg-6", style='max-width:960px; min-width:200px; padding-right:0px', 
                                         div(class='well', style='height:315px; margin-bottom:15px;',
                                              h3('Metadata classification thresholds'),
                                              #tags$hr(style="border-color: black;"),
@@ -1088,11 +1088,11 @@ shinyUI <-  bootstrapPage(
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
-                                         content='BilateralModel',size='l'),
+                                         content='BilateralModel',size='s'),
 
                                   tags$hr(style="border-color: black;"),
 
-                                  helper(h4("Duration of stay correction"),
+                                  helper(h4("Duration of stay correction"),sise='s',
                                          colour='#FF0000',type='markdown',title="",buttonLabel = 'Close',
                                          content = c('BilateralModel')),
 
