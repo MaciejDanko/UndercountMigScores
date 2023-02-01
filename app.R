@@ -17,7 +17,7 @@ library(openxlsx)
 library(bslib)
 
 options(bitmapType="cairo")
-source('./code/UNDERCOUNTING_PKG_APP.R')
+source('./code/UNDERCOUNTING_PKG_2023_APP.R')
 
 
 pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FALSE,
@@ -97,7 +97,7 @@ mypie<-function(x1,y1,z1,
   pie2(c(x2,y2,z2),border=0,col=piecol,labels = labels2,edges=500,resize = resize)
   text(0,0,expression(bold(B)),cex=2.5)
   plot(1:2,1:2,type='n',axes=FALSE)
-  legend('left',legend=c('IMEM','Metadata','Model'),bty='o',
+  legend('left',legend=c('IMEM / QuantMig','Metadata','Model'),bty='o',
          bg=adjustcolor('white',0.4),fill = piecol,box.lwd=0,cex=2)
   #par(bg=bg)
 }
@@ -142,10 +142,10 @@ thr2 <- 0.5
 # 100*wmetab/(wimema+wmetab+wmodelb) # 10%
 # 100*wmodelb/(wimema+wmetab+wmodelb) # 70%
 
-wimema <- 0.10
-wimemb <- 0.20
-wmetaa <- 0.10
-wmetab <- 0.10
+wimema <- 0.15
+wimemb <- 0.15
+wmetaa <- 0.05
+wmetab <- 0.05
 wmodela <- 1 - wimema - wmetaa
 wmodelb <- 1 - wimemb - wmetab
 
@@ -188,15 +188,21 @@ names(Countries)<-CountriesL
 PanelNames<-c('About','Immigration metadata','Emigration metadata','Immigration model','Emigration model',
               'X','X','Combined immigration scores','Combined emigration scores','X','X', 'Help')
 
-IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.imem.cpc.ac.uk/About.aspx">Integrated Modeling of European Migration</a>) undercount classification (Raymer et al. 2013) converted to numerical value (<b>IMEM score num</b>), where
+IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.imem.cpc.ac.uk/About.aspx">Integrated Modeling of European Migration</a>) undercount classification converted to numerical value (<b>IMEM score num</b>), where
          0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting.','',
                      paste('Weighted <b>IMEM score num</b> is used to calculate <b>combined score num (',k,')</b>',sep=''),'',
                      '<b>References</b>','<a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20">Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F. and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819.</a>')
 
+QUANTMIGc<-function(k) c('The parameter adds a weight to QuantMig (<a href="http://quantmig.eu/">Quantifying Migration Scenarios for Better Policy.</a>) undercount classification converted to numerical value (<b>QuantMig score num</b>), where
+         0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting.','',
+                         paste('Weighted <b>QuantMig score num</b> is used to calculate <b>combined score num (',k,')</b>',sep=''),'',
+                         '<b>References</b>','<a href="http://quantmig.eu/res/files/QuantMig%20deliverable_6_3.pdf#page=11">Aristotelous, G., Smith, P.W.F., and Bijak, J. (2022). Technical report: Estimation methodology. QuantMig Project Deliverable 6.3. The Hague: Netherlands Interdisciplinary, Demographic Institute (NIDI-KNAW)/University of Groningen.</a>')
+
+
 METAwtxt<-'Weight for the metadata <b>score num</b> obtained in <b>Immigration metadata</b> panel.'
 MODELwtxt<-'Weight for the model <b>score num</b> obtained in <b>Model classify???</b> page used to calculate <b>combined score num (A)</b>'
 
-version<-'0.7.5'
+version<-'0.8.1'
 DOI<-'10.5281/zenodo.6612951'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
 
@@ -925,7 +931,7 @@ shinyUI <-  bootstrapPage(
                                        
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
-                                       h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2022)<br>
+                                       h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2023)<br>
                                                Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat.
                                                <br>DOI: ',DOI,'. URL:https://github.com/MaciejDanko/UndercountMigScore'))),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
@@ -966,7 +972,7 @@ shinyUI <-  bootstrapPage(
                                                     
                                 #sidebarPanel(width=8,
                                              #div(id='ZZD',
-                                                 h3(HTML('Immigration undercounting related metadata, expert opinions (IMEM), and their classification.'))
+                                                 h3(HTML('Immigration undercounting related metadata, expert opinions, and their classification.'))
                                              #),
                                              #tags$head(tags$style("#ZZD h3 {margin-bottom: 19px;}", media="screen", type="text/css")),
                                 )),
@@ -997,9 +1003,12 @@ shinyUI <-  bootstrapPage(
                                         div(class='well', style='margin-bottom:15px;',
                                              h3("References"),
                                              tags$body('Tab4a (page 20) of'),
-                                             tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=21", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. Deliverable 6.2"),
+                                             tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=21", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. QuantMig Project Deliverable 6.2. The Hague: Netherlands Interdisciplinary, Demographic Institute (NIDI-KNAW)/University of Groningen."),
                                              br(),br(),
                                              tags$a(href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20","Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F., and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819."),
+                                             br(),br(),
+                                             tags$body('Table 2 of'),
+                                             tags$a(href="http://quantmig.eu/res/files/QuantMig%20deliverable_6_3.pdf#page=11","Aristotelous, G., Smith, P.W.F., and Bijak, J. (2022). Technical report: Estimation methodology. QuantMig Project Deliverable 6.3. The Hague: Netherlands Interdisciplinary, Demographic Institute (NIDI-KNAW)/University of Groningen."),
                                              br(),br()
                                 ))),
                        ),
@@ -1056,7 +1065,7 @@ shinyUI <-  bootstrapPage(
                                 div(class="row", style='margin-left:0px',
                                     div(class="col-lg-12",style='padding-right:0px; margin-right:0px', #style='max-width:800px',
                                         div(class='well', style='margin-bottom:15px;',
-                                             h3(HTML('Emigration undercounting related metadata, expert opinions (IMEM), and their classification.')),
+                                             h3(HTML('Emigration undercounting related metadata, expert opinions, and their classification.')),
 
                                              downloadButton("downloadEMData", "Download table"),
                                              br(),
@@ -1071,13 +1080,16 @@ shinyUI <-  bootstrapPage(
                                         div(class='well', style='margin-bottom:15px;',
                                              h3("References"),
                                              tags$body('Table 4b of'),
-                                             tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=22", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. Deliverable 6.2"),
+                                             tags$a(href="http://quantmig.eu/res/files/QuantMig_Deliverable%206.2%20vf.pdf#page=22", "Jarl Mooyaart, Maciej J. Dańko, Rafael Costa, and Michaël Boissonneault (2021) Quality assessment of European migration data. QuantMig Project Deliverable 6.2. The Hague: Netherlands Interdisciplinary, Demographic Institute (NIDI-KNAW)/University of Groningen."),
                                              br(), br(),
                                              tags$body('Table 1.6 of'),
                                              tags$a(href="https://ec.europa.eu/eurostat/ramon/statmanuals/files/KS-CC-03-005-EN.pdf#page=22", "Eurostat (2003) Demographic statistics: Definitions and methods of collection in 31 European Countries. ISSN 1725-065X
                                   ISBN 92-894-6051-2."),
                                              br(),br(),
                                              tags$a(href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20","Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F., and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819."),
+                                            br(),br(),
+                                             tags$body('Table 2 of'),
+                                             tags$a(href="http://quantmig.eu/res/files/QuantMig%20deliverable_6_3.pdf#page=11","Aristotelous, G., Smith, P.W.F., and Bijak, J. (2022). Technical report: Estimation methodology. QuantMig Project Deliverable 6.3. The Hague: Netherlands Interdisciplinary, Demographic Institute (NIDI-KNAW)/University of Groningen."),
                                              br(),br()
                                 )))
                        ),
@@ -1487,9 +1499,9 @@ shinyUI <-  bootstrapPage(
                                   tags$hr(style="border-color: black;"),
                                   h4('Mixing threshold'),
                                   helper(
-                                    sliderInput(inputId = "IYear", label = 'Threshold year', min = 2003, max = 2018, value = 2008, step=1, sep=''),
+                                    sliderInput(inputId = "IYear", label = 'Threshold year', min = 2003, max = 2018, value = 2009, step=1, sep=''),
                                     colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                    content='Expert opinion (IMEM) and metadata can be of greater importance to earlier years. <b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
+                                    content='<b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
 
                                   tags$hr(style="border-color: black;"),
 
@@ -1524,9 +1536,9 @@ shinyUI <-  bootstrapPage(
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
                                   #tags$hr(style="border-color: black; border-top: dashed 1px"),
 
-                                  helper(sliderInput(inputId = "I3wimema", label = "IMEM score num (B)", min = 0, max = 1, value = wimema, step=Step),
-                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
-                                         content=IMEMc('B')),
+                                  helper(sliderInput(inputId = "I3wimema", label = "QuantMig score num (B)", min = 0, max = 1, value = wimema, step=Step),
+                                         colour='#FF0000',type='inline',title='Quantifying Migration Scenarios for Better Policy (QuantMig)',buttonLabel = 'Close',
+                                         content=QUANTMIGc('B')),
 
                                   helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (B)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
@@ -1636,9 +1648,9 @@ shinyUI <-  bootstrapPage(
                                   tags$hr(style="border-color: black;"),
                                   h4('Mixing threshold'),
                                   helper(
-                                    sliderInput(inputId = "EYear", label = 'Threshold year', min = 2003, max = 2018, value = 2008, step=1, sep=''),
+                                    sliderInput(inputId = "EYear", label = 'Threshold year', min = 2003, max = 2018, value = 2009, step=1, sep=''),
                                     colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                    content='Expert opinion (IMEM) and metadata can be of greater importance to earlier years. <b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
+                                    content='<b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
 
                                   tags$hr(style="border-color: black;"),
 
@@ -1671,9 +1683,9 @@ shinyUI <-  bootstrapPage(
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
 
-                                  helper(sliderInput(inputId = "E3wimema", label = "IMEM score num (B)", min = 0, max = 1, value = wimema, step=Step),
-                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
-                                         content=IMEMc('B')),
+                                  helper(sliderInput(inputId = "E3wimema", label = "QuantMig score num (B)", min = 0, max = 1, value = wimema, step=Step),
+                                         colour='#FF0000',type='inline',title='Quantifying Migration Scenarios for Better Policy (QuantMig)',buttonLabel = 'Close',
+                                         content=QUANTMIGc('B')),
 
                                   helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (B)", min = 0, max = 1, value = wmetaa, step=Step),
                                          colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
