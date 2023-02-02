@@ -256,9 +256,9 @@ shinyServer <-  function(input, output, session) {
 
   observeEvent(input$E3recalca, {
     SA <- input$E3wimema + input$E3wmetaa + input$E3wmodela
-    updateSliderInput(session = session, inputId = "E3wimemb", value = input$E3wimemb/SB)
-    updateSliderInput(session = session, inputId = "E3wmetab", value = input$E3wmetab/SB)
-    updateSliderInput(session = session, inputId = "E3wmodelb", value = input$E3wmodelb/SB)
+    updateSliderInput(session = session, inputId = "E3wimema", value = input$E3wimema/SA)
+    updateSliderInput(session = session, inputId = "E3wmetaa", value = input$E3wmetaa/SA)
+    updateSliderInput(session = session, inputId = "E3wmodela", value = input$E3wmodela/SA)
   })
 
 
