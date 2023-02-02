@@ -142,10 +142,10 @@ thr2 <- 0.5
 # 100*wmetab/(wimema+wmetab+wmodelb) # 10%
 # 100*wmodelb/(wimema+wmetab+wmodelb) # 70%
 
-wimema <- 0.15
-wimemb <- 0.15
-wmetaa <- 0.05
-wmetab <- 0.05
+wimema <- 0.2
+wimemb <- 0.2
+wmetaa <- 0.1
+wmetab <- 0.1
 wmodela <- 1 - wimema - wmetaa
 wmodelb <- 1 - wimemb - wmetab
 
@@ -185,23 +185,24 @@ WeightsNam<-paste(c('Obligation of de-registration','Obligation of de-registrati
 CountriesL<-paste(countrycode::countrycode(toeurostat(Countries),'eurostat','country.name'),' (',Countries,')',sep='')
 Countries<-as.list(Countries)
 names(Countries)<-CountriesL
-PanelNames<-c('About','Immigration metadata','Emigration metadata','Immigration model','Emigration model',
+PanelNames<-c('About','Immigration metadata & expertize','Emigration metadata & expertize','Immigration model','Emigration model',
               'X','X','Combined immigration scores','Combined emigration scores','X','X', 'Help')
 
 IMEMc<-function(k) c('The parameter adds a weight to IMEM (<a href="https://www.imem.cpc.ac.uk/About.aspx">Integrated Modeling of European Migration</a>) undercount classification converted to numerical value (<b>IMEM score num</b>), where
-         0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting.','',
+         0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting. See also metadata and expert opinion tabs.','',
                      paste('Weighted <b>IMEM score num</b> is used to calculate <b>combined score num (',k,')</b>',sep=''),'',
                      '<b>References</b>','<a href="https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.789435?journalCode=uasa20">Raymer, J., Wiśniowski, A., Forster, J. J., Smith, P. W. F. and Bijak, J. (2013), ‘Integrated Modeling of European Migration’, Journal of the American Statistical Association 108(503), 801–819.</a>')
 
 QUANTMIGc<-function(k) c('The parameter adds a weight to QuantMig (<a href="http://quantmig.eu/">Quantifying Migration Scenarios for Better Policy.</a>) undercount classification converted to numerical value (<b>QuantMig score num</b>), where
-         0 denotes <span style="color:#008000">Low</span> undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting.','',
+         0 denotes <span style="color:#008000">Excellent</span> (lack of) undercounting and 1 denotes <span style="color:#FF0000">High</span> undercounting. See also metadata and expert opinion tabs.','',
                          paste('Weighted <b>QuantMig score num</b> is used to calculate <b>combined score num (',k,')</b>',sep=''),'',
                          '<b>References</b>','<a href="http://quantmig.eu/res/files/QuantMig%20deliverable_6_3.pdf#page=11">Aristotelous, G., Smith, P.W.F., and Bijak, J. (2022). Technical report: Estimation methodology. QuantMig Project Deliverable 6.3. The Hague: Netherlands Interdisciplinary, Demographic Institute (NIDI-KNAW)/University of Groningen.</a>')
 
 
 METAwtxt<-'Weight for the metadata <b>score num</b> obtained in <b>Immigration metadata</b> panel.'
-MODELwtxt<-'Weight for the model <b>score num</b> obtained in <b>Model classify???</b> page used to calculate <b>combined score num (A)</b>'
-
+MODELwtxt <- function(k='immigration') paste0('Weight for the <b>model score num</b> obtained in <b>',k,' model</b> tab used to calculate <b>Mean weighted scores</b> and <b>Classification of undercaunting</b> in this tab.')
+ThreshTxt <- '<b> Threshold year </b> allows you to set two different sets of weights for two separate time periods. It also separates the effect of IMEM and QuantMig expert opinion scores.'
+WeightsMixTxt <- 'Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous tabs).'
 version<-'0.8.1'
 DOI<-'10.5281/zenodo.6612951'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
@@ -918,7 +919,7 @@ shinyUI <-  bootstrapPage(
                                        h3(HTML(paste0('<b>UndercountMigScores v',version,'</b>'))),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
-                                       h4('Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat'),
+                                       h4('Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources'),
                                        br(),
                                        h4('Maciej J. Dańko'),
                                        h4(HTML('email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a>')),
@@ -932,7 +933,7 @@ shinyUI <-  bootstrapPage(
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
                                        h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2023)<br>
-                                               Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat.
+                                               Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources.
                                                <br>DOI: ',DOI,'. URL:https://github.com/MaciejDanko/UndercountMigScore'))),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
                                        h5('____________________________________________________________________________'),
@@ -1501,17 +1502,17 @@ shinyUI <-  bootstrapPage(
                                   helper(
                                     sliderInput(inputId = "IYear", label = 'Threshold year', min = 2003, max = 2018, value = 2009, step=1, sep=''),
                                     colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                    content='<b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
+                                    content=ThreshTxt),
 
                                   tags$hr(style="border-color: black;"),
 
                                   helper(uiOutput('I2yearshowA'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
-                                         content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
+                                         content=WeightsMixTxt),
                                   #tags$hr(style="border-color: black; border-top: dashed 1px"),
 
                                   helper(sliderInput(inputId = "I3wimemb", label = "IMEM score num (A)", min = 0, max = 1, value = wimemb, step=Step),
-                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='IMEM score weight',buttonLabel = 'Close',
                                          content=IMEMc('A')),
 
                                   helper(sliderInput(inputId = "I3wmetab", label = "Metadata score num (A)", min = 0, max = 1, value = wmetab, step=Step),
@@ -1519,8 +1520,8 @@ shinyUI <-  bootstrapPage(
                                          content=METAwtxt),
 
                                   helper(sliderInput(inputId = "I3wmodelb", label = "Model score num (A)", min = 0, max = 1, value = wmodelb, step=Step),
-                                         colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
-                                         content=MODELwtxt),
+                                         colour='#FF0000',type='inline',title='Model weight for (A)',buttonLabel = 'Close',
+                                         content=MODELwtxt('Immigration')),
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
@@ -1533,11 +1534,11 @@ shinyUI <-  bootstrapPage(
                                   tags$hr(style="border-color: black; border-top: dashed 1px"),
                                   helper(uiOutput('I2yearshowB'),
                                          colour='#FF0000',type='inline',title='Weighted mean',buttonLabel = 'Close',
-                                         content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
+                                         content=WeightsMixTxt),
                                   #tags$hr(style="border-color: black; border-top: dashed 1px"),
 
                                   helper(sliderInput(inputId = "I3wimema", label = "QuantMig score num (B)", min = 0, max = 1, value = wimema, step=Step),
-                                         colour='#FF0000',type='inline',title='Quantifying Migration Scenarios for Better Policy (QuantMig)',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='QuantMig score weight',buttonLabel = 'Close',
                                          content=QUANTMIGc('B')),
 
                                   helper(sliderInput(inputId = "I3wmetaa", label = "Metadata score num (B)", min = 0, max = 1, value = wmetaa, step=Step),
@@ -1545,8 +1546,8 @@ shinyUI <-  bootstrapPage(
                                          content=METAwtxt),
 
                                   helper(sliderInput(inputId = "I3wmodela", label = "Model score num (B)", min = 0, max = 1, value = wmodela, step=Step),
-                                         colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
-                                         content=MODELwtxt),
+                                         colour='#FF0000',type='inline',title='Model weight for (B)',buttonLabel = 'Close',
+                                         content=MODELwtxt('Immigration')),
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
@@ -1650,7 +1651,7 @@ shinyUI <-  bootstrapPage(
                                   helper(
                                     sliderInput(inputId = "EYear", label = 'Threshold year', min = 2003, max = 2018, value = 2009, step=1, sep=''),
                                     colour='#FF0000',type='inline',title='Threshold year',buttonLabel = 'Close',
-                                    content='<b> Threshold year </b> allows you to set two different sets of weights for two separate time periods.'),
+                                    content=ThreshTxt),
 
                                   tags$hr(style="border-color: black;"),
 
@@ -1659,7 +1660,7 @@ shinyUI <-  bootstrapPage(
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
 
                                   helper(sliderInput(inputId = "E3wimemb", label = "IMEM score num (A)", min = 0, max = 1, value = wimemb, step=Step),
-                                         colour='#FF0000',type='inline',title='Integrated Modeling of European Migration (IMEM)',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='IMEM score weight',buttonLabel = 'Close',
                                          content=IMEMc('A')),
 
                                   helper(sliderInput(inputId = "E3wmetab", label = "Metadata score num (A)", min = 0, max = 1, value = wmetab, step=Step),
@@ -1667,8 +1668,8 @@ shinyUI <-  bootstrapPage(
                                          content=METAwtxt),
 
                                   helper(sliderInput(inputId = "E3wmodelb", label = "Model score num (A)", min = 0, max = 1, value = wmodelb, step=Step),
-                                         colour='#FF0000',type='inline',title='Metadata weight for (A)',buttonLabel = 'Close',
-                                         content=MODELwtxt),
+                                         colour='#FF0000',type='inline',title='Model weight for (A)',buttonLabel = 'Close',
+                                         content=MODELwtxt('Emigration')),
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
@@ -1684,7 +1685,7 @@ shinyUI <-  bootstrapPage(
                                          content='Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous panels)'),
 
                                   helper(sliderInput(inputId = "E3wimema", label = "QuantMig score num (B)", min = 0, max = 1, value = wimema, step=Step),
-                                         colour='#FF0000',type='inline',title='Quantifying Migration Scenarios for Better Policy (QuantMig)',buttonLabel = 'Close',
+                                         colour='#FF0000',type='inline',title='QuantMig score weight',buttonLabel = 'Close',
                                          content=QUANTMIGc('B')),
 
                                   helper(sliderInput(inputId = "E3wmetaa", label = "Metadata score num (B)", min = 0, max = 1, value = wmetaa, step=Step),
@@ -1692,8 +1693,8 @@ shinyUI <-  bootstrapPage(
                                          content=METAwtxt),
 
                                   helper(sliderInput(inputId = "E3wmodela", label = "Model score num (B)", min = 0, max = 1, value = wmodela, step=Step),
-                                         colour='#FF0000',type='inline',title='Metadata weight for (B)',buttonLabel = 'Close',
-                                         content=MODELwtxt),
+                                         colour='#FF0000',type='inline',title='Model weight for (B)',buttonLabel = 'Close',
+                                         content=MODELwtxt('Emigration')),
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
