@@ -1097,207 +1097,6 @@ get_undercounting<-function(direction='E',
     LEVELS=LEVELS)
 }
 
-# get_undercounting_old<-function(direction='E',
-#                             immi_meta_options=list(w1 = 0.5,
-#                                                    w2 = 0.1,
-#                                                    w3 = 0.1,
-#                                                    w4 = 0.3,
-#                                                    t1 = 0.3,
-#                                                    t2 = 0.6,
-#                                                    trustNordic = TRUE),
-#                             emi_meta_options=list(trustNordic = TRUE),
-#                             model_options = list(ncp=1,
-#                                                  useimputation=TRUE,
-#                                                  weighted=FALSE,
-#                                                  separated=FALSE,
-#                                                  additive=TRUE,
-#                                                  refcountries=3,
-#                                                  durationCorrection = 1),
-#                             model_classification_options = list(
-#                               UserThresholds=NA,
-#                               IgnoreOverCounting = TRUE,
-#                               TranslateGroups = 7
-#                             ),
-#                             mixing_options=list(
-#                               threshyear = 2008,
-#                               FinalGroups = 5,
-#                               w_imemA = 0.1,
-#                               w_imemB = 0.25,
-#                               w_metaA = 0.1,
-#                               w_metaB = 0.15,
-#                               w_modelA = 0.8,
-#                               w_modelB = 0.6)
-# 
-# ) {
-# 
-# 
-#   mixing_options$FinalGroups[mixing_options$FinalGroups>7]<-7
-#   mixing_options$FinalGroups[mixing_options$FinalGroups<2]<-2
-#   LEVELS<-switch(paste(mixing_options$FinalGroups), '2'=LEVELS2, '3'=LEVELS3, '4'=LEVELS4, '5'=LEVELS5, '6'=LEVELS6, '7'=LEVELS7)
-# 
-#   ##############################################################################
-#   # Metadata and expert opinion
-#   resMODEL.I<-getUCCont(refcountry=model_options$refcountries,
-#                         direction='I',
-#                         corrected=model_options$durationCorrection,
-#                         imputmax=7,
-#                         ncp=model_options$ncp,
-#                         weighted=model_options$weighted,
-#                         separated=model_options$separated,
-#                         additive=model_options$additive)
-# 
-#   # resMODEL.I.t1<-getUCCont(refcountry=model_options$refcountries,
-#   #                       direction='I',
-#   #                       corrected=model_options$durationCorrection,
-#   #                       imputmax=7,
-#   #                       ncp=model_options$ncp,
-#   #                       weighted=model_options$weighted,
-#   #                       separated=TRUE,
-#   #                       additive=model_options$additive)
-#   # resMODEL.I.t2<-getUCCont(refcountry=model_options$refcountries,
-#   #                          direction='I',
-#   #                          corrected=model_options$durationCorrection,
-#   #                          imputmax=7,
-#   #                          ncp=model_options$ncp,
-#   #                          weighted=model_options$weighted,
-#   #                          separated=FALSE,
-#   #                          additive=model_options$additive)
-#   # resMODEL.I.t1$imputed-resMODEL.I.t2$imputed
-#   #
-# 
-#   resMODEL.E<-getUCCont(refcountry=model_options$refcountries,
-#                         direction='E',
-#                         corrected=model_options$durationCorrection,
-#                         imputmax=7,
-#                         ncp=model_options$ncp,
-#                         weighted=model_options$weighted,
-#                         separated=model_options$separated,
-#                         additive=model_options$additive)
-# 
-#   if (direction=='E') {
-#     resMODEL<-resMODEL.E
-#     MetaScores<-Recalc_Meta_DeReg_Raw(Meta_DeReg,
-#                                       immi_meta_options$w1,
-#                                       immi_meta_options$w2,
-#                                       immi_meta_options$w3,
-#                                       immi_meta_options$w4,
-#                                       immi_meta_options$t1,
-#                                       immi_meta_options$t2,
-#                                       immi_meta_options$trustNordic)
-#     MetaScore<-data.frame(iso2=MetaScores$iso2, MetaScore=1-MetaScores$`score num`, stringsAsFactors = FALSE, check.names = FALSE) ###
-#     ImemScore<-data.frame(iso2=IMEM$Country, ImemScore=1*(tolower(IMEM$Undercount.emi.IMEM)=='low'), stringsAsFactors = FALSE, check.names = FALSE) ###
-#   } else {
-#     resMODEL<-resMODEL.I
-#     MetaScores<-Recalc_Meta_Reg_Raw(Meta_Reg, emi_meta_options$trustNordic)
-#     MetaScore<-data.frame(iso2=MetaScores$iso2, MetaScore=1-MetaScores$`score num`, stringsAsFactors = FALSE, check.names = FALSE) ###
-#     ImemScore<-data.frame(iso2=IMEM$Country,ImemScore=1*(tolower(IMEM$Undercount.imm.IMEM)=='low'), stringsAsFactors = FALSE, check.names = FALSE)###
-#   }
-# 
-#   MetaImemScore<-fast.merge.df(MetaScore,ImemScore,'iso2')
-# 
-#   ##############################################################################
-#   # Classification of the model
-# 
-#   NoData<-is.na(resMODEL$original)
-# 
-#   if (model_options$useimputation) {
-#     ModelScore<-log10(resMODEL$imputed)
-#     VecDat<-c(log10(unlist(resMODEL.I$imputed)) ,log10(unlist(resMODEL.E$imputed)))
-#     VecDat<-VecDat[VecDat<=0]
-#   } else {
-#     ModelScore<-log10(resMODEL$original)
-#     VecDat<-c(log10(unlist(resMODEL.I$original)) ,log10(unlist(resMODEL.E$original)))
-#     VecDat<-VecDat[VecDat<=0]
-#   }
-#   colnames(ModelScore)<-gsub('Y.','',colnames(ModelScore))
-# 
-#   ####
-# 
-#   if (is.na( model_classification_options$UserThresholds[1]) || length( model_classification_options$UserThresholds)!=model_classification_options$TranslateGroups-1) {
-#     if ( model_classification_options$IgnoreOverCounting) {
-#       model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups+1), na.rm=TRUE))[-2]
-#       UserThresholds<- model_classification_options$UserThresholds
-#     } else {
-#       model_classification_options$UserThresholds<-c(max(ModelScore, na.rm = TRUE),quantile(VecDat,seq(1,0,length.out=model_classification_options$TranslateGroups), na.rm=TRUE))
-#       UserThresholds<- model_classification_options$UserThresholds
-#     }
-#   } else {
-#     UserThresholds<- model_classification_options$UserThresholds
-#     UserThresholds<-(c(max(ModelScore, na.rm = TRUE), rev(UserThresholds), min(ModelScore, na.rm = TRUE)))
-#   }
-# 
-#   mLEVELS<-paste(1:model_classification_options$TranslateGroups)
-#   R.YearUser<-t(apply(ModelScore,1,cut,breaks=UserThresholds,include.lowest=TRUE,labels=rev(mLEVELS)))
-#   colnames(R.YearUser)<-gsub('Y.','',colnames(ModelScore))
-#   R.YearUser.num<-level2num(R.YearUser,mLEVELS,bounds=c(1,0))
-# 
-#   # ModelScore['AT',]
-#   # R.YearUser['AT',]
-#   # R.YearUser.num['AT',]
-#   # plot(10^ModelScore['AT',],ylim=c(0,1))
-#   # lines(R.YearUser.num['AT',],type='p',pch=19,col=2)
-#   # abline(h=10^UserThresholds,lty=3)
-# 
-#   tmp<-fast.merge.df(MetaImemScore, data.frame(iso2=rownames(R.YearUser.num),R.YearUser.num,stringsAsFactors = FALSE, check.names = FALSE),'iso2')
-#   NoData<-fast.merge.df(data.frame(iso2=MetaImemScore$iso2,stringsAsFactors = FALSE, check.names = FALSE),
-#                         data.frame(iso2=rownames(NoData),NoData,stringsAsFactors = FALSE, check.names = FALSE),'iso2')
-#   rownames(NoData)<-NoData[,1]
-#   cnnd<-colnames(NoData)[-1]
-#   NoData<-NoData[,-1]
-#   NoData[is.na(NoData)]<-TRUE
-#   colnames(NoData)<- cnnd
-# 
-#   rownames(tmp)<-tmp$iso2
-#   C.YearUser<-tmp[,-(1:3)]
-# 
-#   YY<-as.numeric(gsub('Y.','',(colnames(C.YearUser))))
-#   C.YearUser.B<-C.YearUser[,YY< mixing_options$threshyear]
-#   C.YearUser.A<-C.YearUser[,YY>=mixing_options$threshyear]
-# 
-#   ImemScore<-tmp[,3]
-#   MetaScore<-tmp[,2]
-#   names(MetaScore) <- names(ImemScore) <- rownames(C.YearUser)
-# 
-#   CombinedScoreA<-weightedmean3(m1=C.YearUser.A, m2=ImemScore, m3=MetaScore,
-#                                 w1=mixing_options$w_modelA, w2=mixing_options$w_imemA, w3=mixing_options$w_metaA)
-#   CombinedScoreB<-weightedmean3(m1=C.YearUser.B, m2=ImemScore, m3=MetaScore,
-#                                 w1=mixing_options$w_modelB, w2=mixing_options$w_imemB, w3=mixing_options$w_metaB)
-# 
-#   # CombinedScoreA<-na2zero(ModelScore.A * mixing_options$w_modelA) +
-#   #   na2zero(ImemScore * mixing_options$w_imemA) +
-#   #   na2zero(MetaScore * mixing_options$w_metaA)
-#   # CombinedScoreB<-na2zero(ModelScore.B * mixing_options$w_modelB) +
-#   #   na2zero(ImemScore * mixing_options$w_imemB) +
-#   #   na2zero(MetaScore * mixing_options$w_metaB)
-# 
-#   CombinedScore<-cbind(CombinedScoreB,CombinedScoreA)
-#   C.UserThresholds<-seq(0, 1, length.out=mixing_options$FinalGroups+1)
-#   C.YearUser<-t(apply(CombinedScore,1,cut,breaks=C.UserThresholds,include.lowest=TRUE,labels=rev(LEVELS)))
-#   colnames(C.YearUser)<-gsub('Y.','',colnames(ModelScore))
-# 
-#   C.YearUser.num<-level2num(C.YearUser,LEVELS,bounds=c(1,0))
-# 
-#   list(
-#     R.Score=R.YearUser,
-#     R.Score.Num=R.YearUser.num,
-#     C.Score=C.YearUser,
-#     C.Score.Num=C.YearUser.num,
-#     R.UserThresholds=UserThresholds,
-#     C.UserThresholds=C.UserThresholds,
-#     R.RawScore = ModelScore,
-#     C.RawScore = CombinedScore,
-#     MI.Score=MetaImemScore,
-#     NoData=NoData,
-#     ResModel=resMODEL,
-#     threshyear=mixing_options$threshyear,
-#     direction=direction,
-#     final.groups=mixing_options$FinalGroups,
-#     model.groups=model_classification_options$TranslateGroups,
-#     LEVELS=LEVELS)
-# }
-
-
-
 toeurostat<-function(x) {x[x=='GR']<-'EL'; x[x=='GB']<-'UK'; x}
 
 Meta_Reg$comment[Meta_Reg$iso2=='EE']<-'No sanctions'
@@ -1352,7 +1151,7 @@ Recalc_Meta_DeReg<-function(MetaDeReg,w1,w2,w3,w4,t1,t2, trustnordic){
                            "iso2")
   MetaDeReg<-datatable(MetaDeReg, options=list(pageLength=nrow(MetaDeReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
   MetaDeReg<-formatStyle(MetaDeReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-  MetaDeReg<-formatStyle(MetaDeReg, columns = "QuantMig score", color=styleEqual(c('Excellent', 'Low','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaDeReg<-formatStyle(MetaDeReg, columns = "QuantMig score", color=styleEqual(c('Excellent', 'Low','High'), c("#058505", "#008000","#FF0000")))
   MetaDeReg<-formatStyle(MetaDeReg, columns = "IMEM score", color=styleEqual(c('Low','High'), c("#008000","#FF0000")))
   MetaDeReg<-formatStyle(MetaDeReg, c(2,7,9), "border-right" = "solid 1px", "border-right-color"='black')
   MetaDeReg
@@ -1392,7 +1191,7 @@ Recalc_Meta_Reg<-function(MetaReg, trustnordic=TRUE){
   MetaReg<-datatable(MetaReg, rownames=FALSE, options=list(pageLength=nrow(MetaReg), lengthMenu=-1, dom='ft', columnDefs = list(list(className = 'dt-center', targets = '_all'))))
   MetaReg<-formatStyle(MetaReg, columns = "score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
   MetaReg<-formatStyle(MetaReg, columns = "IMEM score", color=styleEqual(c('Low', 'Medium','High'), c("#008000", "#FFA500","#FF0000")))
-  MetaReg<-formatStyle(MetaReg, columns = "QuantMig score", color=styleEqual(c('Excellent', 'Low','High'), c("#008000", "#FFA500","#FF0000")))
+  MetaReg<-formatStyle(MetaReg, columns = "QuantMig score", color=styleEqual(c('Excellent', 'Low','High'), c("#058505", "#008000","#FF0000")))
   MetaReg<-formatStyle(MetaReg, columns = "time limit", fontWeight = styleEqual('No limit', c("bold")))
   MetaReg<-formatStyle(MetaReg, columns = "comment", fontWeight = styleEqual('No sanctions', c("bold")))
   MetaReg<-formatStyle(MetaReg, c(2,5,7), "border-right" = "solid 1px", "border-right-color"='black')
