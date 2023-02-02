@@ -1516,7 +1516,17 @@ saveModel<-function(filename, RES){
 plotCombined<-function(RES, shownodat=TRUE) {
   par(mar=c(4,3,1.5,9.2),oma=c(0,0,0,0))
   if (shownodat) {
-    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS, namat =  RES$NoData[rownames(RES$C.Score.Num),])
+    # print('###')
+    # print(RES$NoData)
+    # print(rownames(RES$C.Score.Num))
+    # print()
+    # print(dim(RES$C.Score.Num))
+    # print(dim(RES$NoData))
+    missing_countries<-rownames(RES$C.Score.Num)[!rownames(RES$C.Score.Num)%in%rownames(RES$NoData)]
+    empty<-matrix(TRUE,length(missing_countries),dim(RES$C.Score.Num)[2])
+    rownames(empty)<-missing_countries
+    nodata<-rbind(RES$NoData,empty)
+    my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS, namat =  nodata[rownames(RES$C.Score.Num),])
   } else {
     my2dplot(1-RES$C.Score.Num, LEVELS=RES$LEVELS)
   }
@@ -1543,9 +1553,9 @@ saveCombined<-function(filename, RES){
 
 saveBFR<-function(filename, RES){
   #RES
-  print('XLSX SAVE')
-  print(names(RES))
-  print(filename)
+  # print('XLSX SAVE')
+  # print(names(RES))
+  # print(filename)
   wb <- createWorkbook()
   addWorksheet(wb, "Used options")
   addWorksheet(wb, "Original")
@@ -1568,7 +1578,7 @@ saveBFR<-function(filename, RES){
 #  openxlsx::write.xlsx(RES$original, filename, asTable=FALSE, overwrite = FALSE, colNames = TRUE, rowNames=TRUE, sheetName = 'Original',append = FALSE)
 #  openxlsx::write.xlsx(RES$imputed, filename, asTable=FALSE, overwrite = TRUE, colNames = TRUE, rowNames=TRUE, sheetName = 'Imputed',append = TRUE)
 #  openxlsx::write.xlsx(RES$raw, filename, asTable=FALSE, overwrite = TRUE, colNames = TRUE, rowNames=TRUE, sheetName = 'Raw',append = TRUE)
-  print('SAVED')
+  #print('SAVED')
   #original=D, imputed=imputed_data, raw
   # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
   # xlsx::write.xlsx(RES$scorenum, file = filename, sheetName = 'scorenum', append = TRUE, row.names = TRUE, col.names = TRUE)
