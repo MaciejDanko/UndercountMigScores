@@ -203,6 +203,8 @@ METAwtxt<-'Weight for the metadata <b>score num</b> obtained in <b>Immigration m
 MODELwtxt <- function(k='immigration') paste0('Weight for the <b>model score num</b> obtained in <b>',k,' model</b> tab used to calculate <b>Mean weighted scores</b> and <b>Classification of undercaunting</b> in this tab.')
 ThreshTxt <- '<b> Threshold year </b> allows you to set two different sets of weights for two separate time periods. It also separates the effect of IMEM and QuantMig expert opinion scores.'
 WeightsMixTxt <- 'Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous tabs).'
+MarkNoDataTxt<-'Selecting this option marks cases where the calculation of bilateral flow ratios was impossible due to the lack of flows in all reference country or in a country in question.'
+
 version<-'0.8.1'
 DOI<-'10.5281/zenodo.6612951'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
@@ -1313,7 +1315,7 @@ shinyUI <-  bootstrapPage(
 
                                                                          helper(checkboxInput("INoData", "Mark no data", value = TRUE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
-                                                                                content=c('Tick the cases where the calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.')
+                                                                                content=c(MarkNoDataTxt)
                                                                          )
                                                                   ),
                                                                   column(3,h5(HTML('Image format')),selectInput("IformatB", NULL,
@@ -1512,7 +1514,7 @@ shinyUI <-  bootstrapPage(
 
                                                                          helper(checkboxInput("ENoData", "Mark no data", value = TRUE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
-                                                                                content=c('Tick the cases where the calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.')
+                                                                                content=c(MarkNoDataTxt)
                                                                          )
                                                                   ),
                                                                   column(3,h5(HTML('Image format')),selectInput("EformatB", NULL,
@@ -1662,9 +1664,7 @@ shinyUI <-  bootstrapPage(
 
                                                                          helper(checkboxInput("INoData2", "Mark no data", value = FALSE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
-                                                                                content=c('This option refers to the modeled undercounting',
-                                                                                          'If selected it ticks the cases where calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.'
-                                                                                )),
+                                                                                content=c(MarkNoDataTxt)),
                                                                   ),
 
                                                                   column(3,h5(HTML('Image format')),selectInput("Iformat2", NULL,
@@ -1806,9 +1806,7 @@ shinyUI <-  bootstrapPage(
 
                                                                          helper(checkboxInput("ENoData2", "Mark no data", value = FALSE),
                                                                                 colour='#FF0000',type='inline',title='Mark no data',buttonLabel = 'Close',
-                                                                                content=c('This option refers to the modeled undercounting',
-                                                                                          'If selected it ticks the cases where calculation of bilateral flows ratios was impossible due to missing flows in the considered country or reference countries.'
-                                                                                )),
+                                                                                content=c(MarkNoDataTxt)),
                                                                   ),
 
                                                                   column(3,h5(HTML('Image format')),selectInput("Eformat2", NULL,

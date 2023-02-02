@@ -1561,7 +1561,10 @@ saveBFR<-function(filename, RES){
   addWorksheet(wb, "Original")
   addWorksheet(wb, "Imputed")
   addWorksheet(wb, "Raw")
-  Options<-data.frame(Parameter=c('Migration type','Reference countries','Duration of stay correction reference countries','Optimization criterion',
+  Options<-data.frame(Parameter=c('Migration type',
+                                  'Reference countries',
+                                  'Duration of stay correction reference countries',
+                                  'Optimization criterion',
                                   'Method of estimation','ncp for imputation method'),
                       Value=c(c('Immigration','Emigration')[1+(RES$direction=='E')], 
                               RES$type[2], RES$type[1], 
