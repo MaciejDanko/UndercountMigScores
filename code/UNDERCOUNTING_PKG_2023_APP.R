@@ -1547,11 +1547,18 @@ saveBFR<-function(filename, RES){
   print(names(RES))
   print(filename)
   wb <- createWorkbook()
-  #addWorksheet(wb, "Used options")
+  addWorksheet(wb, "Used options")
   addWorksheet(wb, "Original")
   addWorksheet(wb, "Imputed")
   addWorksheet(wb, "Raw")
-  
+  Options<-data.frame(Parameter=c('Migration type','Reference countries','Duration of stay correction reference countries','Optimization criterion',
+                                  'Method of estimation','ncp for imputation method'),
+                      Value=c(c('Immigration','Emigration')[1+(RES$direction=='E')], 
+                              RES$type[2], RES$type[1], 
+                              c('Multiplicative','Additive')[1+(RES$additive)],
+                              c('Together for immigration and emigration','Separated for immigration and emigration')[1+(RES$separated)],
+                              RES$ncp))
+  writeData(wb, "Used options", Options, startRow = 1, startCol = 1)
   writeData(wb, "Original", RES$original, startRow = 1, startCol = 1,rowNames = TRUE)
   writeData(wb, "Imputed", RES$imputed, startRow = 1, startCol = 1, rowNames = TRUE)
   writeData(wb, "Raw", RES$raw, startRow = 1, startCol = 1)
