@@ -506,7 +506,26 @@ shinyServer <-  function(input, output, session) {
     )
   })
 
+  BILRATIOSI<-reactive({
+    get_ui_result('I',
+                   refcountry=input$Irefcountry,
+                   raymer=input$Iraymer,
+                   additive = input$Iadditive,
+                   separated = input$Iseparated,
+                   ncp=input$Incp
+    )
+  })
 
+  BILRATIOSE<-reactive({
+    get_ui_result('E',
+                  refcountry=input$Erefcountry,
+                  raymer=input$Eraymer,
+                  additive = input$Eadditive,
+                  separated = input$Eseparated,
+                  ncp=input$Encp
+    )
+  })
+  
   CORRITAB<-reactive({
     get_correction('I', input$Iraymer, input$Iadditive, input$Iseparated)
   })
@@ -821,7 +840,24 @@ shinyServer <-  function(input, output, session) {
     }
   )
 
-
+  output$IsaveBFR<- downloadHandler(
+    filename = function() {
+      paste('Immi_Bilateral_Flows_Ratios', '.xlsx', sep='') },
+    content = function(filenamer) {
+      #print(filenamer)
+      saveBFR(filenamer, BILRATIOSI() )
+    }
+  )
+  
+  output$EsaveBFR<- downloadHandler(
+    filename = function() {
+      paste('Emi_Bilateral_Flows_Ratios', '.xlsx', sep='') },
+    content = function(filenamer) {
+      #print(filenamer)
+      saveBFR(filenamer, BILRATIOSE() )
+    }
+  )
+  
   output$I2yearshowA <- renderUI({
     yrange <- paste('Mixing weights before ',input$IYear,' (<b>A</b>)',sep='')
     h4(HTML(yrange))
@@ -1210,7 +1246,7 @@ shinyUI <-  bootstrapPage(
                                                               tags$hr(style="border-color: black;"),
                                                               checkboxGroupInput("Icountry", h4("Countries selection"),
                                                                                  choices = Countries, selected = IniCntrSel, inline = TRUE),
-                                                              actionButton("Iall", "All"),actionButton("Inone", "None"),
+                                                              actionButton("Iall", "All"),actionButton("Inone", "None"), downloadButton("IsaveBFR", "Download bilateral flows ratio data in xlsx format"),
                                                               br(),
                                                               br(),
                                                               plotOutput(outputId = "ImiPlot", height="700px", width='100%'),
@@ -1224,7 +1260,8 @@ shinyUI <-  bootstrapPage(
                                                                   column(6,selectInput("Iformat", NULL,
                                                                                        choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
                                                                   column(6,downloadButton("Isaveplot", "Save plot")))
-                                                 ))),
+                                                 )
+                                                 )),
                                 conditionalPanel(condition = "input.Ipanels == 2",
                                                  #sidebarPanel(width=8,
                                                  div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
@@ -1410,7 +1447,7 @@ shinyUI <-  bootstrapPage(
                                                               tags$hr(style="border-color: black;"),
                                                               checkboxGroupInput("Ecountry", h4("Countries selection"),
                                                                                  choices = Countries, selected = IniCntrSel, inline = TRUE),
-                                                              actionButton("Eall", "All"),actionButton("Enone", "None"),
+                                                              actionButton("Eall", "All"),actionButton("Enone", "None"),downloadButton("EsaveBFR", "Download bilateral flows ratio data in xlsx format"),
                                                               br(),
                                                               br(),
                                                               plotOutput(outputId = "EmiPlot", height="700px", width='100%'),
@@ -1423,8 +1460,10 @@ shinyUI <-  bootstrapPage(
                                                                   h5('Choose a format and save the plot'),
                                                                   column(6,selectInput("Eformat", NULL,
                                                                                        choices = list("pdf" = 'pdf', "png" = 'png',"tiff" = 'tiff'), selected = 1, width='100%')),
-                                                                  column(6,downloadButton("Esaveplot", "Save plot")))
-                                                 ))),
+                                                                  column(6,downloadButton("Esaveplot", "Save plot"))
+                                                                  )
+                                                 )
+                                                 )),
                                 conditionalPanel(condition = "input.Epanels == 2",
                                                  #sidebarPanel(width=8,
                                                  div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',

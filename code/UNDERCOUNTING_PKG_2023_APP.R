@@ -383,6 +383,49 @@ weightedmean3<-function(m1, m2, m3, w1, w2, w3){
   (na2zero(m1*w1)+na2zero(m2*w2)+na2zero(m3*w3))/w
 }
 
+getDataType<-function(refcountry=9,  corrected=1){
+  corrected<-as.character(corrected)
+  CORRE<-switch(corrected,
+                 '0' = 'NONE',
+                 '1' = 'IMEM',
+                 '2' = 'EXPERT',
+                 '3' = 'POIS',
+                 '4' = 'MIXED',
+                 '5' = 'NORDIC4',
+                 '6' = 'NORDIC',
+                 '7' = 'NORDIC+BE',
+                 '8' = 'NORDIC+CH',
+                 '9' = 'NORDIC+NL',
+                 '10' = 'NORDIC+BE+CH',
+                 '11' = 'NORDIC+BE+NL',
+                 '12' = 'NORDIC+CH+NL',
+                 '13' = 'NORDIC+BE+CH+NL',
+                 '14' = 'NORDIC+AT+BE+CH+NL',#DAT_ADD_OPT_B_UW_CHNLBEAT,
+                 '15' = 'NORDIC+AT+BE+CH+DE+NL',#DAT_ADD_OPT_B_UW_CHNLBEATDE,
+                 '16' = 'NORDIC+AT+BE+CH+DE+FR+NL',#DAT_ADD_OPT_B_UW_ATDEBECHFRNL,
+                 '17' = 'NORDIC+AT+BE+CH+DE+FR+IE+NL',#DAT_ADD_OPT_B_UW_ATDEBECHFRNLIE,
+                 '18' = 'NORDIC+AT+BE+CH+DE+FR+IE+NL+UK',#DAT_ADD_OPT_B_UW_ATDEBECHFRNLIEUK,
+                 '19' = 'ALL COUNTRIES')#DAT_ADD_OPT_B_UW_ALL)
+  
+  REFF<-switch(as.character(refcountry),
+               '1' = 'NORDIC4',
+               '2' = 'NORDIC',
+               '3' = 'NORDIC+BE',
+               '4' = 'NORDIC+CH',
+               '5' = 'NORDIC+NL',
+               '6' = 'NORDIC+BE+CH',
+               '7' = 'NORDIC+BE+NL',
+               '8' = 'NORDIC+CH+NL',
+               '9' = 'NORDIC+BE+CH+NL',
+               '10' = 'NORDIC+AT+BE+CH+NL',#DAT_ADD_OPT_B_UW_CHNLBEAT,
+               '11' = 'NORDIC+AT+BE+CH+DE+NL',#DAT_ADD_OPT_B_UW_CHNLBEATDE,
+               '12' = 'NORDIC+AT+BE+CH+DE+FR+NL',#DAT_ADD_OPT_B_UW_ATDEBECHFRNL,
+               '13' = 'NORDIC+AT+BE+CH+DE+FR+IE+NL',#DAT_ADD_OPT_B_UW_ATDEBECHFRNLIE,
+               '14' = 'NORDIC+AT+BE+CH+DE+FR+IE+NL+UK',#DAT_ADD_OPT_B_UW_ATDEBECHFRNLIEUK,
+               '15' = 'ALL COUNTRIES')
+  c(CORRE, REFF)
+}
+
 getUCCont<-function(refcountry=9, direction='E', corrected=1,
                     imputmax=7, ncp=1, additive=TRUE,
                     weighted=FALSE, separated=FALSE){
@@ -666,6 +709,19 @@ plot_ui_result<-function(direction, country, refcountry, stats, extrapol, raymer
   }
 }
 
+get_ui_result<-function(direction, refcountry, raymer, additive, separated, ncp){
+  cat(direction, refcountry, raymer,  additive, separated, ncp,'\n')
+  DAT<-getUCCont(refcountry=refcountry, direction=direction, corrected=raymer, imputmax=7, ncp=ncp, additive=additive,
+                   weighted=FALSE, separated=separated)
+  
+  DAT$type<-getDataType(refcountry, raymer)  
+  DAT$direction = direction
+  DAT$additive = additive
+  DAT$separated = separated
+  DAT$ncp = ncp
+  print(names(DAT))
+  return(DAT)
+}
 
 # Threshold - where metadata has stronger impact
 # 17, 23, 24, 3, 5, 45
@@ -1478,6 +1534,35 @@ getCombined<-function(RES) {
 saveCombined<-function(filename, RES){
   RES<-getCombined(RES)
   openxlsx::write.xlsx(RES, filename, FALSE, FALSE, colNames = TRUE, rowNames=TRUE)
+  # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$scorenum, file = filename, sheetName = 'scorenum', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$raw, file = filename, sheetName = 'raw', append = TRUE, row.names = TRUE, col.names = TRUE)
+  # xlsx::write.xlsx(RES$rawthresholds, file = filename, sheetName = 'thresholds', append = TRUE, row.names = TRUE, col.names = TRUE)
+}
+
+saveBFR<-function(filename, RES){
+  #RES
+  print('XLSX SAVE')
+  print(names(RES))
+  print(filename)
+  wb <- createWorkbook()
+  #addWorksheet(wb, "Used options")
+  addWorksheet(wb, "Original")
+  addWorksheet(wb, "Imputed")
+  addWorksheet(wb, "Raw")
+  
+  writeData(wb, "Original", RES$original, startRow = 1, startCol = 1,rowNames = TRUE)
+  writeData(wb, "Imputed", RES$imputed, startRow = 1, startCol = 1, rowNames = TRUE)
+  writeData(wb, "Raw", RES$raw, startRow = 1, startCol = 1)
+  
+  saveWorkbook(wb, file = filename, overwrite = FALSE)
+  
+#  openxlsx::write.xlsx(RES$original, filename, asTable=FALSE, overwrite = FALSE, colNames = TRUE, rowNames=TRUE, sheetName = 'Original',append = FALSE)
+#  openxlsx::write.xlsx(RES$imputed, filename, asTable=FALSE, overwrite = TRUE, colNames = TRUE, rowNames=TRUE, sheetName = 'Imputed',append = TRUE)
+#  openxlsx::write.xlsx(RES$raw, filename, asTable=FALSE, overwrite = TRUE, colNames = TRUE, rowNames=TRUE, sheetName = 'Raw',append = TRUE)
+  print('SAVED')
+  #original=D, imputed=imputed_data, raw
   # xlsx::write.xlsx(RES$score, file = filename, sheetName = 'score', append = FALSE, row.names = TRUE, col.names = TRUE)
   # xlsx::write.xlsx(RES$scorenum, file = filename, sheetName = 'scorenum', append = TRUE, row.names = TRUE, col.names = TRUE)
   # xlsx::write.xlsx(RES$nodata, file = filename, sheetName = 'no data', append = TRUE, row.names = TRUE, col.names = TRUE)
