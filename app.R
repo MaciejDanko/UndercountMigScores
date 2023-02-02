@@ -1524,10 +1524,10 @@ shinyUI <-  bootstrapPage(
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from emigration</b> - replaces current values of parameters with equivalent values from <b>Combined emigration scores</b> tab, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
 
                                   actionButton("I3weightsresetb", "Reset"),
-                                  actionButton("I3cloneb", "Clone from (E)"),
+                                  actionButton("I3cloneb", "Clone from emigration"),
                                   actionButton("I3recalcb", HTML("&#8721 weights = 1")),
 
                                   tags$hr(style="border-color: black; border-top: dashed 1px"),
@@ -1550,10 +1550,10 @@ shinyUI <-  bootstrapPage(
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from emigration</b> - replaces current values of parameters with equivalent values from <b>Combined emigration scores</b> tab, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
 
                                   actionButton("I3weightsreseta", "Reset"),
-                                  actionButton("I3clonea", "Clone from (E)"),
+                                  actionButton("I3clonea", "Clone from emigration"),
                                   actionButton("I3recalca", HTML("&#8721 weights = 1")),
                                   br(),
                                   br(),
@@ -1672,10 +1672,10 @@ shinyUI <-  bootstrapPage(
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parameters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from immigration</b> - replaces current values of parameters with equivalent values from <b>Combined immigration scores</b> tab, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
 
                                   actionButton("E3weightsresetb", "Reset"),
-                                  actionButton("E3cloneb", "Clone from (E)"),
+                                  actionButton("E3cloneb", "Clone from immigration"),
                                   actionButton("E3recalcb", HTML("&#8721 weights = 1")),
 
                                   tags$hr(style="border-color: black; border-top: dashed 1px"),
@@ -1697,10 +1697,10 @@ shinyUI <-  bootstrapPage(
 
                                   helper(tags$span(' '),
                                          colour='#FF0000',type='inline',title='Buttons',buttonLabel = 'Close',
-                                         content='<b>Reset</b> - restores default values, <b>Clone from (E)</b> - replaces current values of parameters with equivalent values of parmeters from <b>Combined scores (E)</b> page, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
+                                         content='<b>Reset</b> - restores default values, <b>Clone from immigration</b> - replaces current values of parameters with equivalent values from <b>Combined immigration scores</b> tab, <b>&#8721 weights = 1</b> makes all weights sum up to 1.'),
 
                                   actionButton("E3weightsreseta", "Reset"),
-                                  actionButton("E3clonea", "Clone from (I)"),
+                                  actionButton("E3clonea", "Clone from immigration"),
                                   actionButton("E3recalca", HTML("&#8721 weights = 1")),
                                   br(),
                                   br(),
