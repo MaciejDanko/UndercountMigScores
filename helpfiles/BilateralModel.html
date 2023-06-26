@@ -371,43 +371,35 @@ pre code {
 <h3><strong>General model assumptions</strong></h3>
 <p>
 The bilateral migration flow ratios are constructed by taking a flow
-from country <span class="math inline"><span class="math inline">\(X\)</span></span> to a group of countries with
-high-quality data reported by country <span class="math inline"><span class="math inline">\(X\)</span></span> and dividing it by the same flow
+from country <span class="math inline">\(X\)</span> to a group of
+countries with high-quality data reported by country <span class="math inline">\(X\)</span> and dividing it by the same flow
 reported by the reference countries. As a default set of the reference
-countries <span class="math inline"><span class="math inline">\(Y\)</span></span>, we have selected the Nordic
-countries (Denmark, Finland, Sweden, Norway, and Iceland), Belgium, the
-Netherlands, and Switzerland. These countries have been widely
-recognized by experts for having high-quality data. For example, these
-countries have been identified by both the IMEM and QuantMig projects as
-having low or very low levels of undercounting. Additionally, as
-indicated by our model, they exhibit the lowest levels of undercounting
-when compared to various reference country sets. Because the minimum
-duration of stay used in the definition of international migration may
-differ from country to country, the flows reported by each country need
-to be adjusted accordingly.
+countries <span class="math inline">\(Y\)</span>, we have selected the
+Nordic countries (Denmark, Finland, Sweden, Norway, and Iceland),
+Belgium, the Netherlands, and Switzerland. These countries have been
+widely recognized by experts for having high-quality data. For example,
+these countries have been identified by both the IMEM and QuantMig
+projects as having low or very low levels of undercounting.
+Additionally, as indicated by our model, they exhibit the lowest levels
+of undercounting when compared to various reference country sets.
+Because the minimum duration of stay used in the definition of
+international migration may differ from country to country, the flows
+reported by each country need to be adjusted accordingly.
 </p>
 <p>
-Formally, the undercounting ratio <span class="math inline"><span class="math inline">\(U^E_{X,Y,t}\)</span></span> for emigration data
-between country <span class="math inline"><span class="math inline">\(X\)</span></span> and set of countries <span class="math inline"><span class="math inline">\(Y\)</span></span> in
-year <span class="math inline"><span class="math inline">\(t\)</span></span>, can be defined as follows:
-<span class="math display"><span class="math display">\[\begin{equation}
-   U^E_{X,Y,t} = \frac{\sum_c M\left(X_t\rightarrow Y_{c,t}, X_t\right)
-R_{X_t}}{\sum_{c} M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right)
-R_{Y_{c,t}}},
-\end{equation}\]</span></span> where <span class="math inline"><span class="math inline">\(M\left(X_t\rightarrow Y_{c,t},
-X_t\right)\)</span></span> is the emigration flow from country <span class="math inline"><span class="math inline">\(X\)</span></span> to
-country <span class="math inline"><span class="math inline">\(Y_c\)</span></span> reported by country <span class="math inline"><span class="math inline">\(X\)</span></span> in
-year <span class="math inline"><span class="math inline">\(t\)</span></span>, <span class="math inline"><span class="math inline">\(M\left(X_t\rightarrow Y_{c,t},
-Y_{c,t}\right)\)</span></span> is the immigration flow from country
-<span class="math inline"><span class="math inline">\(X\)</span></span>
-to country <span class="math inline"><span class="math inline">\(Y_c\)</span></span> reported by country <span class="math inline"><span class="math inline">\(Y_c\)</span></span> in
-year <span class="math inline"><span class="math inline">\(t\)</span></span>, <span class="math inline"><span class="math inline">\(R_{X_t}\)</span></span> is the correction for
-duration of stay of country <span class="math inline"><span class="math inline">\(X\)</span></span> in year <span class="math inline"><span class="math inline">\(t\)</span></span>, and
-<span class="math inline"><span class="math inline">\(R_{Y_{c,t}}\)</span></span> is the correction for
-duration of stay of country <span class="math inline"><span class="math inline">\(Y_c\)</span></span> reported in year <span class="math inline"><span class="math inline">\(t\)</span></span>. The
-immigration bilateral flows ratios are calculated analogically. The
-correction reduces flows for stays of less than 12 months and increases
-them for permanent stays.
+Formally, the undercounting ratio <span class="math inline">\(U^E_{X,Y,t}\)</span> for emigration data between
+country <span class="math inline">\(X\)</span> and set of countries
+<span class="math inline">\(Y\)</span> in year <span class="math inline">\(t\)</span>, can be defined as follows: <span class="math display">\[ U^E_{X,Y,t} = \frac{\sum_c M\left(X_t\rightarrow
+Y_{c,t}, X_t\right) R_{X_t}}{\sum_{c} M\left(X_t\rightarrow Y_{c,t},
+Y_{c,t}\right) R_{Y_{c,t}}},\]</span> where <span class="math inline">\(M\left(X_t\rightarrow Y_{c,t}, X_t\right)\)</span>
+is the emigration flow from country <span class="math inline">\(X\)</span> to country <span class="math inline">\(Y_c\)</span> reported by country <span class="math inline">\(X\)</span> in year <span class="math inline">\(t\)</span>, <span class="math inline">\(M\left(X_t\rightarrow Y_{c,t},
+Y_{c,t}\right)\)</span> is the immigration flow from country <span class="math inline">\(X\)</span> to country <span class="math inline">\(Y_c\)</span> reported by country <span class="math inline">\(Y_c\)</span> in year <span class="math inline">\(t\)</span>, <span class="math inline">\(R_{X_t}\)</span> is the correction for duration of
+stay of country <span class="math inline">\(X\)</span> in year <span class="math inline">\(t\)</span>, and <span class="math inline">\(R_{Y_{c,t}}\)</span> is the correction for
+duration of stay of country <span class="math inline">\(Y_c\)</span>
+reported in year <span class="math inline">\(t\)</span>. The immigration
+bilateral flows ratios are calculated analogically. The correction
+reduces flows for stays of less than 12 months and increases them for
+permanent stays.
 </p>
 </div>
 <div id="duration-of-stay-correction-coefficients" class="section level3">
@@ -430,11 +422,10 @@ difference between the reported flows of a given country <span class="math inlin
 with high-quality data <span class="math inline">\(Y_c\)</span>. For
 emigration data, the objective function used in the optimization is
 defined as follows:</p>
-<p><span class="math display"><span class="math display">\[\begin{equation}
-H^E (R) = \sum_{X,Y,t} (\sum_{c} M\left(X_t\rightarrow Y_{c,t},
-X_t\right) R_{X_t} - \sum_{c} M\left(X_t\rightarrow Y_{c,t},
-Y_{c,t}\right) R_{Y_{c,t}} )^2
-\end{equation}\]</span></span></p>
+<p><span class="math display">\[ H^E (R) = \sum_{X,Y,t} (\sum_{c}
+M\left(X_t\rightarrow Y_{c,t}, X_t\right) R_{X_t} - \sum_{c}
+M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right) R_{Y_{c,t}} )^2
+\]</span></p>
 <p>The Shiny app also offers the option to use <span class="math inline">\(|log U|\)</span> (where <span class="math inline">\(U\)</span> is defined above) as an objective
 function, but the default option (shown above) is considered more
 suitable for our purposes as it is more sensitive to the magnitude of
@@ -532,11 +523,11 @@ implementation of Regulation (EC) 862/2007 which harmonized the
 definition of the duration of stay for all EU countries. Furthermore,
 migration statistics could have been retrospectively updated by using
 the 2011 round of censuses. In addition, the IMEM and the QuantMig
-expert opinions refer to separate time periods (2002–-2008 and
-2009–-2019, respectively). For this reason, we have split the
-contributions of the IMEM and QuantMig expert opinions, metadata, and
-models into two periods. This cut-off is defined by a flexible threshold
-parameter (set to 2009).</p>
+expert opinions refer to separate time periods (2002—2008 and 2009—2019,
+respectively). For this reason, we have split the contributions of the
+IMEM and QuantMig expert opinions, metadata, and models into two
+periods. This cut-off is defined by a flexible threshold parameter (set
+to 2009).</p>
 </div>
 <div id="references" class="section level3">
 <h3><strong>References</strong></h3>
