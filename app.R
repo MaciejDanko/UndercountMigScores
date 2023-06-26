@@ -1139,7 +1139,7 @@ shinyUI <-  bootstrapPage(
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
-                                         content='BilateralModel',size='s'),
+                                         content='BilateralModel',size='l'),
 
                                   tags$hr(style="border-color: black;"),
 
