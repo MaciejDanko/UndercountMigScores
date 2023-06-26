@@ -5,7 +5,9 @@
 The bilateral migration flow ratios are constructed by taking a flow from country $X$ to a group of countries with high-quality data reported by country $X$ and dividing it by the same flow reported by the reference countries. As a default set of the reference countries $Y$, we have selected the Nordic countries (Denmark, Finland, Sweden, Norway, and Iceland), Belgium, the Netherlands, and Switzerland. These countries have been widely recognized by experts for having high-quality data. For example, these countries have been identified by both the IMEM and QuantMig projects as having low or very low levels of undercounting. Additionally, as indicated by our model, they exhibit the lowest levels of undercounting when compared to various reference country sets. Because the minimum duration of stay used in the definition of international migration may differ from country to country, the flows reported by each country need to be adjusted accordingly.
 
 Formally, the undercounting ratio $U^E_{X,Y,t}$ for emigration data between country $X$ and set of countries $Y$ in year $t$, can be defined as follows: 
+
 $$ U^E_{X,Y,t} = \frac{\sum_c M\left(X_t\rightarrow Y_{c,t}, X_t\right) R_{X_t}}{\sum_{c} M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right) R_{Y_{c,t}}},$$ 
+
 where $M\left(X_t\rightarrow Y_{c,t}, X_t\right)$ is the emigration flow from country $X$ to country $Y_c$ reported by country $X$ in year $t$, $M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right)$ is the immigration flow from country $X$ to country $Y_c$ reported by country $Y_c$ in year $t$, $R_{X_t}$ is the correction for duration of stay of country $X$ in year $t$, and $R_{Y_{c,t}}$ is the correction for duration of stay of country $Y_c$ reported in year $t$. The immigration bilateral flows ratios are calculated analogically. The correction reduces flows for stays of less than 12 months and increases them for permanent stays.
 
 ### **Duration of stay correction coefficients**
