@@ -369,8 +369,7 @@ pre code {
 <h2><strong>The bilateral flows ratio model</strong></h2>
 <div id="general-model-assumptions" class="section level3">
 <h3><strong>General model assumptions</strong></h3>
-<p>
-The bilateral migration flow ratios are constructed by taking a flow
+<p>The bilateral migration flow ratios are constructed by taking a flow
 from country <span class="math inline">\(X\)</span> to a group of
 countries with high-quality data reported by country <span class="math inline">\(X\)</span> and dividing it by the same flow
 reported by the reference countries. As a default set of the reference
@@ -384,10 +383,8 @@ Additionally, as indicated by our model, they exhibit the lowest levels
 of undercounting when compared to various reference country sets.
 Because the minimum duration of stay used in the definition of
 international migration may differ from country to country, the flows
-reported by each country need to be adjusted accordingly.
-</p>
-<p>
-Formally, the undercounting ratio <span class="math inline">\(U^E_{X,Y,t}\)</span> for emigration data between
+reported by each country need to be adjusted accordingly.</p>
+<p>Formally, the undercounting ratio <span class="math inline">\(U^E_{X,Y,t}\)</span> for emigration data between
 country <span class="math inline">\(X\)</span> and set of countries
 <span class="math inline">\(Y\)</span> in year <span class="math inline">\(t\)</span>, can be defined as follows: <span class="math display">\[ U^E_{X,Y,t} = \frac{\sum_c M\left(X_t\rightarrow
 Y_{c,t}, X_t\right) R_{X_t}}{\sum_{c} M\left(X_t\rightarrow Y_{c,t},
@@ -399,8 +396,7 @@ duration of stay of country <span class="math inline">\(Y_c\)</span>
 reported in year <span class="math inline">\(t\)</span>. The immigration
 bilateral flows ratios are calculated analogically. The correction
 reduces flows for stays of less than 12 months and increases them for
-permanent stays.
-</p>
+permanent stays.</p>
 </div>
 <div id="duration-of-stay-correction-coefficients" class="section level3">
 <h3><strong>Duration of stay correction coefficients</strong></h3>
@@ -426,7 +422,7 @@ defined as follows:</p>
 M\left(X_t\rightarrow Y_{c,t}, X_t\right) R_{X_t} - \sum_{c}
 M\left(X_t\rightarrow Y_{c,t}, Y_{c,t}\right) R_{Y_{c,t}} )^2
 \]</span></p>
-<p>The Shiny app also offers the option to use <span class="math inline">\(|log U|\)</span> (where <span class="math inline">\(U\)</span> is defined above) as an objective
+<p>The Shiny app also offers the option to use |log <span class="math inline">\(U\)</span>| (where <span class="math inline">\(U\)</span> is defined above) as an objective
 function, but the default option (shown above) is considered more
 suitable for our purposes as it is more sensitive to the magnitude of
 differences between flows. The correction coefficients can be estimated
@@ -467,12 +463,11 @@ ratio.</p>
 </div>
 <div id="obtaining-normalized-undercounting-scores" class="section level3">
 <h3><strong>Obtaining normalized undercounting scores</strong></h3>
-<p>
 <p>Since bilateral flow ratios <span class="math inline">\(U\)</span>
-(quotients, see equation <span class="math inline">\(\ref{eq:1}\)</span>) are placed on the
-multiplicative scale, it is convenient to refer to their logarithms. The
-logarithm of bilateral flow ratios adjusted for the duration of stay
-ranges from - <span class="math inline">\(\infty\)</span> to + <span class="math inline">\(\infty\)</span>. Values greater than zero are
+(quotients, see equation above) are placed on the multiplicative scale,
+it is convenient to refer to their logarithms. The logarithm of
+bilateral flow ratios adjusted for the duration of stay ranges from -
+<span class="math inline">\(\infty\)</span> to + <span class="math inline">\(\infty\)</span>. Values greater than zero are
 considered overcounted, zero denotes no undercounting or overcounting,
 and negative values represent undercounting. These values are then
 projected to a discretized 0—1 scale (e.g., for a classification with
@@ -485,11 +480,11 @@ Generally, overcounting occurs when the reported migration flows exceed
 the actual number of migrants who leave or enter a country, which may
 happen for various reasons, such as double counting, reporting errors,
 irregular migration, or coverage differences. In our case, overcounting
-arises if a country reports more migration than the reference group
-(<span class="math inline">\(\log U &gt; 0\)</span>). However, it is
-unlikely that a pure overcounting class exists, as none of the countries
-have perfect data quality. As overcounting and undercounting issues may
-occur at the same time, disentangling them can be challenging.</p>
+arises if a country reports more migration than the reference group (log
+<span class="math inline">\(U &gt; 0\)</span>). However, it is unlikely
+that a pure overcounting class exists, as none of the countries have
+perfect data quality. As overcounting and undercounting issues may occur
+at the same time, disentangling them can be challenging.</p>
 <p>To address this issue, we propose two options. The first option is to
 combine the overcounting class with the lowest undercounting class,
 which is the default setting in our Shiny app. The second option is to
@@ -497,7 +492,6 @@ treat overcounting as a separate class. The results can be directly used
 to classify countries in migration models, or, after numerical
 representation (as described above), combined with expert opinion and
 metadata scores.</p>
-</p>
 </div>
 <div id="combining-multiple-source-of-information-on-undercounting" class="section level3">
 <h3><strong>Combining multiple source of information on
