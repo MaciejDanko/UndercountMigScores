@@ -205,7 +205,7 @@ ThreshTxt <- '<b> Threshold year </b> allows you to set two different sets of we
 WeightsMixTxt <- 'Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous tabs).'
 MarkNoDataTxt<-'Selecting this option marks cases where the calculation of bilateral flow ratios was impossible due to the lack of flows in all reference country or in a country in question.'
 
-version<-'0.8.1'
+version<-'0.8.2'
 DOI<-'10.5281/zenodo.6612951'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
 
@@ -957,7 +957,7 @@ shinyUI <-  bootstrapPage(
                                        h3(HTML(paste0('<b>UndercountMigScores v',version,'</b>'))),
                                        h4(HTML('<a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/ </a>')),
                                        br(),
-                                       h4('Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources'),
+                                       h4('Assessing the Level of Undercounting of International Migration Flows in Europe'),
                                        br(),
                                        h4('Maciej J. Dańko'),
                                        h4(HTML('email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a>')),
@@ -971,7 +971,7 @@ shinyUI <-  bootstrapPage(
                                        h5('____________________________________________________________________________'),
                                        h4('How to cite this software?'),
                                        h5(HTML(paste0('Maciej J. Dańko. UndercountMigScores ',version,'. (2023)<br>
-                                               Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources.
+                                               Assessing the Level of Undercounting of International Migration Flows in Europe.
                                                <br>DOI: ',DOI,'. URL:https://github.com/MaciejDanko/UndercountMigScore'))),
                                        downloadButton("downloadBIB", "Download citation in .bib format"),
                                        h5('____________________________________________________________________________'),

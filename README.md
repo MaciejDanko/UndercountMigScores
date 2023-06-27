@@ -1,9 +1,9 @@
 <a href="https://doi.org/10.5281/zenodo.6612951"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6612951.svg" alt="DOI"></a>
 <div class="col-sm-12" align="center">
-  <h3>UndercountMigScores v0.8.1</h3>
+  <h3>UndercountMigScores v0.8.2</h3>
   <h4><a href="https://maciej-jan-danko.shinyapps.io/undercountmigscores/"> https://maciej-jan-danko.shinyapps.io/undercountmigscores/</a></h4>
   <br>
-  <h4>Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources</h4>
+  <h4>Assessing the Level of Undercounting of International Migration Flows in Europe</h4>
   <br>
   <h4>Maciej J. Dańko</h4>
   <h4>email: <a href="mailto:name@email.com"> danko@demogr.mpg.de </a></h4>
@@ -15,8 +15,8 @@
   <br>
   <h5>____________________________________________________________________________</h5>
   <h4>How to cite this software?</h4>
-  <h5>Maciej J. Dańko. UndercountMigScores v0.8.1. (2023)<br>
-      Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources
+  <h5>Maciej J. Dańko. UndercountMigScores v0.8.2. (2023)<br>
+      Assessing the Level of Undercounting of International Migration Flows in Europe
       <br>10.5281/zenodo.6612951. url:https://github.com/MaciejDanko/UndercountMigScore'</h5>
   <h5>____________________________________________________________________________</h5>
   <h5>The newest version of the app is always available on GitHub. To run it use this R code:<br><span style="font-family: Courier New">shiny::runGitHub("MaciejDanko/UndercountMigScores", launch.browser = TRUE)</span><br></h5>

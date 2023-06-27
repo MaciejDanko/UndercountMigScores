@@ -4,8 +4,8 @@ authors:
   - family-names: Dańko
     given-names: Maciej J.
     orcid: https://orcid.org/0000-0002-7924-9022
-title: "UndercountMigScores. Assessing the Level of Undercounting in the InternationalMigration Flows Reported by Eurostat and Other Data Sources"
-version: 0.8.1
+title: "UndercountMigScores: Assessing the Level of Undercounting of International Migration Flows in Europe"
+version: 0.8.2
 doi: 10.5281/zenodo.6612951
 date-released: 2023
 url: https://github.com/MaciejDanko/UndercountMigScores
