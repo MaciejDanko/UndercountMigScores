@@ -206,7 +206,7 @@ WeightsMixTxt <- 'Weights used to calculate weighted mean of numerical scores fo
 MarkNoDataTxt<-'Selecting this option marks cases where the calculation of bilateral flow ratios was impossible due to the lack of flows in all reference country or in a country in question.'
 
 version<-'1.0.2'
-DOI<-'10.5281/zenodo.8085234'
+DOI<-'10.5281/zenodo.10789470'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
 
 #IniCntrSel<-c('ES','BG','FI','SK','IT')
