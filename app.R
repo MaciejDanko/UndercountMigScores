@@ -1,6 +1,6 @@
 rm(list=ls())
 
-library(Cairo)
+#library(Cairo)
 library(RColorBrewer)
 library(devtools)
 library(DT)
@@ -16,7 +16,7 @@ library(openxlsx)
 #remotes::install_github("rstudio/bslib")
 library(bslib)
 
-options(bitmapType="cairo")
+#options(bitmapType="cairo")
 source('./code/UNDERCOUNTING_PKG_2023_APP.R')
 
 
@@ -83,7 +83,7 @@ pie2<-function (x, labels = names(x), edges = 200, radius = 0.8, clockwise = FAL
 
 mypie<-function(x1,y1,z1,
                 x2,y2,z2,resize=1){
-  options(bitmapType="cairo")
+  #options(bitmapType="cairo")
   Z1<-x1+y1+z1
   Z2<-x2+y2+z2
   piecol<-c('#FFAACC','#AACCFF','#90DD90')
@@ -103,7 +103,7 @@ mypie<-function(x1,y1,z1,
 }
 
 mypie2<-function(x1,y1,z1,w1,resize=1){
-  options(bitmapType="cairo")
+  #options(bitmapType="cairo")
   Z1<-x1+y1+z1+w1
   piecol<-c('#FFAACC','#AACCFF','#EE9940','#90DD90')
   labels1<-paste(format(round(100*c(x1/Z1,y1/Z1,z1/Z1,w1/Z1),1),2),'%')
@@ -205,7 +205,7 @@ ThreshTxt <- '<b> Threshold year </b> allows you to set two different sets of we
 WeightsMixTxt <- 'Weights used to calculate weighted mean of numerical scores for metadata, IMEM, and model (see previous tabs).'
 MarkNoDataTxt<-'Selecting this option marks cases where the calculation of bilateral flow ratios was impossible due to the lack of flows in all reference country or in a country in question.'
 
-version<-'0.8.2'
+version<-'1.0.2'
 DOI<-'10.5281/zenodo.8085234'
 BADGE<-paste0('<a href="https://doi.org/',DOI,'"><img src="https://zenodo.org/badge/DOI/',DOI,'.svg" alt="DOI"></a>')
 
@@ -636,7 +636,7 @@ shinyServer <-  function(input, output, session) {
     rownames = TRUE,
     striped = TRUE,
     spacing = 'xs',
-    width = '100%',
+    width = '90%',
     align = 'c'
   )
 
@@ -921,13 +921,14 @@ shinyUI <-  bootstrapPage(
   tags$head(tags$style("body {min-width:100%; max-width: 100%}", media="screen", type="text/css")),
   theme = bs_theme(version = 3),
   titlePanel(HTML('<span style="color:#000070;font-family:Serif,Georgia,Serif"><b>UndercountMigScores</b></span>'),'UndercountMigScores'),
-  fluidRow(style='max-width:1800px; min-width:1300px',
+  #fluidRow(style='max-width:1900px; min-width:1300px',
+  div(class='row',style='width:5000px',
     column(width = 12,
            tags$head(tags$style("h3 {margin-top:0px;}", media="screen", type="text/css")),
            tags$head(tags$style("h4 {margin-top:0px;}", media="screen", type="text/css")),
            tags$head(tags$style("img {border:1px; border-color: #D5D5D5; border-style: solid;}", media="screen", type="text/css")),
-           #tags$head(tags$style("tabbable {max-width:1800px; min-width:1100px}", media="screen", type="text/css")),
-           #tags$head(tags$style("nav {max-width:1800px; min-width:1100px}", media="screen", type="text/css")),
+           #tags$head(tags$style("tabbable {max-width:1900px; min-width:1100px}", media="screen", type="text/css")),
+           #tags$head(tags$style("nav {max-width:1900px; min-width:1100px}", media="screen", type="text/css")),
            
            #tags$head(tags$style(".well {border:2px; border-color: #D5D5D5; border-style: solid; 
           #                      padding: 3px; background-color: #F5F5F5; margin:5px}", media="screen", type="text/css")), #margin-left: 10px; margin-bottom: 10px
@@ -950,7 +951,8 @@ shinyUI <-  bootstrapPage(
            br(),
            tabsetPanel(type='tabs',
                        
-                       tabPanel(title = PanelNames[1], style='max-width:1800px',
+                       #tabPanel(title = PanelNames[1], style='max-width:1900px',
+                       tabPanel(title = PanelNames[1], style='width:1280px',
                                 column(12,offset=0, align="center",
                                        br(),
                                        h3(HTML(BADGE)),
@@ -985,7 +987,7 @@ shinyUI <-  bootstrapPage(
                                        
                                 )
                        ),
-                       tabPanel(title = PanelNames[2],
+                       tabPanel(title = PanelNames[2], style='width:1280px',
                                 br(), #br(),
                                 #sidebarPanel(fluid=FALSE, width=4,
                                 div(class="row", style='margin-left:0px;',# max-width: 1600px',#style='margin:0px; padding:0px',
@@ -1051,7 +1053,7 @@ shinyUI <-  bootstrapPage(
                                              br(),br()
                                 ))),
                        ),
-                       tabPanel(title = PanelNames[3],
+                       tabPanel(title = PanelNames[3], style='width:1280px',
                                 br(), #br(),
                                 #sidebarPanel(fluid=FALSE,width=6,
                                 div(class="row", style='margin-left:0px',  #style='margin:0px; padding:0px',
@@ -1132,10 +1134,11 @@ shinyUI <-  bootstrapPage(
                                              br(),br()
                                 )))
                        ),
-                       tabPanel(title = PanelNames[4],
+                       tabPanel(title = PanelNames[4], style='width:1600px',
                                 br(),
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:410px',
+                                    #div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:410px',
+                                    div(class="col-lg-4", style='padding-right:0px; width:410px',
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
@@ -1202,7 +1205,8 @@ shinyUI <-  bootstrapPage(
                                                           content='From imputePCA {missMDA package}: "integer corresponding to the number of components used to to predict the missing entries".')),
                                 )), #)
                                 #sidebarPanel(width=8,
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                #div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                              h3(HTML('Classification options')),
                                              tags$hr(style="border-color: black;"),
@@ -1222,7 +1226,8 @@ shinyUI <-  bootstrapPage(
                                              span(HTML('&#160;'),style="font-size:1px; align: top;"),
                                              tags$head(tags$style("#Izupa .form-group.shiny-input-container {margin-bottom: 0px;}", media="screen", type="text/css")),
                                 )),
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                #div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
                                              radioGroupButtons(
@@ -1240,7 +1245,7 @@ shinyUI <-  bootstrapPage(
                                 tags$head(tags$style("#Ipanels .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
                                 conditionalPanel(condition = "input.Ipanels == 1",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
                                                               helper(h3('Bilateral flows ratios for immigration data'),
                                                                      colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
@@ -1266,7 +1271,7 @@ shinyUI <-  bootstrapPage(
                                                  )),
                                 conditionalPanel(condition = "input.Ipanels == 2",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
 
                                                               h3(HTML('Duration of stay by country of origin')),
@@ -1287,7 +1292,7 @@ shinyUI <-  bootstrapPage(
                                                  ))),
                                 conditionalPanel(condition = "input.Ipanels == 3",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
 
                                                               h3(HTML('Estimated log<sub>10</sub> ratios of the bilateral flows')),
@@ -1304,7 +1309,7 @@ shinyUI <-  bootstrapPage(
                                                  ))),
                                 conditionalPanel(condition = "input.Ipanels == 4",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
                                                               plotOutput(outputId = "ImiPlotB", height="700px", width='100%'),
@@ -1330,11 +1335,12 @@ shinyUI <-  bootstrapPage(
                        ),
                        
                        
-                       tabPanel(title = PanelNames[5],
+                       tabPanel(title = PanelNames[5], style='width:1600px',
                                 br(),#br(),
                                 #sidebarPanel(
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                    #div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                    div(class="col-lg-4", style='padding-right:0px; width:410px',
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   helper(h3("General model options"),colour='#FF0000',type='markdown',title='',buttonLabel = 'Close',
@@ -1375,7 +1381,7 @@ shinyUI <-  bootstrapPage(
                                   tags$head(tags$style("#corrEtab table th {background-color: #CCBBFF; }", media="screen", type="text/css")),
 
                                   conditionalPanel(condition = "input.Eraymer > 4",
-                                                   checkboxInput("Eseparated", "Use duration corrrection parameters calculated separately for immigration", value = FALSE),
+                                                   checkboxInput("Eseparated", "Use duration corrrection parameters calculated separately for emigration", value = FALSE),
                                                    checkboxInput("Eadditive", "Use additive optimization criteria (otherwise multiplicative)", value = TRUE),
                                   ),
                                                    tags$hr(style="border-color: black;"),
@@ -1401,7 +1407,7 @@ shinyUI <-  bootstrapPage(
                                                           colour='#FF0000',type='inline',title='ncp parameter',buttonLabel = 'Close',
                                                           content='From imputePCA {missMDA package}: "integer corresponding to the number of components used to to predict the missing entries".')),
                                 )),
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              h3(HTML('Classification options')),
@@ -1422,7 +1428,7 @@ shinyUI <-  bootstrapPage(
                                              span(HTML('&#160;'),style="font-size:1px; align: top;"),
                                              tags$head(tags$style("#Ezupa .form-group.shiny-input-container {margin-bottom: 0px;}", media="screen", type="text/css")),
                                 )),
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
@@ -1440,7 +1446,7 @@ shinyUI <-  bootstrapPage(
                                 tags$head(tags$style("#Epanels .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Epanels .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
                                 conditionalPanel(condition = "input.Epanels == 1",
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
                                                          
                                                               helper(h3('Bilateral flows ratios for emigration data'),
@@ -1468,7 +1474,7 @@ shinyUI <-  bootstrapPage(
                                                  )),
                                 conditionalPanel(condition = "input.Epanels == 2",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
                                                          
                                                               h3(HTML('Duration of stay by country of destination')),
@@ -1484,7 +1490,7 @@ shinyUI <-  bootstrapPage(
                                                  ))),
                                 conditionalPanel(condition = "input.Epanels == 3",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
                                                          
 
@@ -1502,7 +1508,7 @@ shinyUI <-  bootstrapPage(
                                                  ))),
                                 conditionalPanel(condition = "input.Epanels == 4",
                                                  #sidebarPanel(width=8,
-                                                 div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                                 div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                                      div(class='well', style="margin-bottom:15px;",
                                                          
                                                               h3(HTML('Classification of the bilateral flow ratios.')),
@@ -1527,7 +1533,7 @@ shinyUI <-  bootstrapPage(
                                                  ))),
                                 mainPanel(br(),br(),br(),br(),br())
                        ),
-                       tabPanel(title = PanelNames[8],
+                       tabPanel(title = PanelNames[8], style='width:1600px',
                                 br(), #br(),
                                 # div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
                                 #     div(class="col-lg-4", style='padding-right:0px; max-width:800px; min-width:200px',
@@ -1535,7 +1541,8 @@ shinyUI <-  bootstrapPage(
                                 #             
                                 #sidebarPanel(
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                    #div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                    div(class="col-lg-4", style='padding-right:0px; width:410px',
                                         div(class='well', style="margin-bottom:15px;",
                                   h3('Mixing options'),
                                   tags$hr(style="border-color: black;"),
@@ -1601,7 +1608,7 @@ shinyUI <-  bootstrapPage(
                                   br(),
                                 )),
                                 #sidebarPanel(width=8,
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              h3('Classification options'),
@@ -1612,7 +1619,7 @@ shinyUI <-  bootstrapPage(
                                              ),
                                 )),
                                 #sidebarPanel(width=8,
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
@@ -1630,7 +1637,7 @@ shinyUI <-  bootstrapPage(
                                 tags$head(tags$style("#Ipanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
 
                                 #sidebarPanel(width=8,
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              conditionalPanel(condition ="input.Ipanels2 == 1",
@@ -1678,10 +1685,11 @@ shinyUI <-  bootstrapPage(
 
                                 mainPanel(br(),br(),br(),br(),br()),
                        ),
-                       tabPanel(title = PanelNames[9],
+                       tabPanel(title = PanelNames[9], style='width:1600px',
                                 br(), #br(),
                                 div(class="row", style='margin-left:0px',#style='margin:0px; padding:0px',
-                                    div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                    #div(class="col-lg-4", style='padding-right:0px; max-width:960px; min-width:200px',
+                                    div(class="col-lg-4", style='padding-right:0px; width:410px',
                                         div(class='well', style="margin-bottom:15px;",
                                             
                                   h3('Mixing options'),
@@ -1745,7 +1753,7 @@ shinyUI <-  bootstrapPage(
                                   br(),
                                   br(),
                                 )),
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              h3('Classification options'),
@@ -1755,7 +1763,7 @@ shinyUI <-  bootstrapPage(
                                                     content='Undercounting is categorized according to uniformly spaced thresholds. See <b>Mean weighted scores</b> panel below.'
                                              ),
                                 )),
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              style='background-color: #FFFFFF; border-color: #FFFFFF; padding: 0px; margin-bottom: -15px;',
@@ -1772,7 +1780,7 @@ shinyUI <-  bootstrapPage(
                                 tags$head(tags$style("#Epanels2 .btn-danger {background-color: #FFBBBB; border-color: #DD9999;}", media="screen", type="text/css")),
                                 tags$head(tags$style("#Epanels2 .btn-danger.active {background-color: #CC0000; border-color: #AA0000;}", media="screen", type="text/css")),
 
-                                div(class="col-lg-8", style='padding-right:0px; max-width:960px; min-width:925px',
+                                div(class="col-lg-8", style='padding-right:0px; width:1060px',
                                     div(class='well', style="margin-bottom:15px;",
                                         
                                              conditionalPanel(condition ="input.Epanels2 == 1",
